@@ -7,6 +7,9 @@ function App() {
   const [status, setStatus] = useState("Ready");
   const [templates, setTemplates] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [runTemplateId, setRunTemplateId] = useState("");
+  const [runInputJson, setRunInputJson] = useState("{}");
+  const [runResult, setRunResult] = useState("");
 
   const functions = getFunctions(app);
 
@@ -24,9 +27,17 @@ function App() {
       await createTemplate({
         displayName: "Test Prompt " + new Date().toLocaleTimeString(),
         dotPromptString: `---
-model: gemini-1.5-flash
+model: gemini-2.5-flash
+input:
+  schema:
+    subject: 
+      type: string
+      default: "Programmer"
+    tone: 
+      type: string
+      default: "sarcastic"
 ---
-Tell me a joke about a software engineer.`
+Tell me a {{tone}} joke about a {{subject}}.`
       });
       setStatus("Template Created!");
       fetchTemplates(); // Refresh list automatically
@@ -78,6 +89,43 @@ Tell me a joke about a software engineer.`
     }
   };
 
+  const runTemplate = async () => {
+    if (!runTemplateId) {
+      alert("Please select a template first.");
+      return;
+    }
+
+    setStatus("Running template...");
+    setIsLoading(true);
+    setRunResult("");
+    const runPromptTemplate = httpsCallable(functions, 'runPromptTemplate');
+
+    try {
+      let reqBody = {};
+      try {
+        reqBody = JSON.parse(runInputJson);
+      } catch (e) {
+        alert("Invalid JSON input");
+        setIsLoading(false);
+        return;
+      }
+
+      const result = await runPromptTemplate({
+        templateId: runTemplateId,
+        reqBody: reqBody
+      });
+
+      setRunResult(JSON.stringify(result.data, null, 2));
+      setStatus("Run complete.");
+    } catch (error) {
+      console.error(error);
+      setStatus("Run Error: " + error.message);
+      setRunResult("Error: " + error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="card" style={{ maxWidth: '600px', margin: '0 auto' }}>
       <h1>Prompt Gallery</h1>
@@ -101,6 +149,60 @@ Tell me a joke about a software engineer.`
         <button onClick={fetchTemplates} disabled={isLoading}>
           Refresh List
         </button>
+      </div>
+
+      {/* Run Template Section */}
+      <div style={{
+        textAlign: 'left',
+        marginBottom: '20px',
+        padding: '15px',
+        border: '1px solid #ccc',
+        borderRadius: '8px'
+      }}>
+        <h3>Test Template</h3>
+        <div style={{ marginBottom: '10px' }}>
+          <label style={{ display: 'block', marginBottom: '5px' }}>Select Template:</label>
+          <select
+            value={runTemplateId}
+            onChange={(e) => setRunTemplateId(e.target.value)}
+            style={{ width: '100%', padding: '8px' }}
+          >
+            <option value="">-- Select a Template --</option>
+            {templates.map((t) => {
+              const id = getTemplateId(t.name);
+              return <option key={id} value={id}>{t.displayName} ({id})</option>;
+            })}
+          </select>
+        </div>
+
+        <div style={{ marginBottom: '10px' }}>
+          <label style={{ display: 'block', marginBottom: '5px' }}>Input JSON:</label>
+          <textarea
+            value={runInputJson}
+            onChange={(e) => setRunInputJson(e.target.value)}
+            rows={5}
+            style={{ width: '100%', fontFamily: 'monospace', padding: '8px' }}
+          />
+        </div>
+
+        <button onClick={runTemplate} disabled={isLoading || !runTemplateId}>
+          Run Template
+        </button>
+
+        {runResult && (
+          <div style={{ marginTop: '15px' }}>
+            <strong>Result:</strong>
+            <pre style={{
+              backgroundColor: '#f4f4f4',
+              padding: '10px',
+              borderRadius: '4px',
+              overflowX: 'auto',
+              maxHeight: '300px'
+            }}>
+              {runResult}
+            </pre>
+          </div>
+        )}
       </div>
 
       {/* List */}
