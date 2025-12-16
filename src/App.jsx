@@ -13,9 +13,11 @@ function App() {
 
     try {
       const result = await createTemplate({
-        templateId: "my-test-prompt-v1",
-        promptText: "Tell me a joke about a software engineer.",
-        modelName: "gemini-1.5-flash"
+        displayName: "Test Prompt",
+        dotPromptString: `---
+model: gemini-1.5-flash
+---
+Tell me a joke about a software engineer.`
       });
       console.log("Success:", result);
       setStatus("Template Created! Check Console.");

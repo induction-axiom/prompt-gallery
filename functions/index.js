@@ -1,10 +1,8 @@
-
-
-const { onCall } = require("firebase-functions/v2/https");
+const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { GoogleAuth } = require("google-auth-library");
 const { logger } = require("firebase-functions");
 
-// Initialize Google Auth to get a token for the Service Account
+// Initialize Google Auth
 const auth = new GoogleAuth({
     scopes: "https://www.googleapis.com/auth/cloud-platform",
 });
@@ -17,27 +15,29 @@ exports.createPromptTemplate = onCall(
     async (request) => {
         logger.info("createPromptTemplate function invoked.", { structuredData: true });
 
-        const { templateId, promptText, modelName } = request.data;
+        const { displayName, dotPromptString } = request.data;
         const projectId = process.env.GCLOUD_PROJECT;
         const location = "global";
-        logger.info(`Received request for Template ID: ${templateId}`, { model: modelName });
-        const url = `https://firebasevertexai.googleapis.com/v1beta/projects/${projectId}/locations/${location}/promptTemplates?promptTemplateId=${templateId}`;
+        logger.info(`Received request for Template Display Name: ${displayName}`, { dotPromptString: dotPromptString });
+        const url = `https://firebasevertexai.googleapis.com/v1beta/projects/${projectId}/locations/${location}/templates`;
         try {
             const client = await auth.getClient();
             const response = await client.request({
                 url: url,
                 method: "POST",
                 data: {
-                    displayName: templateId,
-                    model: modelName || "gemini-1.5-flash",
-                    prompt: { text: promptText }
+                    displayName: displayName,
+                    templateString: dotPromptString
                 },
             });
-            logger.info("Successfully created template in Vertex AI.", { status: response.status });
+
+            logger.info("Successfully created template.", { status: response.status });
             return response.data;
+
         } catch (error) {
             logger.error("Failed to create template", error);
-            const { HttpsError } = require("firebase-functions/v2/https");
+            // Return a clean error to the client
             throw new HttpsError('internal', 'Failed to create template', error.message);
         }
-    });
+    }
+);
