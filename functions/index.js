@@ -29,6 +29,22 @@ async function makeApiRequest({ url, method, data, params }) {
     }
 }
 
+async function verifyOwnership(templateId, auth) {
+    if (!auth) {
+        throw new HttpsError('unauthenticated', 'User must be authenticated');
+    }
+    const docRef = db.collection("prompts").doc(templateId);
+    const docFn = await docRef.get();
+
+    if (docFn.exists) {
+        const data = docFn.data();
+        if (data.ownerId && data.ownerId !== auth.uid) {
+            throw new HttpsError('permission-denied', 'You do not own this template');
+        }
+    }
+    return docRef; // Return lookup for potential reuse
+}
+
 exports.createPromptTemplate = onCall(
     { maxInstances: 10, enforceAppCheck: true },
     async (request) => {
@@ -47,7 +63,6 @@ exports.createPromptTemplate = onCall(
         // Sync to Firestore
         const templateId = result.name.split('/').pop();
         await db.collection("prompts").doc(templateId).set({
-            displayName,
             createdAt: FieldValue.serverTimestamp(),
             ownerId: request.auth ? request.auth.uid : 'anonymous'
         });
@@ -66,13 +81,16 @@ exports.deletePromptTemplate = onCall(
         }
         logger.info("deletePromptTemplate", { templateId });
 
+        // Check ownership
+        const docRef = await verifyOwnership(templateId, request.auth);
+
         const result = await makeApiRequest({
             url: `${BASE_URL}/${templateId}`,
             method: "DELETE",
         });
 
         // Sync to Firestore
-        await db.collection("prompts").doc(templateId).delete();
+        await docRef.delete();
 
         logger.info("Template deleted successfully from Vertex AI and Firestore");
         return result;
@@ -90,7 +108,26 @@ exports.listPromptTemplates = onCall(
             method: "GET",
             params: { pageSize, pageToken }
         });
-        return result;
+
+        const templates = result.templates || [];
+        if (templates.length === 0) return result;
+
+        // Join with Firestore data to get ownerId
+        const templateIds = templates.map(t => t.name.split('/').pop());
+        const refs = templateIds.map(id => db.collection("prompts").doc(id));
+        const snapshots = await db.getAll(...refs);
+
+        const enrichedTemplates = templates.map((template, index) => {
+            const doc = snapshots[index];
+            return {
+                ...template,
+                ownerId: doc.exists ? doc.data().ownerId : null,
+                // Also helpful to return createdAt if we have it
+                createdAt: doc.exists ? doc.data().createdAt : null
+            };
+        });
+
+        return { ...result, templates: enrichedTemplates };
     }
 );
 
@@ -120,8 +157,12 @@ exports.updatePromptTemplate = onCall(
 
         logger.info("updatePromptTemplate", { templateId });
 
+        // Check ownership
+        await verifyOwnership(templateId, request.auth);
+
         const updateFields = [];
         const data = {};
+
         if (displayName) {
             updateFields.push('displayName');
             data.displayName = displayName;
@@ -142,6 +183,10 @@ exports.updatePromptTemplate = onCall(
             method: "PATCH",
             data: data,
         });
+
+        // Sync to Firestore if needed
+        // (No longer syncing displayName as per user request)
+
         logger.info("Template updated successfully");
         return result;
     }
