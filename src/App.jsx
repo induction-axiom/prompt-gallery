@@ -76,7 +76,7 @@ function App() {
     setEditingTemplate(null);
     setFormDisplayName("");
     setFormDotPromptString(`---
-model: gemini-1.5-flash
+model: gemini-2.5-flash
 input:
   schema:
     subject: string
