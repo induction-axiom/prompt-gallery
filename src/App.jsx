@@ -23,12 +23,9 @@ function App() {
   // Editor State
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState(null);
-  const [formDisplayName, setFormDisplayName] = useState("");
-  const [formDotPromptString, setFormDotPromptString] = useState("");
 
   // Runner State
   const [selectedRunTemplate, setSelectedRunTemplate] = useState(null);
-  const [runInputJson, setRunInputJson] = useState('{}');
   const [runResult, setRunResult] = useState("");
 
   // Viewer State
@@ -111,27 +108,17 @@ function App() {
 
   const handleOpenCreate = () => {
     setEditingTemplate(null);
-    setFormDisplayName("");
-    setFormDotPromptString(`---
-model: gemini-2.5-flash
-input:
-  schema:
-    subject: string
----
-Tell me a joke about {{subject}}.`);
     setIsEditorOpen(true);
   };
 
   const handleOpenEdit = (e, template) => {
     e.stopPropagation();
     setEditingTemplate(template);
-    setFormDisplayName(template.displayName);
-    setFormDotPromptString(template.templateString || "");
     setIsEditorOpen(true);
   };
 
-  const saveTemplate = async () => {
-    if (!formDisplayName || !formDotPromptString) return alert("Missing fields");
+  const saveTemplate = async ({ displayName, dotPromptString }) => {
+    if (!displayName || !dotPromptString) return alert("Missing fields");
 
     setIsLoading(true);
     try {
@@ -140,16 +127,16 @@ Tell me a joke about {{subject}}.`);
         const updateFn = httpsCallable(functions, 'updatePromptTemplate');
         await updateFn({
           templateId: getTemplateId(editingTemplate.name),
-          displayName: formDisplayName,
-          dotPromptString: formDotPromptString
+          displayName,
+          dotPromptString
         });
         setStatus("Template Updated!");
       } else {
         setStatus("Creating...");
         const createFn = httpsCallable(functions, 'createPromptTemplate');
         await createFn({
-          displayName: formDisplayName,
-          dotPromptString: formDotPromptString
+          displayName,
+          dotPromptString
         });
         setStatus("Template Created!");
       }
@@ -185,17 +172,16 @@ Tell me a joke about {{subject}}.`);
   const openRunModal = (template) => {
     setSelectedRunTemplate(template);
     setRunResult("");
-    setRunInputJson('{"subject": "software engineers"}');
   };
 
-  const runTemplate = async () => {
+  const runTemplate = async ({ inputJson }) => {
     if (!selectedRunTemplate) return;
     setStatus("Running...");
     setIsLoading(true);
     setRunResult("");
     const runFn = httpsCallable(functions, 'runPromptTemplate');
     try {
-      const reqBody = JSON.parse(runInputJson);
+      const reqBody = JSON.parse(inputJson);
       const templateId = getTemplateId(selectedRunTemplate.name);
       const result = await runFn({ templateId, reqBody });
       setRunResult(JSON.stringify(result.data, null, 2));
@@ -246,10 +232,7 @@ Tell me a joke about {{subject}}.`);
         onClose={() => setIsEditorOpen(false)}
         onSave={saveTemplate}
         isLoading={isLoading}
-        formDisplayName={formDisplayName}
-        setFormDisplayName={setFormDisplayName}
-        formDotPromptString={formDotPromptString}
-        setFormDotPromptString={setFormDotPromptString}
+        initialData={editingTemplate}
       />
 
       <TemplateRunner
@@ -257,8 +240,6 @@ Tell me a joke about {{subject}}.`);
         onClose={() => setSelectedRunTemplate(null)}
         onRun={runTemplate}
         isLoading={isLoading}
-        runInputJson={runInputJson}
-        setRunInputJson={setRunInputJson}
         runResult={runResult}
       />
 
