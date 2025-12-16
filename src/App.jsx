@@ -5,82 +5,144 @@ import { app } from "./firebase";
 
 function App() {
   const [status, setStatus] = useState("Ready");
-  // State to hold the ID of the template to delete
-  const [templateIdToDelete, setTemplateIdToDelete] = useState("");
+  const [templates, setTemplates] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const functions = getFunctions(app);
+
+  // Helper to extract ID from full resource name
+  const getTemplateId = (fullResourceName) => {
+    return fullResourceName.split('/').pop();
+  };
 
   const saveTemplate = async () => {
-    setStatus("Calling create function...");
-    const functions = getFunctions(app);
+    setStatus("Creating template...");
+    setIsLoading(true);
     const createTemplate = httpsCallable(functions, 'createPromptTemplate');
 
     try {
-      const result = await createTemplate({
-        displayName: "Test Prompt",
+      await createTemplate({
+        displayName: "Test Prompt " + new Date().toLocaleTimeString(),
         dotPromptString: `---
 model: gemini-1.5-flash
 ---
 Tell me a joke about a software engineer.`
       });
-
-      console.log("Creation Success:", result);
-      // Helpful message to find the ID for testing delete
-      setStatus("Template Created! Check Console for the ID (look for 'name' field).");
+      setStatus("Template Created!");
+      fetchTemplates(); // Refresh list automatically
     } catch (error) {
-      console.error("Error:", error);
+      console.error(error);
       setStatus("Create Error: " + error.message);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const deleteTemplate = async () => {
-    if (!templateIdToDelete) {
-      setStatus("Please enter a Template ID first.");
-      return;
-    }
+  const fetchTemplates = async () => {
+    setStatus("Fetching templates...");
+    setIsLoading(true);
+    const listTemplates = httpsCallable(functions, 'listPromptTemplates');
 
-    setStatus("Calling delete function...");
-    const functions = getFunctions(app);
+    try {
+      const result = await listTemplates();
+      const fetchedTemplates = result.data.templates || [];
+      console.log(fetchedTemplates);
+      setTemplates(fetchedTemplates);
+      setStatus(`Loaded ${fetchedTemplates.length} templates.`);
+    } catch (error) {
+      console.error(error);
+      setStatus("List Error: " + error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const deleteTemplate = async (fullResourceName) => {
+    const templateId = getTemplateId(fullResourceName);
+
+    if (!window.confirm(`Are you sure you want to delete template ${templateId}?`)) return;
+
+    setStatus(`Deleting ${templateId}...`);
+    setIsLoading(true);
     const deleteFn = httpsCallable(functions, 'deletePromptTemplate');
 
     try {
-      // Pass the ID to the backend function
-      await deleteFn({ templateId: templateIdToDelete });
-
-      console.log("Delete Success");
-      setStatus(`Successfully deleted template: ${templateIdToDelete}`);
-      setTemplateIdToDelete(""); // Clear input on success
+      await deleteFn({ templateId: templateId });
+      setStatus("Deleted successfully.");
+      fetchTemplates(); // Refresh list automatically
     } catch (error) {
-      console.error("Error:", error);
+      console.error(error);
       setStatus("Delete Error: " + error.message);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="card">
-      <h1>Prompt Manager</h1>
+    <div className="card" style={{ maxWidth: '600px', margin: '0 auto' }}>
+      <h1>Prompt Gallery</h1>
 
-      <div style={{ padding: '20px', border: '1px solid #ccc', borderRadius: '8px', marginBottom: '20px' }}>
-        <h2>1. Create</h2>
-        <button onClick={saveTemplate}>
-          Create Test Template
-        </button>
-      </div>
-
-      <div style={{ padding: '20px', border: '1px solid #ccc', borderRadius: '8px' }}>
-        <h2>2. Delete</h2>
-        <input
-          type="text"
-          value={templateIdToDelete}
-          onChange={(e) => setTemplateIdToDelete(e.target.value)}
-          placeholder="Paste Template ID here"
-          style={{ padding: '8px', marginRight: '10px', width: '200px' }}
-        />
-        <button onClick={deleteTemplate} style={{ backgroundColor: '#ff4444' }}>
-          Delete Template
-        </button>
-      </div>
-
-      <div style={{ marginTop: '20px' }}>
+      {/* Status Bar */}
+      <div style={{
+        padding: '10px',
+        marginBottom: '20px',
+        backgroundColor: '#f0f0f0',
+        borderRadius: '4px',
+        color: '#333'
+      }}>
         <strong>Status:</strong> {status}
+      </div>
+
+      {/* Controls */}
+      <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', justifyContent: 'center' }}>
+        <button onClick={saveTemplate} disabled={isLoading}>
+          Create New Template
+        </button>
+        <button onClick={fetchTemplates} disabled={isLoading}>
+          Refresh List
+        </button>
+      </div>
+
+      {/* List */}
+      <div style={{ textAlign: 'left' }}>
+        <h3>Your Templates ({templates.length})</h3>
+
+        {templates.length === 0 ? (
+          <p style={{ color: '#888', fontStyle: 'italic' }}>No templates found. Create one above!</p>
+        ) : (
+          <ul style={{ listStyle: 'none', padding: 0 }}>
+            {templates.map((t) => (
+              <li key={t.name} style={{
+                padding: '10px',
+                border: '1px solid #ddd',
+                marginBottom: '8px',
+                borderRadius: '8px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+              }}>
+                <div>
+                  <strong style={{ fontSize: '1.1em' }}>{t.displayName}</strong>
+                  <br />
+                  <small style={{ color: '#666', fontFamily: 'monospace' }}>
+                    ID: {getTemplateId(t.name)}
+                  </small>
+                </div>
+                <button
+                  onClick={() => deleteTemplate(t.name)}
+                  disabled={isLoading}
+                  style={{
+                    backgroundColor: '#ff444445',
+                    fontSize: '0.8em',
+                    padding: '5px 10px'
+                  }}
+                >
+                  Delete
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </div>
   )
