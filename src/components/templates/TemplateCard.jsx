@@ -1,6 +1,6 @@
 import React from 'react';
 
-const TemplateCard = ({ template, onRun, onEdit, onDelete, getTemplateId }) => {
+const TemplateCard = ({ template, onRun, onView, onEdit, onDelete, getTemplateId }) => {
     return (
         <div className="border border-[#e0e0e0] rounded-xl p-5 bg-white shadow-sm flex flex-col h-[180px]">
             <div className="flex-1 cursor-pointer" onClick={onRun}>
@@ -11,6 +11,12 @@ const TemplateCard = ({ template, onRun, onEdit, onDelete, getTemplateId }) => {
             </div>
 
             <div className="mt-[15px] flex justify-end gap-2.5 border-t border-[#f0f0f0] pt-[15px]">
+                <button
+                    onClick={(e) => { e.stopPropagation(); onView(template); }}
+                    className="px-3 py-1.5 text-xs rounded opacity-100 hover:opacity-90 inline-flex items-center justify-center border-none cursor-pointer transition-opacity bg-[#f6ffed] text-[#52c41a] font-bold"
+                >
+                    Read
+                </button>
                 <button
                     onClick={onRun}
                     className="px-3 py-1.5 text-xs rounded opacity-100 hover:opacity-90 inline-flex items-center justify-center border-none cursor-pointer transition-opacity bg-[#e6f7ff] text-[#1890ff] font-bold"

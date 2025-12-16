@@ -128,3 +128,20 @@ exports.updatePromptTemplate = onCall(
         return result;
     }
 );
+
+exports.getPromptTemplate = onCall(
+    { maxInstances: 10, enforceAppCheck: true },
+    async (request) => {
+        const { templateId } = request.data;
+        if (!templateId) {
+            throw new HttpsError('invalid-argument', 'Missing templateId');
+        }
+        logger.info("getPromptTemplate", { templateId });
+
+        const result = await makeApiRequest({
+            url: `${BASE_URL}/${templateId}`,
+            method: "GET",
+        });
+        return result;
+    }
+);
