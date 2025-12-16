@@ -130,3 +130,51 @@ exports.runPromptTemplate = onCall(
         }
     }
 );
+
+exports.updatePromptTemplate = onCall(
+    {
+        maxInstances: 10,
+        enforceAppCheck: true
+    },
+    async (request) => {
+        logger.info("updatePromptTemplate function invoked.", { structuredData: true });
+
+        const { templateId, displayName, dotPromptString } = request.data;
+        const projectId = process.env.GCLOUD_PROJECT;
+        const location = "global";
+
+        if (!templateId) {
+            throw new HttpsError('invalid-argument', 'The function must be called with a "templateId" argument.');
+        }
+        const url = `https://firebasevertexai.googleapis.com/v1beta/projects/${projectId}/locations/${location}/templates/${templateId}`;
+        const updateFields = [];
+        const data = {};
+        if (displayName) {
+            updateFields.push('displayName');
+            data.displayName = displayName;
+        }
+        if (dotPromptString) {
+            updateFields.push('templateString');
+            data.templateString = dotPromptString;
+        }
+        if (updateFields.length === 0) {
+            throw new HttpsError('invalid-argument', 'Provide at least one field to update (displayName or dotPromptString).');
+        }
+        const updateMask = updateFields.join(',');
+        const requestUrl = `${url}?updateMask=${updateMask}`;
+        logger.info(`Updating template ${templateId} with mask: ${updateMask}`);
+        try {
+            const client = await auth.getClient();
+            const response = await client.request({
+                url: requestUrl,
+                method: "PATCH",
+                data: data,
+            });
+            logger.info("Successfully updated template.", { status: response.status });
+            return response.data;
+        } catch (error) {
+            logger.error("Failed to update template", error);
+            throw new HttpsError('internal', 'Failed to update template', error.message);
+        }
+    }
+);

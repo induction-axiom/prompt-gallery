@@ -3,7 +3,7 @@ import './App.css'
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { app } from "./firebase";
 
-// --- Simple Modal Component ---
+// --- Reusable Modal Component ---
 const Modal = ({ title, onClose, children, footer }) => {
   return (
     <div style={{
@@ -16,7 +16,7 @@ const Modal = ({ title, onClose, children, footer }) => {
         boxShadow: '0 4px 6px rgba(0,0,0,0.1)', display: 'flex', flexDirection: 'column', gap: '15px'
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #eee', paddingBottom: '10px' }}>
-          <h2 style={{ margin: 0 }}>{title}</h2>
+          <h2 style={{ margin: 0, fontSize: '1.25rem' }}>{title}</h2>
           <button onClick={onClose} style={{ border: 'none', background: 'transparent', fontSize: '1.5rem', cursor: 'pointer' }}>&times;</button>
         </div>
         <div style={{ flex: 1 }}>{children}</div>
@@ -32,33 +32,32 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
 
   // -- Modal States --
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [selectedTemplate, setSelectedTemplate] = useState(null); // If set, Run modal is open
+  // 'editingTemplate' holds the template object if we are editing, or null if creating
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
+  const [editingTemplate, setEditingTemplate] = useState(null);
 
-  // -- Form States --
-  const [newDisplayName, setNewDisplayName] = useState("");
-  const [newDotPromptString, setNewDotPromptString] = useState(`---
-model: gemini-2.5-flash
-input:
-  schema:
-    subject: string
----
-Tell me a joke about {{subject}}.`);
+  const [selectedRunTemplate, setSelectedRunTemplate] = useState(null);
 
+  // -- Editor Form States --
+  const [formDisplayName, setFormDisplayName] = useState("");
+  const [formDotPromptString, setFormDotPromptString] = useState("");
+
+  // -- Run Form States --
   const [runInputJson, setRunInputJson] = useState('{}');
   const [runResult, setRunResult] = useState("");
 
   const functions = getFunctions(app);
 
-  // Load templates on mount
   useEffect(() => {
     fetchTemplates();
   }, []);
 
   const getTemplateId = (fullResourceName) => fullResourceName ? fullResourceName.split('/').pop() : 'Unknown';
 
+  // --- Handlers ---
+
   const fetchTemplates = async () => {
-    setStatus("Fetching templates...");
+    setStatus("Fetching...");
     setIsLoading(true);
     const listTemplates = httpsCallable(functions, 'listPromptTemplates');
     try {
@@ -67,31 +66,61 @@ Tell me a joke about {{subject}}.`);
       setStatus("Ready");
     } catch (error) {
       console.error(error);
-      setStatus("Error fetching: " + error.message);
+      setStatus("Fetch Error: " + error.message);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const saveTemplate = async () => {
-    if (!newDisplayName || !newDotPromptString) return alert("Missing fields");
-    setStatus("Creating...");
-    setIsLoading(true);
-    const createTemplate = httpsCallable(functions, 'createPromptTemplate');
-    try {
-      await createTemplate({ displayName: newDisplayName, dotPromptString: newDotPromptString });
-      setStatus("Template Created!");
-      setIsCreateOpen(false); // Close modal
-      fetchTemplates(); // Refresh
-      // Reset form
-      setNewDisplayName("");
-      setNewDotPromptString(`---
+  const handleOpenCreate = () => {
+    setEditingTemplate(null);
+    setFormDisplayName("");
+    setFormDotPromptString(`---
 model: gemini-1.5-flash
 input:
   schema:
     subject: string
 ---
 Tell me a joke about {{subject}}.`);
+    setIsEditorOpen(true);
+  };
+
+  const handleOpenEdit = (e, template) => {
+    e.stopPropagation(); // Stop card click (which opens Run)
+    setEditingTemplate(template);
+    setFormDisplayName(template.displayName);
+    setFormDotPromptString(template.templateString || ""); // API returns 'templateString'
+    setIsEditorOpen(true);
+  };
+
+  const saveTemplate = async () => {
+    if (!formDisplayName || !formDotPromptString) return alert("Missing fields");
+
+    setIsLoading(true);
+    try {
+      if (editingTemplate) {
+        // --- UPDATE MODE ---
+        setStatus("Updating...");
+        const updateFn = httpsCallable(functions, 'updatePromptTemplate');
+        await updateFn({
+          templateId: getTemplateId(editingTemplate.name),
+          displayName: formDisplayName,
+          dotPromptString: formDotPromptString
+        });
+        setStatus("Template Updated!");
+      } else {
+        // --- CREATE MODE ---
+        setStatus("Creating...");
+        const createFn = httpsCallable(functions, 'createPromptTemplate');
+        await createFn({
+          displayName: formDisplayName,
+          dotPromptString: formDotPromptString
+        });
+        setStatus("Template Created!");
+      }
+
+      setIsEditorOpen(false);
+      fetchTemplates();
     } catch (error) {
       console.error(error);
       alert("Error: " + error.message);
@@ -101,7 +130,7 @@ Tell me a joke about {{subject}}.`);
   };
 
   const deleteTemplate = async (e, fullResourceName) => {
-    e.stopPropagation(); // Prevent opening the run modal
+    e.stopPropagation();
     const templateId = getTemplateId(fullResourceName);
     if (!window.confirm(`Delete "${templateId}"?`)) return;
 
@@ -120,20 +149,20 @@ Tell me a joke about {{subject}}.`);
   };
 
   const openRunModal = (template) => {
-    setSelectedTemplate(template);
+    setSelectedRunTemplate(template);
     setRunResult("");
-    setRunInputJson('{"subject": "software engineers"}'); // Default test input
+    setRunInputJson('{"subject": "software engineers"}');
   };
 
   const runTemplate = async () => {
-    if (!selectedTemplate) return;
+    if (!selectedRunTemplate) return;
     setStatus("Running...");
     setIsLoading(true);
     setRunResult("");
     const runFn = httpsCallable(functions, 'runPromptTemplate');
     try {
       const reqBody = JSON.parse(runInputJson);
-      const templateId = getTemplateId(selectedTemplate.name);
+      const templateId = getTemplateId(selectedRunTemplate.name);
       const result = await runFn({ templateId, reqBody });
       setRunResult(JSON.stringify(result.data, null, 2));
       setStatus("Run Complete");
@@ -154,7 +183,7 @@ Tell me a joke about {{subject}}.`);
           <small style={{ color: '#666' }}>Status: {status}</small>
         </div>
         <button
-          onClick={() => setIsCreateOpen(true)}
+          onClick={handleOpenCreate}
           style={{ padding: '10px 20px', fontSize: '1rem', backgroundColor: '#1890ff', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
         >
           + New Template
@@ -166,23 +195,37 @@ Tell me a joke about {{subject}}.`);
         {templates.map((t) => (
           <div
             key={t.name}
-            onClick={() => openRunModal(t)}
             style={{
               border: '1px solid #e0e0e0', borderRadius: '12px', padding: '20px',
-              cursor: 'pointer', backgroundColor: '#fff', transition: 'transform 0.2s, box-shadow 0.2s',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.05)', position: 'relative'
+              backgroundColor: '#fff', boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+              display: 'flex', flexDirection: 'column', height: '180px'
             }}
-            onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 8px 16px rgba(0,0,0,0.1)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.05)'; }}
           >
-            <h3 style={{ margin: '0 0 10px 0', color: '#333' }}>{t.displayName}</h3>
-            <p style={{ margin: 0, color: '#888', fontSize: '0.85rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              ID: {getTemplateId(t.name)}
-            </p>
-            <div style={{ marginTop: '15px', display: 'flex', justifyContent: 'flex-end' }}>
+            {/* Card Content */}
+            <div style={{ flex: 1, cursor: 'pointer' }} onClick={() => openRunModal(t)}>
+              <h3 style={{ margin: '0 0 10px 0', color: '#333' }}>{t.displayName}</h3>
+              <p style={{ margin: 0, color: '#888', fontSize: '0.85rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                ID: {getTemplateId(t.name)}
+              </p>
+            </div>
+
+            {/* Card Actions */}
+            <div style={{ marginTop: '15px', display: 'flex', justifyContent: 'flex-end', gap: '10px', borderTop: '1px solid #f0f0f0', paddingTop: '15px' }}>
+              <button
+                onClick={() => openRunModal(t)}
+                style={{ backgroundColor: '#e6f7ff', color: '#1890ff', border: 'none', borderRadius: '4px', padding: '6px 12px', fontSize: '0.8rem', cursor: 'pointer', fontWeight: 'bold' }}
+              >
+                Run
+              </button>
+              <button
+                onClick={(e) => handleOpenEdit(e, t)}
+                style={{ backgroundColor: '#f9f0ff', color: '#722ed1', border: 'none', borderRadius: '4px', padding: '6px 12px', fontSize: '0.8rem', cursor: 'pointer' }}
+              >
+                Edit
+              </button>
               <button
                 onClick={(e) => deleteTemplate(e, t.name)}
-                style={{ backgroundColor: '#ffccc7', color: '#cf1322', border: 'none', borderRadius: '4px', padding: '4px 8px', fontSize: '0.8rem', cursor: 'pointer' }}
+                style={{ backgroundColor: '#fff1f0', color: '#f5222d', border: 'none', borderRadius: '4px', padding: '6px 12px', fontSize: '0.8rem', cursor: 'pointer' }}
               >
                 Delete
               </button>
@@ -191,20 +234,16 @@ Tell me a joke about {{subject}}.`);
         ))}
       </div>
 
-      {templates.length === 0 && !isLoading && (
-        <div style={{ textAlign: 'center', padding: '40px', color: '#999' }}>No templates found. Create one to get started!</div>
-      )}
-
-      {/* --- Create Modal --- */}
-      {isCreateOpen && (
+      {/* --- Create / Edit Modal --- */}
+      {isEditorOpen && (
         <Modal
-          title="Create New Prompt"
-          onClose={() => setIsCreateOpen(false)}
+          title={editingTemplate ? "Edit Template" : "Create New Template"}
+          onClose={() => setIsEditorOpen(false)}
           footer={
             <>
-              <button onClick={() => setIsCreateOpen(false)} style={{ padding: '8px 16px', cursor: 'pointer' }}>Cancel</button>
+              <button onClick={() => setIsEditorOpen(false)} style={{ padding: '8px 16px', cursor: 'pointer', border: '1px solid #ccc', borderRadius: '4px', background: 'white' }}>Cancel</button>
               <button onClick={saveTemplate} disabled={isLoading} style={{ padding: '8px 16px', backgroundColor: '#1890ff', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
-                {isLoading ? 'Creating...' : 'Create'}
+                {isLoading ? 'Saving...' : 'Save Template'}
               </button>
             </>
           }
@@ -213,29 +252,28 @@ Tell me a joke about {{subject}}.`);
             <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Display Name</label>
             <input
               type="text"
-              value={newDisplayName}
-              onChange={(e) => setNewDisplayName(e.target.value)}
+              value={formDisplayName}
+              onChange={(e) => setFormDisplayName(e.target.value)}
               placeholder="e.g., Joke Generator"
               style={{ width: '100%', padding: '8px', boxSizing: 'border-box', border: '1px solid #ddd', borderRadius: '4px' }}
             />
           </div>
-          <div>
+          <div style={{ height: '300px', display: 'flex', flexDirection: 'column' }}>
             <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>DotPrompt String</label>
             <textarea
-              value={newDotPromptString}
-              onChange={(e) => setNewDotPromptString(e.target.value)}
-              rows={12}
-              style={{ width: '100%', padding: '8px', boxSizing: 'border-box', fontFamily: 'monospace', border: '1px solid #ddd', borderRadius: '4px', resize: 'vertical' }}
+              value={formDotPromptString}
+              onChange={(e) => setFormDotPromptString(e.target.value)}
+              style={{ flex: 1, width: '100%', padding: '10px', boxSizing: 'border-box', fontFamily: 'monospace', border: '1px solid #ddd', borderRadius: '4px', resize: 'none' }}
             />
           </div>
         </Modal>
       )}
 
       {/* --- Run Modal --- */}
-      {selectedTemplate && (
+      {selectedRunTemplate && (
         <Modal
-          title={`Run: ${selectedTemplate.displayName}`}
-          onClose={() => setSelectedTemplate(null)}
+          title={`Run: ${selectedRunTemplate.displayName}`}
+          onClose={() => setSelectedRunTemplate(null)}
           footer={
             <button onClick={runTemplate} disabled={isLoading} style={{ padding: '10px 20px', backgroundColor: '#52c41a', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
               {isLoading ? 'Running...' : 'Run Prompt'}
@@ -255,14 +293,13 @@ Tell me a joke about {{subject}}.`);
           {runResult && (
             <div style={{ marginTop: '20px' }}>
               <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Result</label>
-              <pre style={{ backgroundColor: '#f5f5f5', padding: '15px', borderRadius: '6px', overflowX: 'auto', border: '1px solid #eee' }}>
+              <pre style={{ backgroundColor: '#f5f5f5', padding: '15px', borderRadius: '6px', overflowX: 'auto', border: '1px solid #eee', maxHeight: '200px' }}>
                 {runResult}
               </pre>
             </div>
           )}
         </Modal>
       )}
-
     </div>
   )
 }
