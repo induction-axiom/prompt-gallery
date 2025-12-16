@@ -1,5 +1,7 @@
 import { initializeApp } from "firebase/app";
+import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
+
 const firebaseConfig = {
     apiKey: "AIzaSyAInfTO1XXys9mgCWHh9WgR_fE9rTUhUhk",
     authDomain: "prompt-gallery-387e0.firebaseapp.com",
@@ -11,9 +13,11 @@ const firebaseConfig = {
 };
 
 export const app = initializeApp(firebaseConfig);
+export const auth = getAuth(app);
+export const googleProvider = new GoogleAuthProvider();
 
 if (typeof window !== "undefined") {
-    // self.FIREBASE_APPCHECK_DEBUG_TOKEN = true; // Uncomment this line for localhost testing
+    // self.FIREBASE_APPCHECK_DEBUG_TOKEN = true; 
     initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider('6Lf-ii0sAAAAAOIOni8kRWIamtsYBtNEw3TONgjA'),
         isTokenAutoRefreshEnabled: true

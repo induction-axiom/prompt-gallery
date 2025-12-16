@@ -7,146 +7,101 @@ const auth = new GoogleAuth({
     scopes: "https://www.googleapis.com/auth/cloud-platform",
 });
 
+// Constants
+const PROJECT_ID = process.env.GCLOUD_PROJECT;
+const LOCATION = "global";
+const BASE_URL = `https://firebasevertexai.googleapis.com/v1beta/projects/${PROJECT_ID}/locations/${LOCATION}/templates`;
+
+// Helper for API requests
+async function makeApiRequest({ url, method, data, params }) {
+    try {
+        const client = await auth.getClient();
+        const response = await client.request({ url, method, data, params });
+        return response.data;
+    } catch (error) {
+        logger.error(`API Request Failed: ${method} ${url}`, error);
+        throw new HttpsError('internal', 'Vertex AI API request failed', error.message);
+    }
+}
+
 exports.createPromptTemplate = onCall(
-    {
-        maxInstances: 10,
-        enforceAppCheck: true
-    },
+    { maxInstances: 10, enforceAppCheck: true },
     async (request) => {
-        logger.info("createPromptTemplate function invoked.", { structuredData: true });
         const { displayName, dotPromptString } = request.data;
-        const projectId = process.env.GCLOUD_PROJECT;
-        const location = "global";
-        logger.info(`Received request for Template Display Name: ${displayName}`, { dotPromptString: dotPromptString });
-        const url = `https://firebasevertexai.googleapis.com/v1beta/projects/${projectId}/locations/${location}/templates`;
-        try {
-            const client = await auth.getClient();
-            const response = await client.request({
-                url: url,
-                method: "POST",
-                data: {
-                    displayName: displayName,
-                    templateString: dotPromptString
-                },
-            });
-            logger.info("Successfully created template.", { status: response.status });
-            return response.data;
-        } catch (error) {
-            logger.error("Failed to create template", error);
-            throw new HttpsError('internal', 'Failed to create template', error.message);
-        }
+        logger.info("createPromptTemplate", { displayName });
+
+        const result = await makeApiRequest({
+            url: BASE_URL,
+            method: "POST",
+            data: {
+                displayName: displayName,
+                templateString: dotPromptString
+            }
+        });
+        logger.info("Template created successfully");
+        return result;
     }
 );
 
 exports.deletePromptTemplate = onCall(
-    {
-        maxInstances: 10,
-        enforceAppCheck: true
-    },
+    { maxInstances: 10, enforceAppCheck: true },
     async (request) => {
-        logger.info("deletePromptTemplate function invoked.", { structuredData: true });
         const { templateId } = request.data;
         if (!templateId) {
-            throw new HttpsError('invalid-argument', 'The function must be called with a "templateId" argument.');
+            throw new HttpsError('invalid-argument', 'Missing templateId');
         }
-        const projectId = process.env.GCLOUD_PROJECT;
-        const location = "global";
-        logger.info(`Received request to delete Template ID: ${templateId}`);
-        const url = `https://firebasevertexai.googleapis.com/v1beta/projects/${projectId}/locations/${location}/templates/${templateId}`;
-        try {
-            const client = await auth.getClient();
-            const response = await client.request({
-                url: url,
-                method: "DELETE",
-            });
+        logger.info("deletePromptTemplate", { templateId });
 
-            logger.info("Successfully deleted template.", { status: response.status });
-            return response.data;
-
-        } catch (error) {
-            logger.error("Failed to delete template", error);
-            throw new HttpsError('internal', 'Failed to delete template', error.message);
-        }
+        const result = await makeApiRequest({
+            url: `${BASE_URL}/${templateId}`,
+            method: "DELETE",
+        });
+        logger.info("Template deleted successfully");
+        return result;
     }
 );
 
 exports.listPromptTemplates = onCall(
-    {
-        maxInstances: 10,
-        enforceAppCheck: true
-    },
+    { maxInstances: 10, enforceAppCheck: true },
     async (request) => {
-        logger.info("listPromptTemplates function invoked.", { structuredData: true });
-        const projectId = process.env.GCLOUD_PROJECT;
-        const location = "global";
-        const url = `https://firebasevertexai.googleapis.com/v1beta/projects/${projectId}/locations/${location}/templates`;
-        const data = request.data || {};
-        const pageSize = data.pageSize || 50;
-        const pageToken = data.pageToken || "";
-        try {
-            const client = await auth.getClient();
-            const response = await client.request({
-                url: url,
-                method: "GET",
-                params: { pageSize, pageToken }
-            });
-            logger.info("Successfully listed templates.", { status: response.status });
-            return response.data;
-        } catch (error) {
-            logger.error("Failed to list templates", error);
-            throw new HttpsError('internal', 'Failed to list templates', error.message);
-        }
+        logger.info("listPromptTemplates");
+        const { pageSize = 50, pageToken = "" } = request.data || {};
+
+        const result = await makeApiRequest({
+            url: BASE_URL,
+            method: "GET",
+            params: { pageSize, pageToken }
+        });
+        return result;
     }
 );
 
 exports.runPromptTemplate = onCall(
-    {
-        maxInstances: 10,
-        enforceAppCheck: true
-    },
+    { maxInstances: 10, enforceAppCheck: true },
     async (request) => {
-        logger.info("runPromptTemplate function invoked.", { structuredData: true });
         const { templateId, reqBody } = request.data;
-        if (!templateId) {
-            throw new HttpsError('invalid-argument', 'The function must be called with a "templateId" argument.');
-        }
-        const projectId = process.env.GCLOUD_PROJECT;
-        const location = "global";
-        logger.info(`Received request to run Template ID: ${templateId}`);
-        logger.info(`Received request body: ${JSON.stringify(reqBody)}`);
-        const url = `https://firebasevertexai.googleapis.com/v1beta/projects/${projectId}/templates/${templateId}:templateGenerateContent`;
-        try {
-            const client = await auth.getClient();
-            const response = await client.request({
-                url: url,
-                method: "POST",
-                data: { inputs: reqBody }
-            });
-            logger.info("Successfully ran template.", { status: response.status });
-            return response.data;
-        } catch (error) {
-            logger.error("Failed to run template", error);
-            throw new HttpsError('internal', 'Failed to run template', error.message);
-        }
+        if (!templateId) throw new HttpsError('invalid-argument', 'Missing templateId');
+
+        logger.info("runPromptTemplate", { templateId });
+        const runUrl = `https://firebasevertexai.googleapis.com/v1beta/projects/${PROJECT_ID}/templates/${templateId}:templateGenerateContent`;
+
+        const result = await makeApiRequest({
+            url: runUrl,
+            method: "POST",
+            data: { inputs: reqBody }
+        });
+        return result;
     }
 );
 
 exports.updatePromptTemplate = onCall(
-    {
-        maxInstances: 10,
-        enforceAppCheck: true
-    },
+    { maxInstances: 10, enforceAppCheck: true },
     async (request) => {
-        logger.info("updatePromptTemplate function invoked.", { structuredData: true });
-
         const { templateId, displayName, dotPromptString } = request.data;
-        const projectId = process.env.GCLOUD_PROJECT;
-        const location = "global";
+        if (!templateId) throw new HttpsError('invalid-argument', 'Missing templateId');
 
-        if (!templateId) {
-            throw new HttpsError('invalid-argument', 'The function must be called with a "templateId" argument.');
-        }
-        const url = `https://firebasevertexai.googleapis.com/v1beta/projects/${projectId}/locations/${location}/templates/${templateId}`;
+        logger.info("updatePromptTemplate", { templateId });
+
         const updateFields = [];
         const data = {};
         if (displayName) {
@@ -158,23 +113,18 @@ exports.updatePromptTemplate = onCall(
             data.templateString = dotPromptString;
         }
         if (updateFields.length === 0) {
-            throw new HttpsError('invalid-argument', 'Provide at least one field to update (displayName or dotPromptString).');
+            throw new HttpsError('invalid-argument', 'No fields to update');
         }
+
         const updateMask = updateFields.join(',');
-        const requestUrl = `${url}?updateMask=${updateMask}`;
-        logger.info(`Updating template ${templateId} with mask: ${updateMask}`);
-        try {
-            const client = await auth.getClient();
-            const response = await client.request({
-                url: requestUrl,
-                method: "PATCH",
-                data: data,
-            });
-            logger.info("Successfully updated template.", { status: response.status });
-            return response.data;
-        } catch (error) {
-            logger.error("Failed to update template", error);
-            throw new HttpsError('internal', 'Failed to update template', error.message);
-        }
+        const requestUrl = `${BASE_URL}/${templateId}?updateMask=${updateMask}`;
+
+        const result = await makeApiRequest({
+            url: requestUrl,
+            method: "PATCH",
+            data: data,
+        });
+        logger.info("Template updated successfully");
+        return result;
     }
 );
