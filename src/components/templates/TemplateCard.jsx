@@ -2,30 +2,30 @@ import React from 'react';
 
 const TemplateCard = ({ template, onRun, onEdit, onDelete, getTemplateId }) => {
     return (
-        <div className="template-card">
-            <div className="template-card-content" onClick={onRun}>
-                <h3 className="template-title">{template.displayName}</h3>
-                <p className="template-id">
+        <div className="border border-[#e0e0e0] rounded-xl p-5 bg-white shadow-sm flex flex-col h-[180px]">
+            <div className="flex-1 cursor-pointer" onClick={onRun}>
+                <h3 className="m-0 mb-2.5 text-[#333] font-bold text-lg">{template.displayName}</h3>
+                <p className="m-0 text-[#888] text-sm whitespace-nowrap overflow-hidden text-ellipsis">
                     ID: {getTemplateId(template.name)}
                 </p>
             </div>
 
-            <div className="template-actions">
+            <div className="mt-[15px] flex justify-end gap-2.5 border-t border-[#f0f0f0] pt-[15px]">
                 <button
                     onClick={onRun}
-                    className="btn btn-sm btn-action-run"
+                    className="px-3 py-1.5 text-xs rounded opacity-100 hover:opacity-90 inline-flex items-center justify-center border-none cursor-pointer transition-opacity bg-[#e6f7ff] text-[#1890ff] font-bold"
                 >
                     Run
                 </button>
                 <button
                     onClick={(e) => onEdit(e, template)}
-                    className="btn btn-sm btn-action-edit"
+                    className="px-3 py-1.5 text-xs rounded opacity-100 hover:opacity-90 inline-flex items-center justify-center border-none cursor-pointer transition-opacity bg-[#f9f0ff] text-[#722ed1]"
                 >
                     Edit
                 </button>
                 <button
                     onClick={(e) => onDelete(e, template.name)}
-                    className="btn btn-sm btn-action-delete"
+                    className="px-3 py-1.5 text-xs rounded opacity-100 hover:opacity-90 inline-flex items-center justify-center border-none cursor-pointer transition-opacity bg-[#fff1f0] text-[#f5222d]"
                 >
                     Delete
                 </button>

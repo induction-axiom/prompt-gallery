@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import './App.css'
+
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
 import { app, auth, googleProvider } from "./firebase";
@@ -192,7 +192,7 @@ Tell me a joke about {{subject}}.`);
   }
 
   return (
-    <div className="app-container">
+    <div className="max-w-[1200px] mx-auto p-5">
       <Header
         user={user}
         status={status}
@@ -200,7 +200,7 @@ Tell me a joke about {{subject}}.`);
         onCreate={handleOpenCreate}
       />
 
-      <div className="template-grid">
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-5">
         {templates.map((t) => (
           <TemplateCard
             key={t.name}
