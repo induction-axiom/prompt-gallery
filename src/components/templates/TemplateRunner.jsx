@@ -6,10 +6,19 @@ const TemplateRunner = ({
     onClose,
     onRun,
     isLoading,
-    runInputJson,
-    setRunInputJson,
     runResult
 }) => {
+    const [inputJson, setInputJson] = React.useState('{}');
+
+    React.useEffect(() => {
+        if (template) {
+            setInputJson('{"subject": "software engineers"}');
+        }
+    }, [template]);
+
+    const handleRun = () => {
+        onRun({ inputJson });
+    };
     if (!template) return null;
 
     return (
@@ -17,7 +26,7 @@ const TemplateRunner = ({
             title={`Run: ${template.displayName}`}
             onClose={onClose}
             footer={
-                <button onClick={onRun} disabled={isLoading} className="px-5 py-2.5 text-base rounded-md border border-transparent cursor-pointer transition-opacity hover:opacity-90 inline-flex items-center justify-center bg-[#52c41a] text-white disabled:opacity-60 disabled:cursor-not-allowed">
+                <button onClick={handleRun} disabled={isLoading} className="px-5 py-2.5 text-base rounded-md border border-transparent cursor-pointer transition-opacity hover:opacity-90 inline-flex items-center justify-center bg-[#52c41a] text-white disabled:opacity-60 disabled:cursor-not-allowed">
                     {isLoading ? 'Running...' : 'Run Prompt'}
                 </button>
             }
@@ -25,8 +34,8 @@ const TemplateRunner = ({
             <div className="mb-[15px]">
                 <label className="block mb-[5px] font-bold">Input Variables (JSON)</label>
                 <textarea
-                    value={runInputJson}
-                    onChange={(e) => setRunInputJson(e.target.value)}
+                    value={inputJson}
+                    onChange={(e) => setInputJson(e.target.value)}
                     rows={6}
                     className="w-full p-2 box-border border border-[#ddd] rounded resize-none font-mono bg-[#f9f9f9]"
                 />
