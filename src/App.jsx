@@ -10,6 +10,7 @@ import LoginScreen from './components/auth/LoginScreen';
 import TemplateCard from './components/templates/TemplateCard';
 import TemplateEditor from './components/templates/TemplateEditor';
 import TemplateRunner from './components/templates/TemplateRunner';
+import TemplateViewer from './components/templates/TemplateViewer';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -29,6 +30,10 @@ function App() {
   const [selectedRunTemplate, setSelectedRunTemplate] = useState(null);
   const [runInputJson, setRunInputJson] = useState('{}');
   const [runResult, setRunResult] = useState("");
+
+  // Viewer State
+  const [viewTemplateData, setViewTemplateData] = useState(null);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
 
   const functions = getFunctions(app);
 
@@ -78,6 +83,27 @@ function App() {
     } catch (error) {
       console.error(error);
       setStatus("Fetch Error: " + error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleViewTemplate = async (template) => {
+    setStatus("Fetching details...");
+    setIsLoading(true);
+    setViewTemplateData(null);
+    setIsViewModalOpen(true);
+
+    const getFn = httpsCallable(functions, 'getPromptTemplate');
+    try {
+      const templateId = getTemplateId(template.name);
+      const result = await getFn({ templateId });
+      setViewTemplateData(result.data);
+      setStatus("Details loaded");
+    } catch (error) {
+      console.error(error);
+      setViewTemplateData({ error: error.message });
+      setStatus("Error loading details");
     } finally {
       setIsLoading(false);
     }
@@ -207,6 +233,7 @@ Tell me a joke about {{subject}}.`);
             template={t}
             getTemplateId={getTemplateId}
             onRun={() => openRunModal(t)}
+            onView={handleViewTemplate}
             onEdit={handleOpenEdit}
             onDelete={deleteTemplate}
           />
@@ -233,6 +260,13 @@ Tell me a joke about {{subject}}.`);
         runInputJson={runInputJson}
         setRunInputJson={setRunInputJson}
         runResult={runResult}
+      />
+
+      <TemplateViewer
+        isOpen={isViewModalOpen}
+        onClose={() => setIsViewModalOpen(false)}
+        data={viewTemplateData}
+        isLoading={isLoading && !viewTemplateData}
       />
     </div>
   );
