@@ -14,7 +14,6 @@ exports.createPromptTemplate = onCall(
     },
     async (request) => {
         logger.info("createPromptTemplate function invoked.", { structuredData: true });
-
         const { displayName, dotPromptString } = request.data;
         const projectId = process.env.GCLOUD_PROJECT;
         const location = "global";
@@ -30,14 +29,43 @@ exports.createPromptTemplate = onCall(
                     templateString: dotPromptString
                 },
             });
-
             logger.info("Successfully created template.", { status: response.status });
+            return response.data;
+        } catch (error) {
+            logger.error("Failed to create template", error);
+            throw new HttpsError('internal', 'Failed to create template', error.message);
+        }
+    }
+);
+
+exports.deletePromptTemplate = onCall(
+    {
+        maxInstances: 10,
+        enforceAppCheck: true
+    },
+    async (request) => {
+        logger.info("deletePromptTemplate function invoked.", { structuredData: true });
+        const { templateId } = request.data;
+        if (!templateId) {
+            throw new HttpsError('invalid-argument', 'The function must be called with a "templateId" argument.');
+        }
+        const projectId = process.env.GCLOUD_PROJECT;
+        const location = "global";
+        logger.info(`Received request to delete Template ID: ${templateId}`);
+        const url = `https://firebasevertexai.googleapis.com/v1beta/projects/${projectId}/locations/${location}/templates/${templateId}`;
+        try {
+            const client = await auth.getClient();
+            const response = await client.request({
+                url: url,
+                method: "DELETE",
+            });
+
+            logger.info("Successfully deleted template.", { status: response.status });
             return response.data;
 
         } catch (error) {
-            logger.error("Failed to create template", error);
-            // Return a clean error to the client
-            throw new HttpsError('internal', 'Failed to create template', error.message);
+            logger.error("Failed to delete template", error);
+            throw new HttpsError('internal', 'Failed to delete template', error.message);
         }
     }
 );
