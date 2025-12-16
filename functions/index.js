@@ -69,3 +69,32 @@ exports.deletePromptTemplate = onCall(
         }
     }
 );
+
+exports.listPromptTemplates = onCall(
+    {
+        maxInstances: 10,
+        enforceAppCheck: true
+    },
+    async (request) => {
+        logger.info("listPromptTemplates function invoked.", { structuredData: true });
+        const projectId = process.env.GCLOUD_PROJECT;
+        const location = "global";
+        const url = `https://firebasevertexai.googleapis.com/v1beta/projects/${projectId}/locations/${location}/templates`;
+        const data = request.data || {};
+        const pageSize = data.pageSize || 50;
+        const pageToken = data.pageToken || "";
+        try {
+            const client = await auth.getClient();
+            const response = await client.request({
+                url: url,
+                method: "GET",
+                params: { pageSize, pageToken }
+            });
+            logger.info("Successfully listed templates.", { status: response.status });
+            return response.data;
+        } catch (error) {
+            logger.error("Failed to list templates", error);
+            throw new HttpsError('internal', 'Failed to list templates', error.message);
+        }
+    }
+);
