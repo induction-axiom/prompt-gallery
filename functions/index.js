@@ -98,3 +98,35 @@ exports.listPromptTemplates = onCall(
         }
     }
 );
+
+exports.runPromptTemplate = onCall(
+    {
+        maxInstances: 10,
+        enforceAppCheck: true
+    },
+    async (request) => {
+        logger.info("runPromptTemplate function invoked.", { structuredData: true });
+        const { templateId, reqBody } = request.data;
+        if (!templateId) {
+            throw new HttpsError('invalid-argument', 'The function must be called with a "templateId" argument.');
+        }
+        const projectId = process.env.GCLOUD_PROJECT;
+        const location = "global";
+        logger.info(`Received request to run Template ID: ${templateId}`);
+        logger.info(`Received request body: ${JSON.stringify(reqBody)}`);
+        const url = `https://firebasevertexai.googleapis.com/v1beta/projects/${projectId}/templates/${templateId}:templateGenerateContent`;
+        try {
+            const client = await auth.getClient();
+            const response = await client.request({
+                url: url,
+                method: "POST",
+                data: { inputs: reqBody }
+            });
+            logger.info("Successfully ran template.", { status: response.status });
+            return response.data;
+        } catch (error) {
+            logger.error("Failed to run template", error);
+            throw new HttpsError('internal', 'Failed to run template', error.message);
+        }
+    }
+);
