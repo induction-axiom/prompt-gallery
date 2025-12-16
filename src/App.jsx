@@ -222,6 +222,7 @@ function App() {
             onView={handleViewTemplate}
             onEdit={handleOpenEdit}
             onDelete={deleteTemplate}
+            currentUser={user}
           />
         ))}
       </div>

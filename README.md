@@ -25,10 +25,11 @@ We utilize a modern stack to move fast during Hackweek:
 
 ### Backend & AI
 - **Firebase Cloud Functions** (v2): Serverless backend handling API logic.
-- **Vertex AI**: Accessed via Cloud Functions to generate content from templates.
+- **Firebase AI Logic**: Accessed via Cloud Functions to generate content from templates.
 
 ### Data & Hosting
-- **Firestore**: Stores user data and prompt templates.
+- **Firestore**: Stores user data, ownership information, and additional metadata not supported by Firebase AI Logic.
+- **Firebase AI Logic**: The *Single Source of Truth* for prompt template content (display name, template string, etc.).
 - **Firebase Hosting**: Serves the web application.
 
 ---
@@ -44,7 +45,7 @@ The application currently supports the core "Admin" and "Runner" flows:
     -   **Update**: Edit existing templates via a popup editor.
     -   **Delete**: Remove templates.
 3.  **Template Execution**:
-    -   **Run**: Select a template, provide JSON input variables (e.g., `{"subject": "cats"}`), and execute it against Vertex AI to see the result.
+    -   **Run**: Select a template, provide JSON input variables (e.g., `{"subject": "cats"}`), and execute it against Firebase AI Logic to see the result.
 
 ## Roadmap (To-Do)
 
@@ -63,7 +64,7 @@ The backend logic is implemented in `functions/index.js` and exposes the followi
 
 | Function Name | Description | Inputs |
 | :--- | :--- | :--- |
-| `listPromptTemplates` | Fetches a paginated list of templates from Vertex AI. | `pageSize`, `pageToken` |
+| `listPromptTemplates` | Fetches a paginated list of templates from Firebase AI Logic. | `pageSize`, `pageToken` |
 | `createPromptTemplate` | Creates a new prompt template. | `displayName`, `dotPromptString` |
 | `updatePromptTemplate` | Updates the display name or template string of an existing template. | `templateId`, `displayName`, `dotPromptString` |
 | `deletePromptTemplate` | Deletes a specific template. | `templateId` |

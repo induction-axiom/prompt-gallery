@@ -1,6 +1,6 @@
 import React from 'react';
 
-const TemplateCard = ({ template, onRun, onView, onEdit, onDelete, getTemplateId }) => {
+const TemplateCard = ({ template, onRun, onView, onEdit, onDelete, getTemplateId, currentUser }) => {
     return (
         <div className="border border-[#e0e0e0] rounded-xl p-5 bg-white shadow-sm flex flex-col h-[180px]">
             <div className="flex-1 cursor-pointer" onClick={onRun}>
@@ -23,18 +23,22 @@ const TemplateCard = ({ template, onRun, onView, onEdit, onDelete, getTemplateId
                 >
                     Run
                 </button>
-                <button
-                    onClick={(e) => onEdit(e, template)}
-                    className="px-3 py-1.5 text-xs rounded opacity-100 hover:opacity-90 inline-flex items-center justify-center border-none cursor-pointer transition-opacity bg-[#f9f0ff] text-[#722ed1]"
-                >
-                    Edit
-                </button>
-                <button
-                    onClick={(e) => onDelete(e, template.name)}
-                    className="px-3 py-1.5 text-xs rounded opacity-100 hover:opacity-90 inline-flex items-center justify-center border-none cursor-pointer transition-opacity bg-[#fff1f0] text-[#f5222d]"
-                >
-                    Delete
-                </button>
+                {currentUser && template.ownerId === currentUser.uid && (
+                    <>
+                        <button
+                            onClick={(e) => onEdit(e, template)}
+                            className="px-3 py-1.5 text-xs rounded opacity-100 hover:opacity-90 inline-flex items-center justify-center border-none cursor-pointer transition-opacity bg-[#f9f0ff] text-[#722ed1]"
+                        >
+                            Edit
+                        </button>
+                        <button
+                            onClick={(e) => onDelete(e, template.name)}
+                            className="px-3 py-1.5 text-xs rounded opacity-100 hover:opacity-90 inline-flex items-center justify-center border-none cursor-pointer transition-opacity bg-[#fff1f0] text-[#f5222d]"
+                        >
+                            Delete
+                        </button>
+                    </>
+                )}
             </div>
         </div>
     );
