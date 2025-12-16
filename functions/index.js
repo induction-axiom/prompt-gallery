@@ -1,6 +1,11 @@
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { GoogleAuth } = require("google-auth-library");
 const { logger } = require("firebase-functions");
+const { initializeApp } = require("firebase-admin/app");
+const { getFirestore, FieldValue } = require("firebase-admin/firestore");
+
+initializeApp();
+const db = getFirestore();
 
 // Initialize Google Auth
 const auth = new GoogleAuth({
@@ -38,7 +43,16 @@ exports.createPromptTemplate = onCall(
                 templateString: dotPromptString
             }
         });
-        logger.info("Template created successfully");
+
+        // Sync to Firestore
+        const templateId = result.name.split('/').pop();
+        await db.collection("prompts").doc(templateId).set({
+            displayName,
+            createdAt: FieldValue.serverTimestamp(),
+            ownerId: request.auth ? request.auth.uid : 'anonymous'
+        });
+
+        logger.info("Template created successfully and synced to Firestore");
         return result;
     }
 );
@@ -56,7 +70,11 @@ exports.deletePromptTemplate = onCall(
             url: `${BASE_URL}/${templateId}`,
             method: "DELETE",
         });
-        logger.info("Template deleted successfully");
+
+        // Sync to Firestore
+        await db.collection("prompts").doc(templateId).delete();
+
+        logger.info("Template deleted successfully from Vertex AI and Firestore");
         return result;
     }
 );
