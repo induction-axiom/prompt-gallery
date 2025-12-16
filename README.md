@@ -1,16 +1,70 @@
-# React + Vite
+# Prompt Gallery (Nano Banana Pro)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+> [!NOTE]
+> **Firebase Hackweek Project**
+> This project is evolving rapidly with the help of AI. This README documents our current implementation and future goals.
 
-Currently, two official plugins are available:
+## Project Vision
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+**Nano Banana Pro Prompt Marketplace**
 
-## React Compiler
+Our end goal is to create a dynamic marketplace where users can:
+- **Discover** interesting prompts created by others.
+- **Upload** their own high-quality prompt templates.
+- **Generate** pictures using these prompt templates.
+- **Share & Interact**: Generated results are public by default. Users can like prompts/results, and a feed will show top-ranked content.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Architecture & Tech Stack
 
-## Expanding the ESLint configuration
+We utilize a modern stack to move fast during Hackweek:
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### Frontend
+- **React** (via Vite)
+- **Tailwind CSS** for styling
+- **Google Sign-In** for authentication
+
+### Backend & AI
+- **Firebase Cloud Functions** (v2): Serverless backend handling API logic.
+- **Vertex AI**: Accessed via Cloud Functions to generate content from templates.
+
+### Data & Hosting
+- **Firestore**: Stores user data and prompt templates.
+- **Firebase Hosting**: Serves the web application.
+
+---
+
+## Current Status: Implemented Features
+
+The application currently supports the core "Admin" and "Runner" flows:
+
+1.  **Authentication**: Users can sign in using Google Auth.
+2.  **Template Management (CRUD)**:
+    -   **List**: View all available prompt templates.
+    -   **Create**: Add new templates with a display name and dot-prompt string.
+    -   **Update**: Edit existing templates via a popup editor.
+    -   **Delete**: Remove templates.
+3.  **Template Execution**:
+    -   **Run**: Select a template, provide JSON input variables (e.g., `{"subject": "cats"}`), and execute it against Vertex AI to see the result.
+
+## Roadmap (To-Do)
+
+The following features are designed but **not yet implemented**:
+
+-   [ ] **Result Storage**: Store generated images in **Firebase Cloud Storage**.
+-   [ ] **Social Feed**: A public feed of generated results.
+-   [ ] **Social Interactions**: "Like" functionality for prompts and results.
+-   [ ] **Ranking System**: Sorting feed based on engagement.
+
+---
+
+## Backend API Reference
+
+The backend logic is implemented in `functions/index.js` and exposes the following Callable Functions:
+
+| Function Name | Description | Inputs |
+| :--- | :--- | :--- |
+| `listPromptTemplates` | Fetches a paginated list of templates from Vertex AI. | `pageSize`, `pageToken` |
+| `createPromptTemplate` | Creates a new prompt template. | `displayName`, `dotPromptString` |
+| `updatePromptTemplate` | Updates the display name or template string of an existing template. | `templateId`, `displayName`, `dotPromptString` |
+| `deletePromptTemplate` | Deletes a specific template. | `templateId` |
+| `runPromptTemplate` | Executes a specific template with user-provided variables. | `templateId`, `reqBody` (JSON) |
