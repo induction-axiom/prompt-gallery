@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import TextCard from './TextCard';
 import ThumbnailStrip from './ThumbnailStrip';
+import IconButton from '../common/IconButton';
 
 const MixedMediaGallery = ({ items, currentUser, onDelete }) => {
     const [selectedIndex, setSelectedIndex] = useState(0);
@@ -38,18 +39,19 @@ const MixedMediaGallery = ({ items, currentUser, onDelete }) => {
                 {/* Delete Button Overlay */}
                 {currentUser && (currentUser.uid === currentItem.creatorId || currentUser.uid === currentItem.userId) && (
                     <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                        <button
+                        <IconButton
                             onClick={(e) => {
                                 e.stopPropagation();
                                 onDelete && onDelete(currentItem);
                             }}
-                            className="bg-black/30 hover:bg-black/50 text-white rounded-full p-2 backdrop-blur-sm transition-colors border-none cursor-pointer flex items-center justify-center"
+                            variant="overlay"
+                            icon={
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                            }
                             title="Delete this result"
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                        </button>
+                        />
                     </div>
                 )}
 
