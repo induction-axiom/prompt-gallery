@@ -87,24 +87,24 @@ Create a cute, isometric miniature 3D cartoon scene of a {{object}}. The style s
             }
         >
             <div className="mb-4">
-                <label className="block mb-1.5 font-bold text-gray-700">Prompt Name</label>
+                <label className="block mb-1.5 font-bold text-gray-700 dark:text-gray-300">Prompt Name</label>
                 <input
                     type="text"
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
                     placeholder="e.g., 3D Cartoon"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all bg-white dark:bg-gray-800 dark:text-gray-100"
                 />
             </div>
             <div className="mb-4 flex-1 flex flex-col">
-                <label className="block mb-1.5 font-bold text-gray-700">DotPrompt String</label>
+                <label className="block mb-1.5 font-bold text-gray-700 dark:text-gray-300">DotPrompt String</label>
                 <textarea
                     value={dotPromptString}
                     onChange={(e) => setDotPromptString(e.target.value)}
-                    className="w-full p-3 border border-gray-300 rounded-lg resize-none font-mono text-sm h-[400px] mb-4 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                    className="w-full p-3 border border-gray-300 dark:border-gray-700 rounded-lg resize-none font-mono text-sm h-[400px] mb-4 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all bg-white dark:bg-gray-800 dark:text-gray-100"
                 />
                 <div className="flex justify-between items-center mb-2">
-                    <label className="font-bold text-gray-700">Input Variables (JSON)</label>
+                    <label className="font-bold text-gray-700 dark:text-gray-300">Input Variables (JSON)</label>
                     <Button
                         variant="ghost"
                         onClick={handleAutoDetectScore}
@@ -123,7 +123,7 @@ Create a cute, isometric miniature 3D cartoon scene of a {{object}}. The style s
                     value={jsonInputSchema}
                     onChange={(e) => setJsonInputSchema(e.target.value)}
                     placeholder='{"key": ""}'
-                    className="w-full p-3 border border-gray-300 rounded-lg resize-none font-mono text-sm h-[100px] focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                    className="w-full p-3 border border-gray-300 dark:border-gray-700 rounded-lg resize-none font-mono text-sm h-[100px] focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all bg-white dark:bg-gray-800 dark:text-gray-100"
                 />
             </div>
         </Modal >

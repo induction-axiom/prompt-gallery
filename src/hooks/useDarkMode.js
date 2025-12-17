@@ -1,20 +1,20 @@
 import { useState, useEffect } from 'react';
 
 export default function useDarkMode() {
-    const [theme, setThemeState] = useState(null);
+    // Initialize based on what the script in index.html already did
+    const [theme, setThemeState] = useState(() => {
+        if (typeof window !== 'undefined') {
+            return document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+        }
+        return 'light';
+    });
 
-    // 1. Initial Load Logic
     useEffect(() => {
-        const savedTheme = localStorage.getItem('theme');
         const systemQuery = window.matchMedia('(prefers-color-scheme: dark)');
-        const systemTheme = systemQuery.matches ? 'dark' : 'light';
 
-        setThemeState(savedTheme || systemTheme);
-
-        // 2. Listen for System changes
         const handleSystemChange = (e) => {
             const newSystemTheme = e.matches ? 'dark' : 'light';
-            // When system changes, we follow it and clear manual override
+            // When system changes, follow it and clear manual preference
             setThemeState(newSystemTheme);
             localStorage.removeItem('theme');
         };
@@ -23,17 +23,18 @@ export default function useDarkMode() {
         return () => systemQuery.removeEventListener('change', handleSystemChange);
     }, []);
 
-    // 3. Apply Theme to DOM & Storage
     useEffect(() => {
-        if (!theme) return;
-
         const root = window.document.documentElement;
+
+        // Apply classes
         root.classList.remove('light', 'dark');
         root.classList.add(theme);
+
+        // Sync browser UI (scrollbars, address bar colors)
         root.style.colorScheme = theme;
+        root.style.backgroundColor = theme === 'dark' ? '#030712' : '#f5f5f5';
     }, [theme]);
 
-    // Custom setter to handle the "Manual" part of the override
     const toggleTheme = (newTheme) => {
         setThemeState(newTheme);
         localStorage.setItem('theme', newTheme);

@@ -83,7 +83,7 @@ const TemplateRunner = ({
             <div className="mb-4">
                 <div className="flex justify-between items-center mb-2">
                     <div className="flex items-center gap-2">
-                        <label className="font-bold text-gray-700">Input Variables (JSON)</label>
+                        <label className="font-bold text-gray-700 dark:text-gray-300">Input Variables (JSON)</label>
                     </div>
                     <Button
                         variant="secondary"
@@ -114,20 +114,20 @@ const TemplateRunner = ({
                     }}
                     placeholder="{}"
                     rows={6}
-                    className="w-full p-3 border border-gray-300 rounded-lg resize-none font-mono bg-gray-50 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                    className="w-full p-3 border border-gray-300 dark:border-gray-700 rounded-lg resize-none font-mono bg-gray-50 dark:bg-gray-800 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all dark:text-gray-200"
                 />
             </div>
 
             <div className="mb-4">
-                <label className="block mb-1.5 font-bold text-gray-700">Prompt Template</label>
-                <div className="bg-gray-50 p-3 rounded-lg overflow-x-auto border border-gray-200 text-sm text-gray-600 whitespace-pre-wrap max-h-[400px]">
+                <label className="block mb-1.5 font-bold text-gray-700 dark:text-gray-300">Prompt Template</label>
+                <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg overflow-x-auto border border-gray-200 dark:border-gray-700 text-sm text-gray-600 dark:text-gray-400 whitespace-pre-wrap max-h-[400px]">
                     {template.templateString || template.dotPromptString || "No template content"}
                 </div>
             </div>
 
             {runResult && (
                 <div className="result-container">
-                    <label className="block mb-1.5 font-bold text-gray-700">Result</label>
+                    <label className="block mb-1.5 font-bold text-gray-700 dark:text-gray-300">Result</label>
                     {(() => {
                         // Try to extract image result first, regardless of template type
                         const imageParams = extractImageFromGeminiResult(runResult);
@@ -137,7 +137,7 @@ const TemplateRunner = ({
                                     <img
                                         src={`data:${imageParams.mimeType};base64,${imageParams.data}`}
                                         alt="Generated Content"
-                                        className="max-w-full h-auto rounded-lg border border-gray-200"
+                                        className="max-w-full h-auto rounded-lg border border-gray-200 dark:border-gray-700"
                                     />
                                 );
                             } else if (imageParams.type === 'url') {
@@ -145,7 +145,7 @@ const TemplateRunner = ({
                                     <img
                                         src={imageParams.url}
                                         alt="Generated Content"
-                                        className="max-w-full h-auto rounded-lg border border-gray-200"
+                                        className="max-w-full h-auto rounded-lg border border-gray-200 dark:border-gray-700"
                                     />
                                 );
                             }
@@ -157,7 +157,7 @@ const TemplateRunner = ({
                         if (extractedText) content = extractedText;
 
                         return (
-                            <pre className="bg-gray-50 p-4 rounded-lg overflow-x-auto border border-gray-200 max-h-[200px] text-sm">
+                            <pre className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg overflow-x-auto border border-gray-200 dark:border-gray-700 max-h-[200px] text-sm dark:text-gray-200">
                                 {typeof content === 'string' ? content : JSON.stringify(content, null, 2)}
                             </pre>
                         );
