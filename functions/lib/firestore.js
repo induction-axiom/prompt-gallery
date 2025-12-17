@@ -35,7 +35,8 @@ async function verifyOwnership(templateId, authContext) {
 async function syncTemplateToFirestore(templateId, userId) {
     await db.collection("prompts").doc(templateId).set({
         createdAt: FieldValue.serverTimestamp(),
-        ownerId: userId || 'anonymous'
+        ownerId: userId || 'anonymous',
+        public: true
     });
 }
 

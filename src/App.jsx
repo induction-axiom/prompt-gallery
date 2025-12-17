@@ -3,7 +3,7 @@ import { getFunctions, httpsCallable } from "firebase/functions";
 import { signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
 import { app, auth, googleProvider } from "./firebase";
 import { isImageModel, extractImageFromGeminiResult } from './utils/geminiParsers';
-import { getRecentTemplates, saveExecutionMetadata } from './services/firestore';
+import { getRecentTemplates, saveExecutionMetadata, getTemplateExecutions } from './services/firestore';
 import { uploadImage } from './services/storage';
 
 // Components
@@ -90,11 +90,22 @@ function App() {
 
       const promises = firestoreDocs.map(async (docData) => {
         try {
+          // Fetch template details from Cloud Function
           const res = await getFn({ templateId: docData.id });
+
+          // Fetch recent executions (images) from Firestore
+          let executions = [];
+          try {
+            executions = await getTemplateExecutions(docData.id, 10);
+          } catch (e) {
+            console.error("Failed to fetch executions for", docData.id, e);
+          }
+
           return {
             ...res.data,
             ownerId: docData.ownerId,
-            createdAt: docData.createdAt
+            createdAt: docData.createdAt,
+            executions: executions
           };
         } catch (err) {
           console.error(`Failed to fetch template ${docData.id}`, err);
@@ -104,7 +115,8 @@ function App() {
             displayName: 'Unavailable Template',
             description: `Could not load details: ${err.message}`,
             error: true,
-            ownerId: docData.ownerId // Still return ownerId so they might delete it if they own it
+            ownerId: docData.ownerId, // Still return ownerId so they might delete it if they own it
+            executions: []
           };
         }
       });
@@ -271,7 +283,7 @@ function App() {
         onCreate={handleOpenCreate}
       />
 
-      <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {templates.map((t) => (
           <TemplateCard
             key={t.name}

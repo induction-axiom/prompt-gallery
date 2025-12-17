@@ -16,3 +16,8 @@ export const uploadImage = async (userId, templateId, base64Data, mimeType) => {
     const downloadURL = await getDownloadURL(storageRef);
     return { storagePath, downloadURL };
 };
+
+export const downloadImage = async (storagePath) => {
+    const storageRef = ref(storage, storagePath);
+    return await getDownloadURL(storageRef);
+};
