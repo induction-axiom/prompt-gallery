@@ -72,7 +72,7 @@ export const useTemplates = (user) => {
                     console.error(`Failed to fetch template ${docData.id}`, err);
                     return {
                         name: `projects/-/locations/-/templates/${docData.id}`,
-                        displayName: 'Unavailable Template',
+                        displayName: 'Unavailable Prompt',
                         description: `Could not load details: ${err.message}`,
                         error: true,
                         ownerId: docData.ownerId,
@@ -126,7 +126,7 @@ export const useTemplates = (user) => {
                     dotPromptString,
                     jsonInputSchema
                 });
-                setStatus("Template Updated!");
+                setStatus("Prompt Updated!");
             } else {
                 setStatus("Creating...");
                 const createFn = httpsCallable(functions, 'createPromptTemplate');
@@ -135,7 +135,7 @@ export const useTemplates = (user) => {
                     dotPromptString,
                     jsonInputSchema
                 });
-                setStatus("Template Created!");
+                setStatus("Prompt Created!");
             }
             fetchTemplates();
         } catch (error) {

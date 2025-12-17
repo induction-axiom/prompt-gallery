@@ -6,7 +6,7 @@ const TemplateViewer = ({ isOpen, onClose, content }) => {
 
     return (
         <Modal
-            title="Template Preview"
+            title="Prompt Template"
             onClose={onClose}
             footer={
                 <button

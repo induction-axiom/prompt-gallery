@@ -75,19 +75,19 @@ Create a cute, isometric miniature 3D cartoon scene of a {{object}}. The style s
 
     return (
         <Modal
-            title={isEditing ? "Edit Template" : "Create New Template"}
+            title={isEditing ? "Edit Prompt" : "Upload New Prompt"}
             onClose={onClose}
             footer={
                 <>
                     <button onClick={onClose} className="px-5 py-2.5 text-base rounded-md border border-[#ccc] cursor-pointer transition-opacity hover:opacity-90 inline-flex items-center justify-center bg-white">Cancel</button>
                     <button onClick={handleSave} disabled={isLoading} className="px-5 py-2.5 text-base rounded-md border border-transparent cursor-pointer transition-opacity hover:opacity-90 inline-flex items-center justify-center bg-[#1890ff] text-white disabled:opacity-60 disabled:cursor-not-allowed">
-                        {isLoading ? 'Saving...' : 'Save Template'}
+                        {isLoading ? 'Saving...' : 'Save Prompt'}
                     </button>
                 </>
             }
         >
             <div className="mb-[15px]">
-                <label className="block mb-[5px] font-bold">Display Name</label>
+                <label className="block mb-[5px] font-bold">Prompt Name</label>
                 <input
                     type="text"
                     value={displayName}
@@ -104,7 +104,7 @@ Create a cute, isometric miniature 3D cartoon scene of a {{object}}. The style s
                     className="w-full p-2 box-border border border-[#ddd] rounded resize-none font-mono h-[400px] mb-4"
                 />
                 <div className="flex justify-between items-center mb-[5px]">
-                    <label className="font-bold">Input Schema (JSON)</label>
+                    <label className="font-bold">Input Variables (JSON)</label>
                     <button
                         onClick={handleAutoDetectScore}
                         disabled={isGeneratingSchema}

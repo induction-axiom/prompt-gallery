@@ -91,7 +91,7 @@ export const togglePromptLike = async (templateId, userId) => {
         await runTransaction(db, async (transaction) => {
             const templateDoc = await transaction.get(templateRef);
             if (!templateDoc.exists()) {
-                throw new Error("Template does not exist!");
+                throw new Error("Prompt does not exist!");
             }
 
             const userLikeDoc = await transaction.get(userLikeRef);

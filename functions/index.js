@@ -54,7 +54,7 @@ exports.createPromptTemplate = onCall(
 
         await syncTemplateToFirestore(templateId, request.auth ? request.auth.uid : null, request.data.jsonInputSchema);
 
-        logger.info("Template created successfully and synced to Firestore");
+        logger.info("Prompt created successfully and synced to Firestore");
         return result;
     }
 );
@@ -79,7 +79,7 @@ exports.deletePromptTemplate = onCall(
         // Sync to Firestore
         await deleteTemplateFromFirestore(templateId);
 
-        logger.info("Template deleted successfully from Firebase AI Logic and Firestore");
+        logger.info("Prompt deleted successfully from Firebase AI Logic and Firestore");
         return result;
     }
 );
@@ -159,7 +159,7 @@ exports.updatePromptTemplate = onCall(
         }
         await updateTemplateInFirestore(templateId, firestoreUpdate);
 
-        logger.info("Template updated successfully");
+        logger.info("Prompt updated successfully");
         return result;
     }
 );
