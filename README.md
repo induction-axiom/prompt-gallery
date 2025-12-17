@@ -21,13 +21,14 @@ We utilize a modern stack to move fast during Hackweek:
 - **React** (via Vite)
 - **Tailwind CSS** for styling
 - **Google Sign-In** for authentication
+- **useReducer** for complex state management (Templates & Executions)
 
 ### Backend & AI
 - **Firebase Cloud Functions** (v2): Serverless backend handling API logic.
 - **Firebase AI Logic**: Accessed via Cloud Functions to generate content from templates. *Note: We utilize Gemini Developer AI endpoints.*
 
 ### Data & Hosting
-- **Firestore**: Stores user data, ownership information, and additional metadata not supported by Firebase AI Logic.
+- **Firestore**: Stores user data, ownership information, and execution history (text & image metadata).
 - **Firebase AI Logic**: The *Single Source of Truth* for prompt template content (display name, template string, etc.).
 - **Firebase Storage**: Stores generated images.
 - **Firebase Hosting**: Serves the web application.
@@ -43,22 +44,25 @@ The application currently supports the core "Admin" and "Runner" flows:
     -   **List**: View all available prompt templates.
     -   **Create**: Add new templates with a display name and dot-prompt string.
     -   **Update**: Edit existing templates via a popup editor.
-    -   **Delete**: Remove templates.
+    -   **Delete**: Remove templates (Ownership protected: users can only delete their own templates).
 3.  **Template Execution**:
-    -   **Run**: Select a template, provide JSON input variables (e.g., `{"subject": "cats"}`), and execute it against Firebase AI Logic to see the result.
-    -   **Auto-Save**: Generated images are automatically saved to Firebase Storage. Parameters and metadata are logged to the `executions` Firestore collection.
-    -   **Public by Default**: Executions are marked as public (`public: true`), allowing universal read access to support the future social feed.
+    -   **Run**: Select a template, provide JSON input variables, and execute it.
+    -   **AI Input Generation**: Auto-fill default inputs or use the "Dice" button to generate random, context-aware test data using AI.
+    -   **Mixed Media Results**: Supports both Image generation (saved to Storage) and Text generation (text cards), displayed in a unified gallery.
+    -   **Auto-Save**: All executions are automatically saved to Firestore/Storage.
+    -   **Public by Default**: Executions are marked as public to enable sharing.
 
 ## Roadmap (To-Do)
 
 The following features are designed but **not yet implemented**:
 
 -   [x] **Result Storage**: Store generated images in **Firebase Cloud Storage** and metadata in **Firestore**.
--   [x] **Public Access Control**: Basic boolean flag (`public`) implementation in Firestore and Storage to control visibility.
--   [ ] **Execution History**: Show past execution results in the template card (handle text responses elegantly).
+-   [x] **Public Access Control**: Basic boolean flag (`public`) implementation in Firestore and Storage.
+-   [x] **Execution History**: Show past execution results in the template card (Implemented as Mixed Media Gallery).
+-   [x] **AI Parameter Generation**: Use AI to auto-generate input parameters (e.g., a "Dice" button for random valid inputs).
+-   [x] **Ownership Protection**: Users can only modify/delete their own data.
 -   [ ] **Social Interactions**: "Like" functionality for prompts and results.
 -   [ ] **AI Labeling**: Use AI to attach labels/tags to prompts automatically.
--   [ ] **AI Parameter Generation**: Use AI to auto-generate input parameters (e.g., a "Dice" button for random valid inputs).
 -   [ ] **AI Template Assistance**: Use AI to help users create dot-prompt strings (format suggestions, model ID selection).
 -   [ ] **Pagination**: Implement "Load More" functionality for the template list.
 -   [ ] **Advanced Filtering**: Rank and filter prompts by specific criteria (likes, date, tags).
