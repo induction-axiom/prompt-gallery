@@ -233,10 +233,13 @@ function App() {
       const templateId = getTemplateId(selectedRunTemplate.name);
       const result = await runFn({ templateId, reqBody });
 
-      // Auto-save generated images
-      if (selectedRunTemplate.isImage) {
-        const imageParams = extractImageFromGeminiResult(result.data);
-        if (imageParams && imageParams.type === 'base64') {
+      setRunResult(result.data);
+
+      // Auto-save generated images if detected
+      const imageParams = extractImageFromGeminiResult(result.data);
+
+      if (imageParams) {
+        if (imageParams.type === 'base64') {
           try {
             // Upload to Storage
             const { storagePath, downloadURL } = await uploadImage(user.uid, templateId, imageParams.data, imageParams.mimeType);
@@ -247,7 +250,8 @@ function App() {
               user,
               storagePath,
               downloadURL,
-              reqBody
+              reqBody,
+              isImage: true
             });
             console.log("Image saved successfully");
           } catch (err) {
@@ -256,7 +260,7 @@ function App() {
         }
       }
 
-      setRunResult(result.data);
+
       setStatus("Run Complete");
     } catch (error) {
       setRunResult("Error: " + error.message);

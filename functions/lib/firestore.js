@@ -32,12 +32,11 @@ async function verifyOwnership(templateId, authContext) {
  * @param {string} templateId 
  * @param {string} userId 
  */
-async function syncTemplateToFirestore(templateId, userId, isImage = false) {
+async function syncTemplateToFirestore(templateId, userId) {
     await db.collection("prompts").doc(templateId).set({
         createdAt: FieldValue.serverTimestamp(),
         ownerId: userId || 'anonymous',
-        public: true,
-        isImage: isImage
+        public: true
     }, { merge: true });
 }
 
@@ -52,17 +51,7 @@ async function deleteTemplateFromFirestore(templateId) {
 module.exports = {
     verifyOwnership,
     syncTemplateToFirestore,
-    deleteTemplateFromFirestore,
-    updateTemplateIsImage
+    deleteTemplateFromFirestore
 };
 
-/**
- * Updates the isImage field of a template in Firestore.
- * @param {string} templateId 
- * @param {boolean} isImage 
- */
-async function updateTemplateIsImage(templateId, isImage) {
-    await db.collection("prompts").doc(templateId).set({
-        isImage: isImage
-    }, { merge: true });
-}
+

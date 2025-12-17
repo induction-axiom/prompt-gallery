@@ -6,8 +6,8 @@ const { initializeApp } = require("firebase-admin/app");
 // Actually lib/firestore calls getFirestore() so we just need to ensure app is initialized.
 initializeApp();
 
-const { verifyOwnership, syncTemplateToFirestore, deleteTemplateFromFirestore, updateTemplateIsImage } = require("./lib/firestore");
-const { isImageModel } = require("./lib/utils");
+const { verifyOwnership, syncTemplateToFirestore, deleteTemplateFromFirestore } = require("./lib/firestore");
+
 
 // Initialize Google Auth
 const auth = new GoogleAuth({
@@ -48,9 +48,8 @@ exports.createPromptTemplate = onCall(
 
         // Sync to Firestore
         const templateId = result.name.split('/').pop();
-        const isImage = isImageModel(dotPromptString);
 
-        await syncTemplateToFirestore(templateId, request.auth ? request.auth.uid : null, isImage);
+        await syncTemplateToFirestore(templateId, request.auth ? request.auth.uid : null);
 
         logger.info("Template created successfully and synced to Firestore");
         return result;
@@ -150,12 +149,6 @@ exports.updatePromptTemplate = onCall(
             method: "PATCH",
             data: data,
         });
-
-        // Sync to Firestore if needed
-        if (dotPromptString) {
-            const isImage = isImageModel(dotPromptString);
-            await updateTemplateIsImage(templateId, isImage);
-        }
 
         logger.info("Template updated successfully");
         return result;

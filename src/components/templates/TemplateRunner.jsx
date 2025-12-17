@@ -137,28 +137,28 @@ const TemplateRunner = ({
                 <div className="result-container">
                     <label className="block mb-[5px] font-bold">Result</label>
                     {(() => {
-                        if (template.isImage) {
-                            const params = extractImageFromGeminiResult(runResult);
-                            if (params) {
-                                if (params.type === 'base64') {
-                                    return (
-                                        <img
-                                            src={`data:${params.mimeType};base64,${params.data}`}
-                                            alt="Generated Content"
-                                            className="max-w-full h-auto rounded-md border border-[#eee]"
-                                        />
-                                    );
-                                } else if (params.type === 'url') {
-                                    return (
-                                        <img
-                                            src={params.url}
-                                            alt="Generated Content"
-                                            className="max-w-full h-auto rounded-md border border-[#eee]"
-                                        />
-                                    );
-                                }
+                        // Try to extract image result first, regardless of template type
+                        const imageParams = extractImageFromGeminiResult(runResult);
+                        if (imageParams) {
+                            if (imageParams.type === 'base64') {
+                                return (
+                                    <img
+                                        src={`data:${imageParams.mimeType};base64,${imageParams.data}`}
+                                        alt="Generated Content"
+                                        className="max-w-full h-auto rounded-md border border-[#eee]"
+                                    />
+                                );
+                            } else if (imageParams.type === 'url') {
+                                return (
+                                    <img
+                                        src={imageParams.url}
+                                        alt="Generated Content"
+                                        className="max-w-full h-auto rounded-md border border-[#eee]"
+                                    />
+                                );
                             }
                         }
+
 
                         // Default Text/JSON View
                         let content = runResult;

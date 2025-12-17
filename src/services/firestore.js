@@ -41,7 +41,7 @@ export const getTemplateExecutions = async (templateId, limitCount = 10) => {
     }
 };
 
-export const saveExecutionMetadata = async ({ templateId, user, storagePath, downloadURL, reqBody }) => {
+export const saveExecutionMetadata = async ({ templateId, user, storagePath, downloadURL, reqBody, isImage = true }) => {
     return await addDoc(collection(db, "executions"), {
         promptId: templateId,
         userId: user.uid,
@@ -50,6 +50,7 @@ export const saveExecutionMetadata = async ({ templateId, user, storagePath, dow
         imageUrl: downloadURL,
         creatorId: user.uid,
         inputVariables: reqBody,
-        public: true
+        public: true,
+        isImage: isImage
     });
 };
