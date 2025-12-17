@@ -39,3 +39,9 @@ export const extractTextFromGeminiResult = (runResult) => {
     const textPart = parts.find(p => p.text);
     return textPart ? textPart.text : null;
 };
+
+export const extractModelFromDotPrompt = (dotPromptString) => {
+    if (!dotPromptString) return null;
+    const match = dotPromptString.match(/^model:\s*(.+)$/m);
+    return match ? match[1].trim() : null;
+};

@@ -3,9 +3,12 @@ import MixedMediaGallery from '../gallery/MixedMediaGallery';
 import Tooltip from '../common/Tooltip';
 import IconButton from '../common/IconButton';
 
+import { extractModelFromDotPrompt } from '../../utils/geminiParsers';
+
 const TemplateCard = ({ template, onRun, onView, onEdit, onDelete, onDeleteExecution, onToggleLike, isLiked, getTemplateId, currentUser }) => {
     const [showTooltip, setShowTooltip] = React.useState(false);
     const [tooltipPos, setTooltipPos] = React.useState({ x: 0, y: 0 });
+    const modelName = extractModelFromDotPrompt(template.templateString || template.dotPromptString);
 
     const handleMouseMove = (e) => {
         setTooltipPos({ x: e.clientX, y: e.clientY });
@@ -21,13 +24,15 @@ const TemplateCard = ({ template, onRun, onView, onEdit, onDelete, onDeleteExecu
                 onMouseMove={handleMouseMove}
                 onMouseLeave={() => setShowTooltip(false)}
             >
-                <div className="flex justify-between items-start">
-                    <h3 className="m-0 mb-1 text-[#333] font-bold text-lg">{template.displayName}</h3>
+                <div className="flex justify-between items-center bg-white">
+                    <h3 className="m-0 text-[#333] font-bold text-lg">{template.displayName}</h3>
                     <span className="text-xs text-gray-400 font-mono">{getTemplateId(template.name)}</span>
                 </div>
-                <p className="m-0 text-[#888] text-sm line-clamp-2">
-                    {template.description || "No description provided."}
-                </p>
+                {modelName && (
+                    <div className="text-xs text-blue-500 font-mono mt-1 bg-blue-50 inline-block px-1 rounded">
+                        {modelName}
+                    </div>
+                )}
 
                 <Tooltip
                     content={template.templateString || template.dotPromptString || "No template string available"}
