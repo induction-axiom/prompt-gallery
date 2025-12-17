@@ -1,4 +1,4 @@
-import { collection, query, orderBy, limit, getDocs, addDoc, serverTimestamp, where } from "firebase/firestore";
+import { collection, query, orderBy, limit, getDocs, addDoc, serverTimestamp, where, deleteDoc, doc } from "firebase/firestore";
 import { db } from "../firebase";
 
 export const getRecentTemplates = async (limitCount = 10) => {
@@ -55,4 +55,14 @@ export const saveExecutionMetadata = async ({ templateId, user, storagePath, dow
         isImage: isImage,
         type: isImage ? 'image' : 'text'
     });
+};
+
+export const deleteExecution = async (executionId) => {
+    try {
+        await deleteDoc(doc(db, "executions", executionId));
+        return true;
+    } catch (e) {
+        console.error("Error deleting execution:", e);
+        throw e;
+    }
 };

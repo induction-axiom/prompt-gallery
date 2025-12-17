@@ -3,8 +3,8 @@ import { getFunctions, httpsCallable } from "firebase/functions";
 import { signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
 import { app, auth, googleProvider } from "./firebase";
 import { extractImageFromGeminiResult, extractTextFromGeminiResult } from './utils/geminiParsers';
-import { getRecentTemplates, saveExecutionMetadata, getTemplateExecutions } from './services/firestore';
-import { uploadImage } from './services/storage';
+import { getRecentTemplates, saveExecutionMetadata, getTemplateExecutions, deleteExecution } from './services/firestore';
+import { uploadImage, deleteImage } from './services/storage';
 
 // Components
 import Header from './components/layout/Header';
@@ -217,6 +217,40 @@ function App() {
     }
   };
 
+  const handleDeleteExecution = async (templateId, execution) => {
+    if (!window.confirm("Delete this execution result? This cannot be undone.")) return;
+    setStatus("Deleting execution...");
+    setIsLoading(true);
+    try {
+      // 1. Delete from Firestore
+      await deleteExecution(execution.id);
+
+      // 2. Delete image from Storage (if applicable)
+      if (execution.storagePath) {
+        await deleteImage(execution.storagePath);
+      }
+
+      // 3. Update local state
+      setTemplates(prev => prev.map(t => {
+        if (getTemplateId(t.name) === templateId) {
+          return {
+            ...t,
+            executions: t.executions.filter(e => e.id !== execution.id)
+          };
+        }
+        return t;
+      }));
+
+      setStatus("Execution deleted.");
+    } catch (error) {
+      console.error(error);
+      alert("Failed to delete execution: " + error.message);
+      setStatus("Error deleting execution");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const openRunModal = (template) => {
     setSelectedRunTemplate(template);
     setRunResult("");
@@ -245,7 +279,7 @@ function App() {
             const { storagePath, downloadURL } = await uploadImage(user.uid, templateId, imageParams.data, imageParams.mimeType);
 
             // Save Metadata to Firestore
-            await saveExecutionMetadata({
+            const docRef = await saveExecutionMetadata({
               templateId,
               user,
               storagePath,
@@ -254,6 +288,33 @@ function App() {
               isImage: true
             });
             console.log("Image saved successfully");
+
+            // Update local state
+            const newExecution = {
+              id: docRef.id,
+              promptId: templateId,
+              userId: user.uid,
+              createdAt: { seconds: Date.now() / 1000 }, // Approximation for immediate display
+              storagePath,
+              imageUrl: downloadURL,
+              textContent: null,
+              creatorId: user.uid,
+              inputVariables: reqBody,
+              public: true,
+              isImage: true,
+              type: 'image'
+            };
+
+            setTemplates(prev => prev.map(t => {
+              if (getTemplateId(t.name) === templateId) {
+                return {
+                  ...t,
+                  executions: [newExecution, ...(t.executions || [])]
+                };
+              }
+              return t;
+            }));
+
           } catch (err) {
             console.error("Failed to save image:", err);
           }
@@ -262,7 +323,7 @@ function App() {
         const textContent = extractTextFromGeminiResult(result.data);
         if (textContent) {
           try {
-            await saveExecutionMetadata({
+            const docRef = await saveExecutionMetadata({
               templateId,
               user,
               storagePath: null,
@@ -272,6 +333,33 @@ function App() {
               textContent: textContent
             });
             console.log("Text execution saved successfully");
+
+            // Update local state
+            const newExecution = {
+              id: docRef.id,
+              promptId: templateId,
+              userId: user.uid,
+              createdAt: { seconds: Date.now() / 1000 },
+              storagePath: null,
+              imageUrl: null,
+              textContent: textContent,
+              creatorId: user.uid,
+              inputVariables: reqBody,
+              public: true,
+              isImage: false,
+              type: 'text'
+            };
+
+            setTemplates(prev => prev.map(t => {
+              if (getTemplateId(t.name) === templateId) {
+                return {
+                  ...t,
+                  executions: [newExecution, ...(t.executions || [])]
+                };
+              }
+              return t;
+            }));
+
           } catch (err) {
             console.error("Failed to save text execution:", err);
           }
@@ -316,6 +404,7 @@ function App() {
             onView={handleViewTemplate}
             onEdit={handleOpenEdit}
             onDelete={deleteTemplate}
+            onDeleteExecution={handleDeleteExecution}
             currentUser={user}
           />
         ))}

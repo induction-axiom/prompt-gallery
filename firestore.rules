@@ -11,6 +11,7 @@ service cloud.firestore {
       // Allow read if user is owner OR if execution is public
       // Note: 'resource.data.public' works for single docs. For lists, query constraints apply.
       allow read: if request.auth != null && (request.auth.uid == resource.data.userId || resource.data.public == true);
+      allow delete: if request.auth != null && request.auth.uid == resource.data.userId;
     }
   }
 }

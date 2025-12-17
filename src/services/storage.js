@@ -1,4 +1,4 @@
-import { ref, uploadString, getDownloadURL } from "firebase/storage";
+import { ref, uploadString, getDownloadURL, deleteObject } from "firebase/storage";
 import { storage } from "../firebase";
 
 export const uploadImage = async (userId, templateId, base64Data, mimeType) => {
@@ -20,4 +20,10 @@ export const uploadImage = async (userId, templateId, base64Data, mimeType) => {
 export const downloadImage = async (storagePath) => {
     const storageRef = ref(storage, storagePath);
     return await getDownloadURL(storageRef);
+};
+
+export const deleteImage = async (storagePath) => {
+    if (!storagePath) return; // Nothing to delete
+    const storageRef = ref(storage, storagePath);
+    return await deleteObject(storageRef);
 };

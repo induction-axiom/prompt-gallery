@@ -1,7 +1,7 @@
 import React from 'react';
 import MixedMediaGallery from '../gallery/MixedMediaGallery';
 
-const TemplateCard = ({ template, onRun, onView, onEdit, onDelete, getTemplateId, currentUser }) => {
+const TemplateCard = ({ template, onRun, onView, onEdit, onDelete, onDeleteExecution, getTemplateId, currentUser }) => {
 
     return (
         <div className="border border-[#e0e0e0] rounded-xl bg-white shadow-sm flex flex-col h-auto overflow-hidden">
@@ -17,7 +17,11 @@ const TemplateCard = ({ template, onRun, onView, onEdit, onDelete, getTemplateId
             </div>
 
             {/* Gallery Section - Hero + Thumbnails */}
-            <MixedMediaGallery items={template.executions} />
+            <MixedMediaGallery
+                items={template.executions}
+                currentUser={currentUser}
+                onDelete={(execution) => onDeleteExecution(getTemplateId(template.name), execution)}
+            />
 
             {/* Actions Footer */}
             <div className="mt-auto px-5 py-3 flex justify-end gap-2.5 border-t border-[#f0f0f0] bg-gray-50/50">
