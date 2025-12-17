@@ -17,10 +17,16 @@ export const getRecentTemplates = async (limitCount = 10, orderByField = "create
 
 const executionsCache = new Map();
 
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
 export const getTemplateExecutions = async (templateId, limitCount = 10) => {
     // Check cache first
     if (executionsCache.has(templateId)) {
-        return executionsCache.get(templateId);
+        const { data, timestamp } = executionsCache.get(templateId);
+        if (Date.now() - timestamp < CACHE_TTL) {
+            return data;
+        }
+        executionsCache.delete(templateId);
     }
 
     try {
@@ -53,7 +59,10 @@ export const getTemplateExecutions = async (templateId, limitCount = 10) => {
         }));
 
         // Provide simple invalidation - store in cache
-        executionsCache.set(templateId, finalExecutions);
+        executionsCache.set(templateId, {
+            data: finalExecutions,
+            timestamp: Date.now() // Add timestamp for TTL
+        });
 
         return finalExecutions;
     } catch (e) {
@@ -214,9 +223,11 @@ export const syncUserInfo = async (user) => {
 
         // Update cache for current user
         userProfileCache.set(user.uid, {
-            ...userData,
-            // We use local time for cache immediately, but sync sends serverTimestamp
-            lastLogin: new Date()
+            data: {
+                ...userData,
+                lastLogin: new Date()
+            },
+            timestamp: Date.now()
         });
     } catch (e) {
         console.error("Error syncing user info:", e);
@@ -230,14 +241,21 @@ export const getUserProfile = async (userId) => {
 
     // Check cache first
     if (userProfileCache.has(userId)) {
-        return userProfileCache.get(userId);
+        const { data, timestamp } = userProfileCache.get(userId);
+        if (Date.now() - timestamp < CACHE_TTL) {
+            return data;
+        }
+        userProfileCache.delete(userId);
     }
 
     try {
         const userDoc = await getDoc(doc(db, "users", userId));
         if (userDoc.exists()) {
             const userData = userDoc.data();
-            userProfileCache.set(userId, userData);
+            userProfileCache.set(userId, {
+                data: userData,
+                timestamp: Date.now()
+            });
             return userData;
         }
     } catch (e) {
