@@ -236,7 +236,7 @@ exports.cleanupStorage = onDocumentDeleted("executions/{executionId}", async (ev
     const storagePath = data.storagePath;
 
     if (storagePath) {
-        logger.info(`Cleanup Storage for Execution: ${event.params.executionId}, Path: ${storagePath}`);
+        logger.info(`Cleanup Storage for Artifact: ${event.params.executionId}, Path: ${storagePath}`);
         try {
             const bucket = getStorage().bucket(); // access default bucket
             const file = bucket.file(storagePath);

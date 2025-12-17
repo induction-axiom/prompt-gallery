@@ -183,7 +183,7 @@ export const useTemplates = (user) => {
                 payload: { templateId, executionId: execution.id }
             });
 
-            setStatus("Execution deleted.");
+            setStatus("Artifact deleted.");
         } catch (error) {
             console.error(error);
             alert("Failed to delete execution: " + error.message);

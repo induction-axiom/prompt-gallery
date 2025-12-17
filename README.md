@@ -45,7 +45,7 @@ The application currently supports the core "Admin" and "Runner" flows:
     -   **Create**: Add new templates with a display name and dot-prompt string.
     -   **Update**: Edit existing templates via a popup editor.
     -   **Delete**: Remove templates (Ownership protected: users can only delete their own templates).
-3.  **Template Execution**:
+3.  **Template Artifact**:
     -   **Run**: Select a template, provide JSON input variables, and execute it.
     -   **AI Input Generation**: Auto-fill default inputs or use the "Dice" button to generate random, context-aware test data using AI.
     -   **Mixed Media Results**: Supports both Image generation (saved to Storage) and Text generation (text cards), displayed in a unified gallery.
@@ -58,7 +58,7 @@ The following features are designed but **not yet implemented**:
 
 -   [x] **Result Storage**: Store generated images in **Firebase Cloud Storage** and metadata in **Firestore**.
 -   [x] **Public Access Control**: Basic boolean flag (`public`) implementation in Firestore and Storage.
--   [x] **Execution History**: Show past execution results in the template card (Implemented as Mixed Media Gallery).
+-   [x] **Artifact History**: Show past execution results in the template card (Implemented as Mixed Media Gallery).
 -   [x] **AI Parameter Generation**: Use AI to auto-generate input parameters (e.g., a "Dice" button for random valid inputs).
 -   [x] **Ownership Protection**: Users can only modify/delete their own data.
 -   [ ] **Social Interactions**: "Like" functionality for prompts and results.

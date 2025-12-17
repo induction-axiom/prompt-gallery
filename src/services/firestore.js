@@ -143,7 +143,7 @@ export const toggleExecutionLike = async (executionId, userId) => {
         await runTransaction(db, async (transaction) => {
             const executionDoc = await transaction.get(executionRef);
             if (!executionDoc.exists()) {
-                throw new Error("Execution does not exist!");
+                throw new Error("Artifact does not exist!");
             }
 
             const userLikeDoc = await transaction.get(userLikeRef);
