@@ -34,23 +34,25 @@ export const getTemplateExecutions = async (templateId, limitCount = 10) => {
         return querySnapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data()
-        })).filter(exec => exec.imageUrl); // Client-side filter for now to be safe if some executions lack images
+        })).filter(exec => exec.imageUrl || exec.textContent); // Client-side filter to ensure we have content to show
     } catch (e) {
         console.error("Error fetching executions:", e);
         return [];
     }
 };
 
-export const saveExecutionMetadata = async ({ templateId, user, storagePath, downloadURL, reqBody, isImage = true }) => {
+export const saveExecutionMetadata = async ({ templateId, user, storagePath, downloadURL, reqBody, isImage = true, textContent = null }) => {
     return await addDoc(collection(db, "executions"), {
         promptId: templateId,
         userId: user.uid,
         createdAt: serverTimestamp(),
-        storagePath: storagePath,
-        imageUrl: downloadURL,
+        storagePath: storagePath, // Null for textExecutions
+        imageUrl: downloadURL,    // Null for textExecutions
+        textContent: textContent, // Null for imageExecutions
         creatorId: user.uid,
         inputVariables: reqBody,
         public: true,
-        isImage: isImage
+        isImage: isImage,
+        type: isImage ? 'image' : 'text'
     });
 };

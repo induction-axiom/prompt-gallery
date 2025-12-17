@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
 import { app, auth, googleProvider } from "./firebase";
-import { extractImageFromGeminiResult } from './utils/geminiParsers';
+import { extractImageFromGeminiResult, extractTextFromGeminiResult } from './utils/geminiParsers';
 import { getRecentTemplates, saveExecutionMetadata, getTemplateExecutions } from './services/firestore';
 import { uploadImage } from './services/storage';
 
@@ -256,6 +256,24 @@ function App() {
             console.log("Image saved successfully");
           } catch (err) {
             console.error("Failed to save image:", err);
+          }
+        }
+      } else {
+        const textContent = extractTextFromGeminiResult(result.data);
+        if (textContent) {
+          try {
+            await saveExecutionMetadata({
+              templateId,
+              user,
+              storagePath: null,
+              downloadURL: null,
+              reqBody,
+              isImage: false,
+              textContent: textContent
+            });
+            console.log("Text execution saved successfully");
+          } catch (err) {
+            console.error("Failed to save text execution:", err);
           }
         }
       }
