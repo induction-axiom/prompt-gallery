@@ -1,10 +1,7 @@
 import { useState, useEffect } from 'react'
-import { getFunctions, httpsCallable } from "firebase/functions";
 import { signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
-import { app, auth, googleProvider } from "./firebase";
-import { extractImageFromGeminiResult, extractTextFromGeminiResult } from './utils/geminiParsers';
-import { getRecentTemplates, saveExecutionMetadata, getTemplateExecutions, deleteExecution } from './services/firestore';
-import { uploadImage, deleteImage } from './services/storage';
+import { auth, googleProvider } from "./firebase";
+import { useTemplates } from './hooks/useTemplates';
 
 // Components
 import Header from './components/layout/Header';
@@ -18,23 +15,14 @@ function App() {
   const [user, setUser] = useState(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
 
-  const [status, setStatus] = useState("Ready");
-  const [templates, setTemplates] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
+  // Use Custom Hook for Data & Logic
+  const { state, actions } = useTemplates(user);
 
-  // Editor State
+  // UI State (Visuals only)
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState(null);
-
-  // Runner State
   const [selectedRunTemplate, setSelectedRunTemplate] = useState(null);
-  const [runResult, setRunResult] = useState("");
-
-  // Viewer State
-  const [viewTemplateData, setViewTemplateData] = useState(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
-
-  const functions = getFunctions(app);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -42,7 +30,7 @@ function App() {
       setIsAuthLoading(false);
 
       if (currentUser) {
-        fetchTemplates();
+        actions.fetchTemplates();
       }
     });
     return () => unsubscribe();
@@ -61,98 +49,12 @@ function App() {
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      setTemplates([]);
-      setStatus("Ready");
     } catch (error) {
       console.error("Logout failed", error);
     }
   };
 
-  // --- API Handlers ---
-  const getTemplateId = (fullResourceName) => fullResourceName ? fullResourceName.split('/').pop() : 'Unknown';
-
-  const fetchTemplates = async () => {
-    setStatus("Fetching list from Firestore...");
-    setIsLoading(true);
-    try {
-      // 1. Get recent templates from Firestore
-      const firestoreDocs = await getRecentTemplates(10);
-
-      if (firestoreDocs.length === 0) {
-        setTemplates([]);
-        setStatus("Ready (No templates found)");
-        return;
-      }
-
-      // 2. Fetch details for each template in parallel
-      setStatus(`Fetching details for ${firestoreDocs.length} templates...`);
-      const getFn = httpsCallable(functions, 'getPromptTemplate');
-
-      const promises = firestoreDocs.map(async (docData) => {
-        try {
-          // Fetch template details from Cloud Function
-          const res = await getFn({ templateId: docData.id });
-
-          // Fetch recent executions (images) from Firestore
-          let executions = [];
-          try {
-            executions = await getTemplateExecutions(docData.id, 10);
-          } catch (e) {
-            console.error("Failed to fetch executions for", docData.id, e);
-          }
-
-          return {
-            ...res.data,
-            ownerId: docData.ownerId,
-            createdAt: docData.createdAt,
-            isImage: docData.isImage,
-            executions: executions
-          };
-        } catch (err) {
-          console.error(`Failed to fetch template ${docData.id}`, err);
-          // Return a placeholder so the UI doesn't crash
-          return {
-            name: `projects/-/locations/-/templates/${docData.id}`,
-            displayName: 'Unavailable Template',
-            description: `Could not load details: ${err.message}`,
-            error: true,
-            ownerId: docData.ownerId, // Still return ownerId so they might delete it if they own it
-            executions: []
-          };
-        }
-      });
-
-      const results = await Promise.all(promises);
-      setTemplates(results);
-      setStatus("Ready");
-    } catch (error) {
-      console.error(error);
-      setStatus("Fetch Error: " + error.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleViewTemplate = async (template) => {
-    setStatus("Fetching details...");
-    setIsLoading(true);
-    setViewTemplateData(null);
-    setIsViewModalOpen(true);
-
-    const getFn = httpsCallable(functions, 'getPromptTemplate');
-    try {
-      const templateId = getTemplateId(template.name);
-      const result = await getFn({ templateId });
-      setViewTemplateData(result.data);
-      setStatus("Details loaded");
-    } catch (error) {
-      console.error(error);
-      setViewTemplateData({ error: error.message });
-      setStatus("Error loading details");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // --- UI Handlers ---
 
   const handleOpenCreate = () => {
     setEditingTemplate(null);
@@ -165,214 +67,23 @@ function App() {
     setIsEditorOpen(true);
   };
 
-  const saveTemplate = async ({ displayName, dotPromptString }) => {
-    if (!displayName || !dotPromptString) return alert("Missing fields");
-
-    setIsLoading(true);
-    try {
-      if (editingTemplate) {
-        setStatus("Updating...");
-        const updateFn = httpsCallable(functions, 'updatePromptTemplate');
-        await updateFn({
-          templateId: getTemplateId(editingTemplate.name),
-          displayName,
-          dotPromptString
-        });
-        setStatus("Template Updated!");
-      } else {
-        setStatus("Creating...");
-        const createFn = httpsCallable(functions, 'createPromptTemplate');
-        await createFn({
-          displayName,
-          dotPromptString
-        });
-        setStatus("Template Created!");
-      }
-      setIsEditorOpen(false);
-      fetchTemplates();
-    } catch (error) {
-      console.error(error);
-      alert("Error: " + error.message);
-    } finally {
-      setIsLoading(false);
-    }
+  const handleSaveWrapper = async (data) => {
+    await actions.handleSaveTemplate({ ...data, editingTemplate });
+    setIsEditorOpen(false);
   };
 
-  const deleteTemplate = async (e, fullResourceName) => {
-    e.stopPropagation();
-    const templateId = getTemplateId(fullResourceName);
-    if (!window.confirm(`Delete "${templateId}"?`)) return;
-
-    setStatus(`Deleting ${templateId}...`);
-    setIsLoading(true);
-    const deleteFn = httpsCallable(functions, 'deletePromptTemplate');
-    try {
-      await deleteFn({ templateId });
-      setStatus("Deleted.");
-      fetchTemplates();
-    } catch (error) {
-      alert("Delete Error: " + error.message);
-    } finally {
-      setIsLoading(false);
-    }
+  const handleViewWrapper = (template) => {
+    setIsViewModalOpen(true);
+    actions.handleViewTemplate(template);
   };
 
-  const handleDeleteExecution = async (templateId, execution) => {
-    if (!window.confirm("Delete this execution result? This cannot be undone.")) return;
-    setStatus("Deleting execution...");
-    setIsLoading(true);
-    try {
-      // 1. Delete from Firestore
-      await deleteExecution(execution.id);
-
-      // 2. Delete image from Storage (if applicable)
-      if (execution.storagePath) {
-        await deleteImage(execution.storagePath);
-      }
-
-      // 3. Update local state
-      setTemplates(prev => prev.map(t => {
-        if (getTemplateId(t.name) === templateId) {
-          return {
-            ...t,
-            executions: t.executions.filter(e => e.id !== execution.id)
-          };
-        }
-        return t;
-      }));
-
-      setStatus("Execution deleted.");
-    } catch (error) {
-      console.error(error);
-      alert("Failed to delete execution: " + error.message);
-      setStatus("Error deleting execution");
-    } finally {
-      setIsLoading(false);
-    }
+  const handleRunWrapper = async ({ inputJson }) => {
+    await actions.handleRunTemplate({ selectedRunTemplate, inputJson });
   };
 
-  const openRunModal = (template) => {
-    setSelectedRunTemplate(template);
-    setRunResult("");
-  };
-
-  const runTemplate = async ({ inputJson }) => {
-    if (!selectedRunTemplate) return;
-    setStatus("Running...");
-    setIsLoading(true);
-    setRunResult("");
-    const runFn = httpsCallable(functions, 'runPromptTemplate');
-    try {
-      const reqBody = JSON.parse(inputJson);
-      const templateId = getTemplateId(selectedRunTemplate.name);
-      const result = await runFn({ templateId, reqBody });
-
-      setRunResult(result.data);
-
-      // Auto-save generated images if detected
-      const imageParams = extractImageFromGeminiResult(result.data);
-
-      if (imageParams) {
-        if (imageParams.type === 'base64') {
-          try {
-            // Upload to Storage
-            const { storagePath, downloadURL } = await uploadImage(user.uid, templateId, imageParams.data, imageParams.mimeType);
-
-            // Save Metadata to Firestore
-            const docRef = await saveExecutionMetadata({
-              templateId,
-              user,
-              storagePath,
-              downloadURL,
-              reqBody,
-              isImage: true
-            });
-            console.log("Image saved successfully");
-
-            // Update local state
-            const newExecution = {
-              id: docRef.id,
-              promptId: templateId,
-              userId: user.uid,
-              createdAt: { seconds: Date.now() / 1000 }, // Approximation for immediate display
-              storagePath,
-              imageUrl: downloadURL,
-              textContent: null,
-              creatorId: user.uid,
-              inputVariables: reqBody,
-              public: true,
-              isImage: true,
-              type: 'image'
-            };
-
-            setTemplates(prev => prev.map(t => {
-              if (getTemplateId(t.name) === templateId) {
-                return {
-                  ...t,
-                  executions: [newExecution, ...(t.executions || [])]
-                };
-              }
-              return t;
-            }));
-
-          } catch (err) {
-            console.error("Failed to save image:", err);
-          }
-        }
-      } else {
-        const textContent = extractTextFromGeminiResult(result.data);
-        if (textContent) {
-          try {
-            const docRef = await saveExecutionMetadata({
-              templateId,
-              user,
-              storagePath: null,
-              downloadURL: null,
-              reqBody,
-              isImage: false,
-              textContent: textContent
-            });
-            console.log("Text execution saved successfully");
-
-            // Update local state
-            const newExecution = {
-              id: docRef.id,
-              promptId: templateId,
-              userId: user.uid,
-              createdAt: { seconds: Date.now() / 1000 },
-              storagePath: null,
-              imageUrl: null,
-              textContent: textContent,
-              creatorId: user.uid,
-              inputVariables: reqBody,
-              public: true,
-              isImage: false,
-              type: 'text'
-            };
-
-            setTemplates(prev => prev.map(t => {
-              if (getTemplateId(t.name) === templateId) {
-                return {
-                  ...t,
-                  executions: [newExecution, ...(t.executions || [])]
-                };
-              }
-              return t;
-            }));
-
-          } catch (err) {
-            console.error("Failed to save text execution:", err);
-          }
-        }
-      }
-
-
-      setStatus("Run Complete");
-    } catch (error) {
-      setRunResult("Error: " + error.message);
-    } finally {
-      setIsLoading(false);
-    }
+  const handleCloseRun = () => {
+    setSelectedRunTemplate(null);
+    actions.clearRunResult();
   };
 
   // --- Render ---
@@ -389,22 +100,22 @@ function App() {
     <div className="max-w-[1200px] mx-auto p-5">
       <Header
         user={user}
-        status={status}
+        status={state.status}
         onLogout={handleLogout}
         onCreate={handleOpenCreate}
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {templates.map((t) => (
+        {state.templates.map((t) => (
           <TemplateCard
             key={t.name}
             template={t}
-            getTemplateId={getTemplateId}
-            onRun={() => openRunModal(t)}
-            onView={handleViewTemplate}
+            getTemplateId={actions.getTemplateId}
+            onRun={() => setSelectedRunTemplate(t)}
+            onView={handleViewWrapper}
             onEdit={handleOpenEdit}
-            onDelete={deleteTemplate}
-            onDeleteExecution={handleDeleteExecution}
+            onDelete={actions.handleDeleteTemplate}
+            onDeleteExecution={actions.handleDeleteExecution}
             currentUser={user}
           />
         ))}
@@ -414,24 +125,24 @@ function App() {
         isOpen={isEditorOpen}
         isEditing={!!editingTemplate}
         onClose={() => setIsEditorOpen(false)}
-        onSave={saveTemplate}
-        isLoading={isLoading}
+        onSave={handleSaveWrapper}
+        isLoading={state.isLoading}
         initialData={editingTemplate}
       />
 
       <TemplateRunner
         template={selectedRunTemplate}
-        onClose={() => setSelectedRunTemplate(null)}
-        onRun={runTemplate}
-        isLoading={isLoading}
-        runResult={runResult}
+        onClose={handleCloseRun}
+        onRun={handleRunWrapper}
+        isLoading={state.isLoading}
+        runResult={state.runResult}
       />
 
       <TemplateViewer
         isOpen={isViewModalOpen}
         onClose={() => setIsViewModalOpen(false)}
-        data={viewTemplateData}
-        isLoading={isLoading && !viewTemplateData}
+        data={state.viewTemplateData}
+        isLoading={state.isLoading && !state.viewTemplateData}
       />
     </div>
   );
