@@ -1,7 +1,6 @@
-# Prompt Gallery (Nano Banana Pro)
+# Prompt Gallery
 
 > [!NOTE]
-> **Firebase Hackweek Project**
 > This project is evolving rapidly with the help of AI. This README documents our current implementation and future goals.
 
 ## Project Vision
@@ -30,6 +29,7 @@ We utilize a modern stack to move fast during Hackweek:
 ### Data & Hosting
 - **Firestore**: Stores user data, ownership information, and additional metadata not supported by Firebase AI Logic.
 - **Firebase AI Logic**: The *Single Source of Truth* for prompt template content (display name, template string, etc.).
+- **Firebase Storage**: Stores generated images.
 - **Firebase Hosting**: Serves the web application.
 
 ---
@@ -46,15 +46,22 @@ The application currently supports the core "Admin" and "Runner" flows:
     -   **Delete**: Remove templates.
 3.  **Template Execution**:
     -   **Run**: Select a template, provide JSON input variables (e.g., `{"subject": "cats"}`), and execute it against Firebase AI Logic to see the result.
+    -   **Auto-Save**: Generated images are automatically saved to Firebase Storage. Parameters and metadata are logged to the `executions` Firestore collection.
+    -   **Public by Default**: Executions are marked as public (`public: true`), allowing universal read access to support the future social feed.
 
 ## Roadmap (To-Do)
 
 The following features are designed but **not yet implemented**:
 
 -   [x] **Result Storage**: Store generated images in **Firebase Cloud Storage** and metadata in **Firestore**.
--   [ ] **Social Feed**: A public feed of generated results.
+-   [x] **Public Access Control**: Basic boolean flag (`public`) implementation in Firestore and Storage to control visibility.
+-   [ ] **Execution History**: Show past execution results in the template card (handle text responses elegantly).
 -   [ ] **Social Interactions**: "Like" functionality for prompts and results.
--   [ ] **Ranking System**: Sorting feed based on engagement.
+-   [ ] **AI Labeling**: Use AI to attach labels/tags to prompts automatically.
+-   [ ] **AI Parameter Generation**: Use AI to auto-generate input parameters (e.g., a "Dice" button for random valid inputs).
+-   [ ] **AI Template Assistance**: Use AI to help users create dot-prompt strings (format suggestions, model ID selection).
+-   [ ] **Pagination**: Implement "Load More" functionality for the template list.
+-   [ ] **Advanced Filtering**: Rank and filter prompts by specific criteria (likes, date, tags).
 
 ---
 
