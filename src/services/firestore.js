@@ -23,16 +23,12 @@ export const getTemplateExecutions = async (templateId, limitCount = 10) => {
         return executionsCache.get(templateId);
     }
 
-    // We want executions for this specific template that have an imageUrl
-    // Ordered by createdAt desc
     try {
-        // Let's refine the query. We want "executions" where promptId == templateId.
-        // And we probably only want those with images.
-
         const q2 = query(
             collection(db, "executions"),
             where("promptId", "==", templateId),
             where("public", "==", true),
+            orderBy("likeCount", "desc"),
             orderBy("createdAt", "desc"),
             limit(limitCount)
         );
