@@ -1,4 +1,37 @@
 {
-    "indexes": [],
+    "indexes": [
+        {
+            "collectionGroup": "prompts",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "public",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "createdAt",
+                    "order": "DESCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "executions",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "promptId",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "public",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "createdAt",
+                    "order": "DESCENDING"
+                }
+            ]
+        }
+    ],
     "fieldOverrides": []
 }

@@ -1,6 +1,6 @@
 import React from 'react';
 import Modal from '../common/Modal';
-import { isImageModel, extractImageFromGeminiResult, extractTextFromGeminiResult } from '../../utils/geminiParsers';
+import { extractImageFromGeminiResult, extractTextFromGeminiResult } from '../../utils/geminiParsers';
 import { cleanJsonString } from '../../utils/jsonUtils';
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { app } from '../../firebase';
@@ -137,7 +137,7 @@ const TemplateRunner = ({
                 <div className="result-container">
                     <label className="block mb-[5px] font-bold">Result</label>
                     {(() => {
-                        if (isImageModel(template)) {
+                        if (template.isImage) {
                             const params = extractImageFromGeminiResult(runResult);
                             if (params) {
                                 if (params.type === 'base64') {

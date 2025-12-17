@@ -1,9 +1,3 @@
-export const isImageModel = (template) => {
-    if (!template) return false;
-    const modelName = template.model || template.templateData?.model || template.name || '';
-    return modelName.toLowerCase().includes('image');
-};
-
 export const extractImageFromGeminiResult = (runResult) => {
     if (!runResult || !runResult.candidates || runResult.candidates.length === 0) return null;
 

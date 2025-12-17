@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
 import { app, auth, googleProvider } from "./firebase";
-import { isImageModel, extractImageFromGeminiResult } from './utils/geminiParsers';
+import { extractImageFromGeminiResult } from './utils/geminiParsers';
 import { getRecentTemplates, saveExecutionMetadata, getTemplateExecutions } from './services/firestore';
 import { uploadImage } from './services/storage';
 
@@ -105,6 +105,7 @@ function App() {
             ...res.data,
             ownerId: docData.ownerId,
             createdAt: docData.createdAt,
+            isImage: docData.isImage,
             executions: executions
           };
         } catch (err) {
@@ -233,7 +234,7 @@ function App() {
       const result = await runFn({ templateId, reqBody });
 
       // Auto-save generated images
-      if (isImageModel(selectedRunTemplate)) {
+      if (selectedRunTemplate.isImage) {
         const imageParams = extractImageFromGeminiResult(result.data);
         if (imageParams && imageParams.type === 'base64') {
           try {
