@@ -1,5 +1,6 @@
 import React from 'react';
 import Modal from '../common/Modal';
+import { isImageModel, extractImageFromGeminiResult } from '../../utils/geminiParsers';
 
 const TemplateRunner = ({
     template,
@@ -45,39 +46,25 @@ const TemplateRunner = ({
                 <div className="result-container">
                     <label className="block mb-[5px] font-bold">Result</label>
                     {(() => {
-                        const isImageModel = template?.model?.toLowerCase().includes('image') ||
-                            template?.templateData?.model?.toLowerCase().includes('image') ||
-                            (template?.name && template.name.toLowerCase().includes('image')); // Fallback check
-
-                        if (isImageModel) {
-                            // Try to find image data in standard Gemini/Vertex response structure
-                            const candidates = runResult.candidates;
-                            if (candidates && candidates.length > 0) {
-                                const parts = candidates[0].content?.parts;
-                                if (parts && parts.length > 0) {
-                                    // Check for inlineData (base64)
-                                    const inlineData = parts.find(p => p.inlineData);
-                                    if (inlineData) {
-                                        const { mimeType, data } = inlineData.inlineData;
-                                        return (
-                                            <img
-                                                src={`data:${mimeType};base64,${data}`}
-                                                alt="Generated Content"
-                                                className="max-w-full h-auto rounded-md border border-[#eee]"
-                                            />
-                                        );
-                                    }
-                                    // Check for text that might be a URL (fallback)
-                                    const textPart = parts.find(p => p.text);
-                                    if (textPart && textPart.text.startsWith('http')) {
-                                        return (
-                                            <img
-                                                src={textPart.text}
-                                                alt="Generated Content"
-                                                className="max-w-full h-auto rounded-md border border-[#eee]"
-                                            />
-                                        );
-                                    }
+                        if (isImageModel(template)) {
+                            const params = extractImageFromGeminiResult(runResult);
+                            if (params) {
+                                if (params.type === 'base64') {
+                                    return (
+                                        <img
+                                            src={`data:${params.mimeType};base64,${params.data}`}
+                                            alt="Generated Content"
+                                            className="max-w-full h-auto rounded-md border border-[#eee]"
+                                        />
+                                    );
+                                } else if (params.type === 'url') {
+                                    return (
+                                        <img
+                                            src={params.url}
+                                            alt="Generated Content"
+                                            className="max-w-full h-auto rounded-md border border-[#eee]"
+                                        />
+                                    );
                                 }
                             }
                         }

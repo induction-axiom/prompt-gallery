@@ -25,7 +25,7 @@ We utilize a modern stack to move fast during Hackweek:
 
 ### Backend & AI
 - **Firebase Cloud Functions** (v2): Serverless backend handling API logic.
-- **Firebase AI Logic**: Accessed via Cloud Functions to generate content from templates.
+- **Firebase AI Logic**: Accessed via Cloud Functions to generate content from templates. *Note: We utilize Gemini Developer AI endpoints.*
 
 ### Data & Hosting
 - **Firestore**: Stores user data, ownership information, and additional metadata not supported by Firebase AI Logic.
@@ -51,7 +51,7 @@ The application currently supports the core "Admin" and "Runner" flows:
 
 The following features are designed but **not yet implemented**:
 
--   [ ] **Result Storage**: Store generated images in **Firebase Cloud Storage**.
+-   [x] **Result Storage**: Store generated images in **Firebase Cloud Storage** and metadata in **Firestore**.
 -   [ ] **Social Feed**: A public feed of generated results.
 -   [ ] **Social Interactions**: "Like" functionality for prompts and results.
 -   [ ] **Ranking System**: Sorting feed based on engagement.
