@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import TextCard from './TextCard';
 import ThumbnailStrip from './ThumbnailStrip';
 import IconButton from '../common/IconButton';
+import Modal from '../common/Modal';
 
 const MixedMediaGallery = ({ items, currentUser, onDelete, likedExecutionIds = [], onToggleLike }) => {
     const [selectedIndex, setSelectedIndex] = useState(0);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     // Reset selection if items change significantly (optional, but good practice)
     useEffect(() => {
@@ -33,6 +35,8 @@ const MixedMediaGallery = ({ items, currentUser, onDelete, likedExecutionIds = [
                 onClick={() => {
                     if (isImage) {
                         window.open(currentItem.imageUrl, '_blank');
+                    } else {
+                        setIsModalOpen(true);
                     }
                 }}
             >
@@ -99,6 +103,26 @@ const MixedMediaGallery = ({ items, currentUser, onDelete, likedExecutionIds = [
                 selectedIndex={selectedIndex}
                 onSelect={setSelectedIndex}
             />
+
+            {/* View Modal */}
+            {isModalOpen && !isImage && (
+                <Modal
+                    title="Generated Text"
+                    onClose={() => setIsModalOpen(false)}
+                    footer={
+                        <button
+                            onClick={() => setIsModalOpen(false)}
+                            className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition-colors"
+                        >
+                            Close
+                        </button>
+                    }
+                >
+                    <div className="whitespace-pre-wrap text-left">
+                        {currentItem.textContent}
+                    </div>
+                </Modal>
+            )}
         </div>
     );
 };
