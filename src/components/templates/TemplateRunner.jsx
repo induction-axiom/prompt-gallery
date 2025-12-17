@@ -3,8 +3,7 @@ import Modal from '../common/Modal';
 import Button from '../common/Button';
 import { extractImageFromGeminiResult, extractTextFromGeminiResult } from '../../utils/geminiParsers';
 import { cleanJsonString } from '../../utils/jsonUtils';
-import { getFunctions, httpsCallable } from "firebase/functions";
-import { app } from '../../firebase';
+import { runPromptTemplate } from '../../services/functions';
 
 const TemplateRunner = ({
     template,
@@ -16,9 +15,8 @@ const TemplateRunner = ({
     const [inputJson, setInputJson] = React.useState(''); // Start empty to avoid jump
     // Track if user has touched the input to avoid overwriting with slow defaults
     const userEditedRef = React.useRef(false);
-    const [isGeneratingRandom, setIsGeneratingRandom] = React.useState(false);
 
-    const functions = getFunctions(app);
+    const [isGeneratingRandom, setIsGeneratingRandom] = React.useState(false);
 
     React.useEffect(() => {
         if (template) {
@@ -35,8 +33,7 @@ const TemplateRunner = ({
     const handleDiceClick = async () => {
         setIsGeneratingRandom(true);
         try {
-            const runFn = httpsCallable(functions, 'runPromptTemplate');
-            const result = await runFn({
+            const result = await runPromptTemplate({
                 templateId: 'a4f6d8c4-2f01-4281-a833-c7e36aa0dc21',
                 reqBody: {
                     target_template: template.templateString || template.dotPromptString || '',

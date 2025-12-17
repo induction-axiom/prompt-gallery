@@ -1,8 +1,7 @@
 import React from 'react';
 import Modal from '../common/Modal';
 import Button from '../common/Button';
-import { getFunctions, httpsCallable } from "firebase/functions";
-import { app } from '../../firebase';
+import { runPromptTemplate } from '../../services/functions';
 import { extractTextFromGeminiResult } from '../../utils/geminiParsers';
 import { cleanJsonString } from '../../utils/jsonUtils';
 
@@ -19,8 +18,7 @@ const TemplateEditor = ({
     const [jsonInputSchema, setJsonInputSchema] = React.useState("");
     const [isGeneratingSchema, setIsGeneratingSchema] = React.useState(false);
 
-    // Needed for auto-detect call
-    const functions = getFunctions(app);
+
 
     React.useEffect(() => {
         if (isOpen) {
@@ -48,8 +46,7 @@ Create a cute, isometric miniature 3D cartoon scene of a {{object}}. The style s
         if (!dotPromptString) return alert("Please enter a prompt first");
         setIsGeneratingSchema(true);
         try {
-            const runFn = httpsCallable(functions, 'runPromptTemplate');
-            const result = await runFn({
+            const result = await runPromptTemplate({
                 templateId: '375a6ce2-efaa-4d22-bf67-4944ce8dc6ed',
                 reqBody: { target_template: dotPromptString }
             });

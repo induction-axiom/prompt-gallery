@@ -1,5 +1,5 @@
 import { useReducer, useEffect } from 'react';
-import { getFunctions, httpsCallable } from "firebase/functions";
+import { getPromptTemplate, createPromptTemplate, updatePromptTemplate, deletePromptTemplate, runPromptTemplate } from '../services/functions';
 import { extractImageFromGeminiResult, extractTextFromGeminiResult } from '../utils/geminiParsers';
 import { getRecentTemplates, saveExecutionMetadata, getTemplateExecutions, deleteExecution, getUserLikes, togglePromptLike, getUserExecutionLikes, toggleExecutionLike, getUserProfile } from '../services/firestore';
 import { uploadImage, deleteImage } from '../services/storage';
@@ -8,7 +8,6 @@ import { templateReducer, initialState } from '../reducers/templateReducer';
 
 export const useTemplates = (user) => {
     const [state, dispatch] = useReducer(templateReducer, initialState);
-    const functions = getFunctions(app);
 
     const getTemplateId = (fullResourceName) => fullResourceName ? fullResourceName.split('/').pop() : 'Unknown';
 
@@ -47,11 +46,10 @@ export const useTemplates = (user) => {
 
             // 2. Fetch details for each template in parallel
             setStatus(`Fetching details for ${firestoreDocs.length} templates...`);
-            const getFn = httpsCallable(functions, 'getPromptTemplate');
 
             const promises = firestoreDocs.map(async (docData) => {
                 try {
-                    const res = await getFn({ templateId: docData.id });
+                    const res = await getPromptTemplate({ templateId: docData.id });
                     let executions = [];
                     let ownerProfile = null;
 
@@ -103,10 +101,9 @@ export const useTemplates = (user) => {
         setIsLoading(true);
         dispatch({ type: 'SET_VIEW_DATA', payload: null });
 
-        const getFn = httpsCallable(functions, 'getPromptTemplate');
         try {
             const templateId = getTemplateId(template.name);
-            const result = await getFn({ templateId });
+            const result = await getPromptTemplate({ templateId });
             dispatch({ type: 'SET_VIEW_DATA', payload: result.data });
             setStatus("Details loaded");
         } catch (error) {
@@ -125,8 +122,7 @@ export const useTemplates = (user) => {
         try {
             if (editingTemplate) {
                 setStatus("Updating...");
-                const updateFn = httpsCallable(functions, 'updatePromptTemplate');
-                await updateFn({
+                await updatePromptTemplate({
                     templateId: getTemplateId(editingTemplate.name),
                     displayName,
                     dotPromptString,
@@ -135,8 +131,7 @@ export const useTemplates = (user) => {
                 setStatus("Prompt Updated!");
             } else {
                 setStatus("Creating...");
-                const createFn = httpsCallable(functions, 'createPromptTemplate');
-                await createFn({
+                await createPromptTemplate({
                     displayName,
                     dotPromptString,
                     jsonInputSchema
@@ -159,9 +154,10 @@ export const useTemplates = (user) => {
 
         setStatus(`Deleting ${templateId}...`);
         setIsLoading(true);
-        const deleteFn = httpsCallable(functions, 'deletePromptTemplate');
+        setStatus(`Deleting ${templateId}...`);
+        setIsLoading(true);
         try {
-            await deleteFn({ templateId });
+            await deletePromptTemplate({ templateId });
             setStatus("Deleted.");
             // Optimistic update (optional, as fetchTemplates() will refresh)
             // dispatch({ type: 'DELETE_TEMPLATE', payload: templateId });
@@ -240,11 +236,14 @@ export const useTemplates = (user) => {
         setStatus("Running...");
         setIsLoading(true);
         setRunResult("");
-        const runFn = httpsCallable(functions, 'runPromptTemplate');
+        if (!selectedRunTemplate) return;
+        setStatus("Running...");
+        setIsLoading(true);
+        setRunResult("");
         try {
             const reqBody = JSON.parse(inputJson);
             const templateId = getTemplateId(selectedRunTemplate.name);
-            const result = await runFn({ templateId, reqBody });
+            const result = await runPromptTemplate({ templateId, reqBody });
 
             setRunResult(result.data);
 
