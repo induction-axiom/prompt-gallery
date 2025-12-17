@@ -1,7 +1,7 @@
-import { useReducer } from 'react';
+import { useReducer, useEffect } from 'react';
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { extractImageFromGeminiResult, extractTextFromGeminiResult } from '../utils/geminiParsers';
-import { getRecentTemplates, saveExecutionMetadata, getTemplateExecutions, deleteExecution } from '../services/firestore';
+import { getRecentTemplates, saveExecutionMetadata, getTemplateExecutions, deleteExecution, getUserLikes, togglePromptLike } from '../services/firestore';
 import { uploadImage, deleteImage } from '../services/storage';
 import { app } from "../firebase";
 import { templateReducer, initialState } from '../reducers/templateReducer';
@@ -16,6 +16,17 @@ export const useTemplates = (user) => {
     const setStatus = (msg) => dispatch({ type: 'SET_STATUS', payload: msg });
     const setIsLoading = (loading) => dispatch({ type: 'SET_LOADING', payload: loading });
     const setRunResult = (res) => dispatch({ type: 'SET_RUN_RESULT', payload: res });
+
+    // Fetch user likes when user logs in
+    useEffect(() => {
+        if (user) {
+            getUserLikes(user.uid).then(likes => {
+                dispatch({ type: 'SET_USER_LIKES', payload: likes });
+            });
+        } else {
+            dispatch({ type: 'SET_USER_LIKES', payload: [] });
+        }
+    }, [user]);
 
     const fetchTemplates = async () => {
         setStatus("Fetching list from Firestore...");
@@ -49,6 +60,7 @@ export const useTemplates = (user) => {
                         ownerId: docData.ownerId,
                         createdAt: docData.createdAt,
                         isImage: docData.isImage,
+                        likeCount: docData.likeCount || 0, // Ensure likeCount is passed
                         executions: executions
                     };
                 } catch (err) {
@@ -174,6 +186,33 @@ export const useTemplates = (user) => {
         }
     };
 
+    const handleToggleLike = async (templateId) => {
+        if (!user) return alert("Please sign in to like templates.");
+
+        const isLiked = !state.likedTemplateIds.includes(templateId);
+
+        // Optimistic update
+        dispatch({ type: 'TOGGLE_LIKE', payload: { templateId, isLiked } });
+
+        try {
+            await togglePromptLike(templateId, user.uid);
+            // My Service: togglePromptLike(templateId, userId, isLiked) -> "isLiked" usually means "is it currently liked? or do we want to make it liked?"
+            // Plan said: "togglePromptLike(templateId, userId, isLiked)" 
+            // My implementation in firestore.js: if (isLiked) { UNLIKE } else { LIKE }
+            // So the 3rd arg is "Is it ALREADY liked?" or "Am I currently holding a like?"
+            // Let's check firestore.js again.
+            // "if (isLiked) { // User wants to UNLIKE ... }" 
+            // So yes, I should pass the BEFORE state.
+            // If I am currently liked (includes(id)), I pass true. Then service unlikes.
+            // So pass state.likedTemplateIds.includes(templateId)
+        } catch (error) {
+            console.error("Failed to toggle like:", error);
+            // Revert on error
+            dispatch({ type: 'TOGGLE_LIKE', payload: { templateId, isLiked: !isLiked } });
+            alert("Failed to update like status.");
+        }
+    };
+
     const handleRunTemplate = async ({ selectedRunTemplate, inputJson }) => {
         if (!selectedRunTemplate) return;
         setStatus("Running...");
@@ -277,6 +316,7 @@ export const useTemplates = (user) => {
             handleDeleteTemplate,
             handleDeleteExecution,
             handleRunTemplate,
+            handleToggleLike,
             clearRunResult,
             getTemplateId
         }

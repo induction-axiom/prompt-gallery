@@ -1,7 +1,7 @@
 import React from 'react';
 import MixedMediaGallery from '../gallery/MixedMediaGallery';
 
-const TemplateCard = ({ template, onRun, onView, onEdit, onDelete, onDeleteExecution, getTemplateId, currentUser }) => {
+const TemplateCard = ({ template, onRun, onView, onEdit, onDelete, onDeleteExecution, onToggleLike, isLiked, getTemplateId, currentUser }) => {
 
     return (
         <div className="border border-[#e0e0e0] rounded-xl bg-white shadow-sm flex flex-col h-auto overflow-hidden">
@@ -24,35 +24,60 @@ const TemplateCard = ({ template, onRun, onView, onEdit, onDelete, onDeleteExecu
             />
 
             {/* Actions Footer */}
-            <div className="mt-auto px-5 py-3 flex justify-end gap-2.5 border-t border-[#f0f0f0] bg-gray-50/50">
+            <div className="mt-auto px-5 py-3 flex items-center justify-between border-t border-[#f0f0f0] bg-gray-50/50">
+                {/* Like Button Group */}
                 <button
-                    onClick={(e) => { e.stopPropagation(); onView(template); }}
-                    className="px-3 py-1.5 text-xs rounded opacity-100 hover:opacity-90 inline-flex items-center justify-center border-none cursor-pointer transition-opacity bg-[#f6ffed] text-[#52c41a] font-bold"
+                    onClick={(e) => { e.stopPropagation(); onToggleLike(getTemplateId(template.name)); }}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border transition-all cursor-pointer ${isLiked
+                        ? "bg-red-50 border-red-100 text-red-500 hover:bg-red-100"
+                        : "bg-white border-gray-200 text-gray-500 hover:border-gray-300 hover:bg-gray-50"
+                        }`}
                 >
-                    Read
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill={isLiked ? "currentColor" : "none"}
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="w-4 h-4"
+                    >
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                    </svg>
+                    <span className="text-xs font-semibold">{template.likeCount || 0}</span>
                 </button>
-                <button
-                    onClick={onRun}
-                    className="px-3 py-1.5 text-xs rounded opacity-100 hover:opacity-90 inline-flex items-center justify-center border-none cursor-pointer transition-opacity bg-[#e6f7ff] text-[#1890ff] font-bold"
-                >
-                    Run
-                </button>
-                {currentUser && template.ownerId === currentUser.uid && (
-                    <>
-                        <button
-                            onClick={(e) => onEdit(e, template)}
-                            className="px-3 py-1.5 text-xs rounded opacity-100 hover:opacity-90 inline-flex items-center justify-center border-none cursor-pointer transition-opacity bg-[#f9f0ff] text-[#722ed1]"
-                        >
-                            Edit
-                        </button>
-                        <button
-                            onClick={(e) => onDelete(e, template.name)}
-                            className="px-3 py-1.5 text-xs rounded opacity-100 hover:opacity-90 inline-flex items-center justify-center border-none cursor-pointer transition-opacity bg-[#fff1f0] text-[#f5222d]"
-                        >
-                            Delete
-                        </button>
-                    </>
-                )}
+
+                <div className="flex justify-end gap-2.5">
+                    <button
+                        onClick={(e) => { e.stopPropagation(); onView(template); }}
+                        className="px-3 py-1.5 text-xs rounded opacity-100 hover:opacity-90 inline-flex items-center justify-center border-none cursor-pointer transition-opacity bg-[#f6ffed] text-[#52c41a] font-bold"
+                    >
+                        Read
+                    </button>
+                    <button
+                        onClick={onRun}
+                        className="px-3 py-1.5 text-xs rounded opacity-100 hover:opacity-90 inline-flex items-center justify-center border-none cursor-pointer transition-opacity bg-[#e6f7ff] text-[#1890ff] font-bold"
+                    >
+                        Run
+                    </button>
+                    {currentUser && template.ownerId === currentUser.uid && (
+                        <>
+                            <button
+                                onClick={(e) => onEdit(e, template)}
+                                className="px-3 py-1.5 text-xs rounded opacity-100 hover:opacity-90 inline-flex items-center justify-center border-none cursor-pointer transition-opacity bg-[#f9f0ff] text-[#722ed1]"
+                            >
+                                Edit
+                            </button>
+                            <button
+                                onClick={(e) => onDelete(e, template.name)}
+                                className="px-3 py-1.5 text-xs rounded opacity-100 hover:opacity-90 inline-flex items-center justify-center border-none cursor-pointer transition-opacity bg-[#fff1f0] text-[#f5222d]"
+                            >
+                                Delete
+                            </button>
+                        </>
+                    )}
+                </div>
             </div>
         </div>
     );

@@ -116,6 +116,8 @@ function App() {
             onEdit={handleOpenEdit}
             onDelete={actions.handleDeleteTemplate}
             onDeleteExecution={actions.handleDeleteExecution}
+            onToggleLike={actions.handleToggleLike}
+            isLiked={state.likedTemplateIds.includes(actions.getTemplateId(t.name))}
             currentUser={user}
           />
         ))}

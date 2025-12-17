@@ -1,4 +1,4 @@
-import { collection, query, orderBy, limit, getDocs, addDoc, serverTimestamp, where, deleteDoc, doc } from "firebase/firestore";
+import { collection, query, orderBy, limit, getDocs, addDoc, serverTimestamp, where, deleteDoc, doc, runTransaction } from "firebase/firestore";
 import { db } from "../firebase";
 
 export const getRecentTemplates = async (limitCount = 10) => {
@@ -63,6 +63,58 @@ export const deleteExecution = async (executionId) => {
         return true;
     } catch (e) {
         console.error("Error deleting execution:", e);
+        throw e;
+    }
+};
+
+export const getUserLikes = async (userId) => {
+    if (!userId) return [];
+    try {
+        const q = query(collection(db, `users/${userId}/likes`));
+        const querySnapshot = await getDocs(q);
+        return querySnapshot.docs.map(doc => doc.id);
+    } catch (e) {
+        console.error("Error fetching user likes:", e);
+        return [];
+    }
+};
+
+export const togglePromptLike = async (templateId, userId) => {
+    if (!userId || !templateId) throw new Error("Missing userId or templateId");
+
+    const templateRef = doc(db, "prompts", templateId);
+    const userLikeRef = doc(db, `users/${userId}/likes`, templateId);
+
+    try {
+        await runTransaction(db, async (transaction) => {
+            const templateDoc = await transaction.get(templateRef);
+            if (!templateDoc.exists()) {
+                throw new Error("Template does not exist!");
+            }
+
+            const userLikeDoc = await transaction.get(userLikeRef);
+            const doesUserLike = userLikeDoc.exists();
+
+            const currentLikeCount = templateDoc.data().likeCount || 0;
+            let newLikeCount;
+
+            if (doesUserLike) {
+                // User ALREADY likes it -> UNLIKE
+                newLikeCount = Math.max(0, currentLikeCount - 1);
+                transaction.delete(userLikeRef);
+            } else {
+                // User does NOT like it -> LIKE
+                newLikeCount = currentLikeCount + 1;
+                transaction.set(userLikeRef, {
+                    likedAt: serverTimestamp()
+                });
+            }
+
+            transaction.update(templateRef, { likeCount: newLikeCount });
+        });
+        return true;
+    } catch (e) {
+        console.error("Transaction failed: ", e);
         throw e;
     }
 };
