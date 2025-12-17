@@ -33,3 +33,15 @@ export const extractImageFromGeminiResult = (runResult) => {
 
     return null;
 };
+
+export const extractTextFromGeminiResult = (runResult) => {
+    if (!runResult || !runResult.candidates || runResult.candidates.length === 0) return null;
+
+    const candidate = runResult.candidates[0];
+    const parts = candidate.content?.parts;
+
+    if (!parts || parts.length === 0) return null;
+
+    const textPart = parts.find(p => p.text);
+    return textPart ? textPart.text : null;
+};
