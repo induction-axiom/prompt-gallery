@@ -20,12 +20,14 @@ const TemplateEditor = ({
             } else {
                 setDisplayName("");
                 setDotPromptString(`---
-model: gemini-2.5-flash
+model: gemini-3-pro-image-preview
+config:
+  temperature: 0.9
 input:
   schema:
-    subject: string
+    object: string
 ---
-Tell me a joke about {{subject}}.`);
+Create a cute, isometric miniature 3D cartoon scene of a {{object}}. The style should feature soft, refined textures with realistic PBR materials and gentle, lifelike lighting and shadows. Use a clean, minimalistic composition with a soft, solid-colored background.`);
             }
         }
     }, [isOpen, isEditing, initialData]);
@@ -54,7 +56,7 @@ Tell me a joke about {{subject}}.`);
                     type="text"
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
-                    placeholder="e.g., Joke Generator"
+                    placeholder="e.g., 3D Cartoon"
                     className="w-full p-2 box-border border border-[#ddd] rounded"
                 />
             </div>

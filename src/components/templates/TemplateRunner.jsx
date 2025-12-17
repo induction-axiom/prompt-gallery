@@ -12,7 +12,7 @@ const TemplateRunner = ({
 
     React.useEffect(() => {
         if (template) {
-            setInputJson('{"subject": "software engineers"}');
+            setInputJson('{"object": "banana"}');
         }
     }, [template]);
 
@@ -44,9 +44,51 @@ const TemplateRunner = ({
             {runResult && (
                 <div className="result-container">
                     <label className="block mb-[5px] font-bold">Result</label>
-                    <pre className="bg-[#f5f5f5] p-[15px] rounded-md overflow-x-auto border border-[#eee] max-h-[200px]">
-                        {runResult}
-                    </pre>
+                    {(() => {
+                        const isImageModel = template?.model?.toLowerCase().includes('image') ||
+                            template?.templateData?.model?.toLowerCase().includes('image') ||
+                            (template?.name && template.name.toLowerCase().includes('image')); // Fallback check
+
+                        if (isImageModel) {
+                            // Try to find image data in standard Gemini/Vertex response structure
+                            const candidates = runResult.candidates;
+                            if (candidates && candidates.length > 0) {
+                                const parts = candidates[0].content?.parts;
+                                if (parts && parts.length > 0) {
+                                    // Check for inlineData (base64)
+                                    const inlineData = parts.find(p => p.inlineData);
+                                    if (inlineData) {
+                                        const { mimeType, data } = inlineData.inlineData;
+                                        return (
+                                            <img
+                                                src={`data:${mimeType};base64,${data}`}
+                                                alt="Generated Content"
+                                                className="max-w-full h-auto rounded-md border border-[#eee]"
+                                            />
+                                        );
+                                    }
+                                    // Check for text that might be a URL (fallback)
+                                    const textPart = parts.find(p => p.text);
+                                    if (textPart && textPart.text.startsWith('http')) {
+                                        return (
+                                            <img
+                                                src={textPart.text}
+                                                alt="Generated Content"
+                                                className="max-w-full h-auto rounded-md border border-[#eee]"
+                                            />
+                                        );
+                                    }
+                                }
+                            }
+                        }
+
+                        // Default Text/JSON View
+                        return (
+                            <pre className="bg-[#f5f5f5] p-[15px] rounded-md overflow-x-auto border border-[#eee] max-h-[200px]">
+                                {typeof runResult === 'string' ? runResult : JSON.stringify(runResult, null, 2)}
+                            </pre>
+                        );
+                    })()}
                 </div>
             )}
         </Modal>
