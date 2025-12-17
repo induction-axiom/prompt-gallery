@@ -15,7 +15,14 @@ export const getRecentTemplates = async (limitCount = 10) => {
     }));
 };
 
+const executionsCache = new Map();
+
 export const getTemplateExecutions = async (templateId, limitCount = 10) => {
+    // Check cache first
+    if (executionsCache.has(templateId)) {
+        return executionsCache.get(templateId);
+    }
+
     // We want executions for this specific template that have an imageUrl
     // Ordered by createdAt desc
     try {
@@ -31,10 +38,28 @@ export const getTemplateExecutions = async (templateId, limitCount = 10) => {
         );
 
         const querySnapshot = await getDocs(q2);
-        return querySnapshot.docs.map(doc => ({
+        const executions = querySnapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data()
-        })).filter(exec => exec.imageUrl || exec.textContent); // Client-side filter to ensure we have content to show
+        })).filter(exec => exec.imageUrl || exec.textContent);
+
+        // Fetch user profiles for each unique creatorId
+        const userIds = [...new Set(executions.map(e => e.creatorId || e.userId).filter(Boolean))];
+        const userProfiles = {};
+
+        await Promise.all(userIds.map(async (uid) => {
+            userProfiles[uid] = await getUserProfile(uid);
+        }));
+
+        const finalExecutions = executions.map(exec => ({
+            ...exec,
+            userProfile: userProfiles[exec.creatorId || exec.userId]
+        }));
+
+        // Provide simple invalidation - store in cache
+        executionsCache.set(templateId, finalExecutions);
+
+        return finalExecutions;
     } catch (e) {
         console.error("Error fetching executions:", e);
         return [];
@@ -42,6 +67,9 @@ export const getTemplateExecutions = async (templateId, limitCount = 10) => {
 };
 
 export const saveExecutionMetadata = async ({ templateId, user, storagePath, downloadURL, reqBody, isImage = true, textContent = null }) => {
+    // Invalidate cache for this template
+    executionsCache.delete(templateId);
+
     return await addDoc(collection(db, "executions"), {
         promptId: templateId,
         userId: user.uid,
@@ -59,8 +87,11 @@ export const saveExecutionMetadata = async ({ templateId, user, storagePath, dow
     });
 };
 
-export const deleteExecution = async (executionId) => {
+export const deleteExecution = async (executionId, templateId = null) => {
     try {
+        if (templateId) {
+            executionsCache.delete(templateId);
+        }
         await deleteDoc(doc(db, "executions", executionId));
         return true;
     } catch (e) {
@@ -176,23 +207,42 @@ export const toggleExecutionLike = async (executionId, userId) => {
 export const syncUserInfo = async (user) => {
     if (!user) return;
     try {
-        await setDoc(doc(db, "users", user.uid), {
+        const userData = {
             displayName: user.displayName,
             photoURL: user.photoURL,
             email: user.email,
             lastLogin: serverTimestamp()
-        }, { merge: true });
+        };
+
+        await setDoc(doc(db, "users", user.uid), userData, { merge: true });
+
+        // Update cache for current user
+        userProfileCache.set(user.uid, {
+            ...userData,
+            // We use local time for cache immediately, but sync sends serverTimestamp
+            lastLogin: new Date()
+        });
     } catch (e) {
         console.error("Error syncing user info:", e);
     }
 };
 
+const userProfileCache = new Map();
+
 export const getUserProfile = async (userId) => {
     if (!userId) return null;
+
+    // Check cache first
+    if (userProfileCache.has(userId)) {
+        return userProfileCache.get(userId);
+    }
+
     try {
         const userDoc = await getDoc(doc(db, "users", userId));
         if (userDoc.exists()) {
-            return userDoc.data();
+            const userData = userDoc.data();
+            userProfileCache.set(userId, userData);
+            return userData;
         }
     } catch (e) {
         console.error("Error fetching user profile:", e);

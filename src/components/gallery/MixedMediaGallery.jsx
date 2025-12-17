@@ -4,6 +4,7 @@ import ThumbnailStrip from './ThumbnailStrip';
 import IconButton from '../common/IconButton';
 import Modal from '../common/Modal';
 import Button from '../common/Button';
+import UserBadge from '../common/UserBadge';
 
 const MixedMediaGallery = ({ items, currentUser, onDelete, likedExecutionIds = [], onToggleLike }) => {
     const [selectedIndex, setSelectedIndex] = useState(0);
@@ -38,7 +39,7 @@ const MixedMediaGallery = ({ items, currentUser, onDelete, likedExecutionIds = [
                 }}
             >
                 {/* Delete Button Overlay */}
-                {currentUser && (currentUser.uid === currentItem.creatorId || currentUser.uid === currentItem.userId) && (
+                {currentUser && (currentUser.uid === currentItem.creatorId || currentUser.uid === currentItem.userId) ? (
                     <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                         <IconButton
                             onClick={(e) => {
@@ -53,6 +54,11 @@ const MixedMediaGallery = ({ items, currentUser, onDelete, likedExecutionIds = [
                             }
                             title="Delete this result"
                         />
+                    </div>
+                ) : (
+                    /* User Badge for Non-Owners */
+                    <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                        <UserBadge user={currentItem.userProfile} className="!py-1 !px-2 text-xs opacity-90 hover:opacity-100" />
                     </div>
                 )}
 

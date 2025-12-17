@@ -3,6 +3,7 @@ import MixedMediaGallery from '../gallery/MixedMediaGallery';
 import Tooltip from '../common/Tooltip';
 import IconButton from '../common/IconButton';
 import Card from '../common/Card';
+import UserBadge from '../common/UserBadge';
 
 import { extractModelFromDotPrompt } from '../../utils/geminiParsers';
 
@@ -115,22 +116,7 @@ const TemplateCard = ({ template, onRun, onView, onEdit, onDelete, onDeleteExecu
                             />
                         </>
                     ) : (
-                        template.ownerProfile && (
-                            <div className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-full text-xs text-gray-500 font-semibold select-none shadow-sm">
-                                <span>{template.ownerProfile.displayName || 'Anonymous'}</span>
-                                {template.ownerProfile.photoURL ? (
-                                    <img
-                                        src={template.ownerProfile.photoURL}
-                                        alt={template.ownerProfile.displayName}
-                                        className="w-5 h-5 rounded-full border border-gray-200 object-cover"
-                                    />
-                                ) : (
-                                    <div className="w-5 h-5 rounded-full bg-gray-200 flex items-center justify-center text-[10px] text-gray-500 font-bold border border-gray-300">
-                                        {template.ownerProfile.displayName ? template.ownerProfile.displayName[0].toUpperCase() : '?'}
-                                    </div>
-                                )}
-                            </div>
-                        )
+                        <UserBadge user={template.ownerProfile} />
                     )}
                 </div>
             </Card.Footer>

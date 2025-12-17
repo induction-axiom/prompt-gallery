@@ -178,7 +178,7 @@ export const useTemplates = (user) => {
         setStatus("Deleting execution...");
         setIsLoading(true);
         try {
-            await deleteExecution(execution.id);
+            await deleteExecution(execution.id, templateId);
             if (execution.storagePath) {
                 await deleteImage(execution.storagePath);
             }
