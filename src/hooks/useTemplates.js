@@ -1,7 +1,7 @@
 import { useReducer, useEffect } from 'react';
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { extractImageFromGeminiResult, extractTextFromGeminiResult } from '../utils/geminiParsers';
-import { getRecentTemplates, saveExecutionMetadata, getTemplateExecutions, deleteExecution, getUserLikes, togglePromptLike, getUserExecutionLikes, toggleExecutionLike } from '../services/firestore';
+import { getRecentTemplates, saveExecutionMetadata, getTemplateExecutions, deleteExecution, getUserLikes, togglePromptLike, getUserExecutionLikes, toggleExecutionLike, getUserProfile } from '../services/firestore';
 import { uploadImage, deleteImage } from '../services/storage';
 import { app } from "../firebase";
 import { templateReducer, initialState } from '../reducers/templateReducer';
@@ -53,15 +53,21 @@ export const useTemplates = (user) => {
                 try {
                     const res = await getFn({ templateId: docData.id });
                     let executions = [];
+                    let ownerProfile = null;
+
                     try {
                         executions = await getTemplateExecutions(docData.id, 10);
+                        if (docData.ownerId) {
+                            ownerProfile = await getUserProfile(docData.ownerId);
+                        }
                     } catch (e) {
-                        console.error("Failed to fetch executions for", docData.id, e);
+                        console.error("Failed to fetch extra data for", docData.id, e);
                     }
 
                     return {
                         ...res.data,
                         ownerId: docData.ownerId,
+                        ownerProfile: ownerProfile,
                         createdAt: docData.createdAt,
                         isImage: docData.isImage,
                         jsonInputSchema: docData.jsonInputSchema || '',

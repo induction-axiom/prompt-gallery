@@ -1,4 +1,4 @@
-import { collection, query, orderBy, limit, getDocs, addDoc, serverTimestamp, where, deleteDoc, doc, runTransaction } from "firebase/firestore";
+import { collection, query, orderBy, limit, getDocs, addDoc, serverTimestamp, where, deleteDoc, doc, runTransaction, setDoc, getDoc } from "firebase/firestore";
 import { db } from "../firebase";
 
 export const getRecentTemplates = async (limitCount = 10) => {
@@ -172,3 +172,31 @@ export const toggleExecutionLike = async (executionId, userId) => {
         throw e;
     }
 };
+
+export const syncUserInfo = async (user) => {
+    if (!user) return;
+    try {
+        await setDoc(doc(db, "users", user.uid), {
+            displayName: user.displayName,
+            photoURL: user.photoURL,
+            email: user.email,
+            lastLogin: serverTimestamp()
+        }, { merge: true });
+    } catch (e) {
+        console.error("Error syncing user info:", e);
+    }
+};
+
+export const getUserProfile = async (userId) => {
+    if (!userId) return null;
+    try {
+        const userDoc = await getDoc(doc(db, "users", userId));
+        if (userDoc.exists()) {
+            return userDoc.data();
+        }
+    } catch (e) {
+        console.error("Error fetching user profile:", e);
+    }
+    return null;
+};
+

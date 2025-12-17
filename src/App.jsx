@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
 import { auth, googleProvider } from "./firebase";
+import { getRecentTemplates, saveExecutionMetadata, getTemplateExecutions, deleteExecution, getUserLikes, togglePromptLike, getUserExecutionLikes, toggleExecutionLike, syncUserInfo } from './services/firestore';
 import { useTemplates } from './hooks/useTemplates';
 
 // Components
@@ -32,6 +33,7 @@ function App() {
       setIsAuthLoading(false);
 
       if (currentUser) {
+        syncUserInfo(currentUser);
         actions.fetchTemplates();
       }
     });
