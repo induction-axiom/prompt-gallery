@@ -1,5 +1,6 @@
 import React from 'react';
 import Modal from '../common/Modal';
+import Button from '../common/Button';
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { app } from '../../firebase';
 import { extractTextFromGeminiResult } from '../../utils/geminiParsers';
@@ -24,7 +25,6 @@ const TemplateEditor = ({
     React.useEffect(() => {
         if (isOpen) {
             if (isEditing && initialData) {
-                setDisplayName(initialData.displayName || "");
                 setDisplayName(initialData.displayName || "");
                 setDotPromptString(initialData.templateString || "");
                 setJsonInputSchema(initialData.jsonInputSchema || "");
@@ -71,6 +71,7 @@ Create a cute, isometric miniature 3D cartoon scene of a {{object}}. The style s
     const handleSave = () => {
         onSave({ displayName, dotPromptString, jsonInputSchema });
     };
+
     if (!isOpen) return null;
 
     return (
@@ -79,45 +80,53 @@ Create a cute, isometric miniature 3D cartoon scene of a {{object}}. The style s
             onClose={onClose}
             footer={
                 <>
-                    <button onClick={onClose} className="px-5 py-2.5 text-base rounded-md border border-[#ccc] cursor-pointer transition-opacity hover:opacity-90 inline-flex items-center justify-center bg-white">Cancel</button>
-                    <button onClick={handleSave} disabled={isLoading} className="px-5 py-2.5 text-base rounded-md border border-transparent cursor-pointer transition-opacity hover:opacity-90 inline-flex items-center justify-center bg-[#1890ff] text-white disabled:opacity-60 disabled:cursor-not-allowed">
+                    <Button variant="secondary" onClick={onClose}>
+                        Cancel
+                    </Button>
+                    <Button variant="primary" onClick={handleSave} disabled={isLoading}>
                         {isLoading ? 'Saving...' : 'Save Prompt'}
-                    </button>
+                    </Button>
                 </>
             }
         >
-            <div className="mb-[15px]">
-                <label className="block mb-[5px] font-bold">Prompt Name</label>
+            <div className="mb-4">
+                <label className="block mb-1.5 font-bold text-gray-700">Prompt Name</label>
                 <input
                     type="text"
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
                     placeholder="e.g., 3D Cartoon"
-                    className="w-full p-2 box-border border border-[#ddd] rounded"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
                 />
             </div>
-            <div className="mb-[15px] flex-1 flex flex-col">
-                <label className="block mb-[5px] font-bold">DotPrompt String</label>
+            <div className="mb-4 flex-1 flex flex-col">
+                <label className="block mb-1.5 font-bold text-gray-700">DotPrompt String</label>
                 <textarea
                     value={dotPromptString}
                     onChange={(e) => setDotPromptString(e.target.value)}
-                    className="w-full p-2 box-border border border-[#ddd] rounded resize-none font-mono h-[400px] mb-4"
+                    className="w-full p-3 border border-gray-300 rounded-lg resize-none font-mono text-sm h-[400px] mb-4 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
                 />
-                <div className="flex justify-between items-center mb-[5px]">
-                    <label className="font-bold">Input Variables (JSON)</label>
-                    <button
+                <div className="flex justify-between items-center mb-2">
+                    <label className="font-bold text-gray-700">Input Variables (JSON)</label>
+                    <Button
+                        variant="ghost"
                         onClick={handleAutoDetectScore}
                         disabled={isGeneratingSchema}
-                        className="text-xs text-[#1890ff] hover:underline cursor-pointer disabled:opacity-50"
+                        className="!px-3 !py-1 text-xs"
+                        icon={
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                            </svg>
+                        }
                     >
-                        {isGeneratingSchema ? '✨ Auto-detecting...' : '✨ Auto Detect Schema'}
-                    </button>
+                        {isGeneratingSchema ? 'Auto-detecting...' : 'Auto Detect Schema'}
+                    </Button>
                 </div>
                 <textarea
                     value={jsonInputSchema}
                     onChange={(e) => setJsonInputSchema(e.target.value)}
-                    placeholder='{"key": "value"}'
-                    className="w-full p-2 box-border border border-[#ddd] rounded resize-none font-mono h-[100px]"
+                    placeholder='{"key": ""}'
+                    className="w-full p-3 border border-gray-300 rounded-lg resize-none font-mono text-sm h-[100px] focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
                 />
             </div>
         </Modal >

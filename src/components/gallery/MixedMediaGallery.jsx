@@ -3,6 +3,7 @@ import TextCard from './TextCard';
 import ThumbnailStrip from './ThumbnailStrip';
 import IconButton from '../common/IconButton';
 import Modal from '../common/Modal';
+import Button from '../common/Button';
 
 const MixedMediaGallery = ({ items, currentUser, onDelete, likedExecutionIds = [], onToggleLike }) => {
     const [selectedIndex, setSelectedIndex] = useState(0);
@@ -106,12 +107,9 @@ const MixedMediaGallery = ({ items, currentUser, onDelete, likedExecutionIds = [
                     title={isImage ? "Generated Image" : "Generated Text"}
                     onClose={() => setIsModalOpen(false)}
                     footer={
-                        <button
-                            onClick={() => setIsModalOpen(false)}
-                            className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition-colors"
-                        >
+                        <Button variant="secondary" onClick={() => setIsModalOpen(false)}>
                             Close
-                        </button>
+                        </Button>
                     }
                 >
                     {isImage ? (
