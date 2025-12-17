@@ -31,13 +31,25 @@ async function verifyOwnership(templateId, authContext) {
  * Syncs a new template to Firestore.
  * @param {string} templateId 
  * @param {string} userId 
+ * @param {string} jsonInputSchema
  */
-async function syncTemplateToFirestore(templateId, userId) {
+async function syncTemplateToFirestore(templateId, userId, jsonInputSchema) {
     await db.collection("prompts").doc(templateId).set({
         createdAt: FieldValue.serverTimestamp(),
         ownerId: userId || 'anonymous',
-        public: true
+        public: true,
+        jsonInputSchema: jsonInputSchema || ''
     }, { merge: true });
+}
+
+/**
+ * Updates a template in Firestore.
+ * @param {string} templateId 
+ * @param {object} data
+ */
+async function updateTemplateInFirestore(templateId, data) {
+    if (Object.keys(data).length === 0) return;
+    await db.collection("prompts").doc(templateId).set(data, { merge: true });
 }
 
 /**
@@ -51,6 +63,7 @@ async function deleteTemplateFromFirestore(templateId) {
 module.exports = {
     verifyOwnership,
     syncTemplateToFirestore,
+    updateTemplateInFirestore,
     deleteTemplateFromFirestore
 };
 

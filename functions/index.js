@@ -9,7 +9,7 @@ const { getStorage } = require("firebase-admin/storage");
 // Actually lib/firestore calls getFirestore() so we just need to ensure app is initialized.
 initializeApp();
 
-const { verifyOwnership, syncTemplateToFirestore, deleteTemplateFromFirestore } = require("./lib/firestore");
+const { verifyOwnership, syncTemplateToFirestore, updateTemplateInFirestore, deleteTemplateFromFirestore } = require("./lib/firestore");
 
 
 // Initialize Google Auth
@@ -52,7 +52,7 @@ exports.createPromptTemplate = onCall(
         // Sync to Firestore
         const templateId = result.name.split('/').pop();
 
-        await syncTemplateToFirestore(templateId, request.auth ? request.auth.uid : null);
+        await syncTemplateToFirestore(templateId, request.auth ? request.auth.uid : null, request.data.jsonInputSchema);
 
         logger.info("Template created successfully and synced to Firestore");
         return result;
@@ -152,6 +152,12 @@ exports.updatePromptTemplate = onCall(
             method: "PATCH",
             data: data,
         });
+
+        const firestoreUpdate = {};
+        if (request.data.jsonInputSchema !== undefined) {
+            firestoreUpdate.jsonInputSchema = request.data.jsonInputSchema;
+        }
+        await updateTemplateInFirestore(templateId, firestoreUpdate);
 
         logger.info("Template updated successfully");
         return result;

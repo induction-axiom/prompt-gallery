@@ -64,6 +64,7 @@ export const useTemplates = (user) => {
                         ownerId: docData.ownerId,
                         createdAt: docData.createdAt,
                         isImage: docData.isImage,
+                        jsonInputSchema: docData.jsonInputSchema || '',
                         likeCount: docData.likeCount || 0, // Ensure likeCount is passed
                         executions: executions
                     };
@@ -111,7 +112,7 @@ export const useTemplates = (user) => {
         }
     };
 
-    const handleSaveTemplate = async ({ displayName, dotPromptString, editingTemplate }) => {
+    const handleSaveTemplate = async ({ displayName, dotPromptString, jsonInputSchema, editingTemplate }) => {
         if (!displayName || !dotPromptString) return alert("Missing fields");
 
         setIsLoading(true);
@@ -122,7 +123,8 @@ export const useTemplates = (user) => {
                 await updateFn({
                     templateId: getTemplateId(editingTemplate.name),
                     displayName,
-                    dotPromptString
+                    dotPromptString,
+                    jsonInputSchema
                 });
                 setStatus("Template Updated!");
             } else {
@@ -130,7 +132,8 @@ export const useTemplates = (user) => {
                 const createFn = httpsCallable(functions, 'createPromptTemplate');
                 await createFn({
                     displayName,
-                    dotPromptString
+                    dotPromptString,
+                    jsonInputSchema
                 });
                 setStatus("Template Created!");
             }
@@ -328,7 +331,6 @@ export const useTemplates = (user) => {
             handleSaveTemplate,
             handleDeleteTemplate,
             handleDeleteExecution,
-            handleRunTemplate,
             handleRunTemplate,
             handleToggleLike,
             handleToggleExecutionLike,

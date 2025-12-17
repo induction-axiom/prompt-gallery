@@ -15,7 +15,6 @@ const TemplateRunner = ({
     const [inputJson, setInputJson] = React.useState(''); // Start empty to avoid jump
     // Track if user has touched the input to avoid overwriting with slow defaults
     const userEditedRef = React.useRef(false);
-    const [isGeneratingSchema, setIsGeneratingSchema] = React.useState(false);
     const [isGeneratingRandom, setIsGeneratingRandom] = React.useState(false);
 
     const functions = getFunctions(app);
@@ -23,43 +22,14 @@ const TemplateRunner = ({
     React.useEffect(() => {
         if (template) {
             // Reset state for new template
-            setInputJson('');
             userEditedRef.current = false;
-            fetchDefaultInput();
+
+            // Use stored schema if available, otherwise default to empty object
+            // This replaces the auto-detection logic
+            const initialJson = template.jsonInputSchema || '{}';
+            setInputJson(initialJson);
         }
     }, [template]);
-
-    const fetchDefaultInput = async () => {
-        setIsGeneratingSchema(true);
-        try {
-            // Use system-default-input-generator
-            const runFn = httpsCallable(functions, 'runPromptTemplate');
-            const result = await runFn({
-                templateId: '375a6ce2-efaa-4d22-bf67-4944ce8dc6ed',
-                reqBody: { target_template: template.templateString || template.dotPromptString || '' }
-            });
-
-            // The result should be a JSON object
-            let parsed = extractTextFromGeminiResult(result.data);
-            if (!parsed) parsed = result.data; // Fallback to raw data if extraction failed or structure different
-
-            parsed = cleanJsonString(parsed);
-
-            // If empty object or error, fallback to default for known demo
-            const finalJson = (parsed === '{}' || !parsed) ? '{"object": "banana"}' : parsed;
-
-            // Only update if user hasn't edited
-            if (!userEditedRef.current) {
-                setInputJson(finalJson);
-            }
-
-        } catch (error) {
-            console.error("Failed to generate default input:", error);
-            // Fallback
-        } finally {
-            setIsGeneratingSchema(false);
-        }
-    };
 
     const handleDiceClick = async () => {
         setIsGeneratingRandom(true);
@@ -106,15 +76,11 @@ const TemplateRunner = ({
                 <div className="flex justify-between items-center mb-[5px]">
                     <div className="flex items-center gap-2">
                         <label className="font-bold">Input Variables (JSON)</label>
-                        {isGeneratingSchema && (
-                            <span className="text-xs text-gray-500 flex items-center gap-1 bg-gray-100 px-2 py-0.5 rounded-full animate-pulse">
-                                ✨ Auto-detecting...
-                            </span>
-                        )}
+
                     </div>
                     <button
                         onClick={handleDiceClick}
-                        disabled={isGeneratingRandom || isGeneratingSchema}
+                        disabled={isGeneratingRandom}
                         className="text-xl p-1 hover:bg-gray-100 rounded cursor-pointer disabled:opacity-50"
                         title="Generate Random Data"
                     >
@@ -127,10 +93,17 @@ const TemplateRunner = ({
                         setInputJson(e.target.value);
                         userEditedRef.current = true;
                     }}
-                    placeholder={isGeneratingSchema ? "Analyzing template..." : "{}"}
+                    placeholder="{}"
                     rows={6}
                     className="w-full p-2 box-border border border-[#ddd] rounded resize-none font-mono bg-[#f9f9f9]"
                 />
+            </div>
+
+            <div className="mb-[15px]">
+                <label className="block mb-[5px] font-bold">Prompt Template</label>
+                <pre className="bg-[#f0f0f0] p-[10px] rounded-md overflow-x-auto border border-[#eee] text-sm text-[#555] whitespace-pre-wrap max-h-[400px]">
+                    {template.templateString || template.dotPromptString || "No template content"}
+                </pre>
             </div>
 
             {runResult && (
