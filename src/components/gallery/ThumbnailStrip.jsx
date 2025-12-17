@@ -18,8 +18,8 @@ const ThumbnailStrip = ({ items, selectedIndex, onSelect }) => {
                 return (
                     <div
                         key={item.id || idx}
-                        className={`flex-shrink-0 w-16 h-16 rounded-md overflow-hidden border-2 cursor-pointer transition-all ${isSelected ? 'border-blue-500 opacity-100' : 'border-transparent opacity-70 hover:opacity-100'
-                            } bg-gray-100`}
+                        className={`flex-shrink-0 w-16 h-16 rounded-md overflow-hidden border-2 cursor-pointer transition-all ${isSelected ? 'border-blue-500 dark:border-blue-400 opacity-100' : 'border-transparent opacity-70 hover:opacity-100'
+                            } bg-gray-100 dark:bg-gray-800`}
                         onClick={(e) => {
                             e.stopPropagation();
                             onSelect(idx);
@@ -35,7 +35,7 @@ const ThumbnailStrip = ({ items, selectedIndex, onSelect }) => {
                                 className="w-full h-full object-cover"
                             />
                         ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-gray-200 text-gray-500 font-bold text-xs p-1 text-center">
+                            <div className="w-full h-full flex items-center justify-center bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-300 font-bold text-xs p-1 text-center">
                                 <span className="line-clamp-3 overflow-hidden text-[10px] leading-tight">
                                     {item.textContent || "Aa"}
                                 </span>

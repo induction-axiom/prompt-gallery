@@ -20,7 +20,7 @@ const MixedMediaGallery = ({ items, currentUser, onDelete, likedExecutionIds = [
 
     if (!items || items.length === 0) {
         return (
-            <div className="px-5 pb-5 pt-2 flex items-center justify-center bg-gray-50 mx-5 rounded-lg h-40 border-dashed border-2 border-gray-200 text-gray-400 text-sm mb-3">
+            <div className="px-5 pb-5 pt-2 flex items-center justify-center bg-gray-50 dark:bg-gray-800/50 mx-5 rounded-lg h-40 border-dashed border-2 border-gray-200 dark:border-gray-700 text-gray-400 text-sm mb-3">
                 No artifacts generated yet
             </div>
         );
@@ -33,7 +33,7 @@ const MixedMediaGallery = ({ items, currentUser, onDelete, likedExecutionIds = [
         <div className="px-5 pb-3">
             {/* Main Hero */}
             <div
-                className="w-full h-64 bg-gray-100 rounded-lg mb-3 overflow-hidden flex items-center justify-center border border-gray-100 cursor-pointer relative group"
+                className="w-full h-64 bg-gray-100 dark:bg-gray-900 rounded-lg mb-3 overflow-hidden flex items-center justify-center border border-gray-100 dark:border-gray-800 cursor-pointer relative group"
                 onClick={() => {
                     setIsModalOpen(true);
                 }}
@@ -127,7 +127,7 @@ const MixedMediaGallery = ({ items, currentUser, onDelete, likedExecutionIds = [
                             />
                         </div>
                     ) : (
-                        <div className="whitespace-pre-wrap text-left">
+                        <div className="whitespace-pre-wrap text-left dark:text-gray-200">
                             {currentItem.textContent}
                         </div>
                     )}

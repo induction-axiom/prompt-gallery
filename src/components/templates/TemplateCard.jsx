@@ -26,12 +26,12 @@ const TemplateCard = ({ template, onRun, onView, onEdit, onDelete, onDeleteExecu
                 onMouseMove={handleMouseMove}
                 onMouseLeave={() => setShowTooltip(false)}
             >
-                <div className="flex justify-between items-center bg-white">
-                    <h3 className="m-0 text-[#333] font-bold text-lg">{template.displayName}</h3>
+                <div className="flex justify-between items-center bg-white dark:bg-gray-800">
+                    <h3 className="m-0 text-[#333] dark:text-gray-100 font-bold text-lg">{template.displayName}</h3>
                     <span className="text-xs text-gray-400 font-mono">{getTemplateId(template.name)}</span>
                 </div>
                 {modelName && (
-                    <div className="text-xs text-blue-500 font-mono mt-1 bg-blue-50 inline-block px-1 rounded">
+                    <div className="text-xs text-blue-500 dark:text-blue-400 font-mono mt-1 bg-blue-50 dark:bg-blue-900/30 inline-block px-1 rounded">
                         {modelName}
                     </div>
                 )}
@@ -58,7 +58,7 @@ const TemplateCard = ({ template, onRun, onView, onEdit, onDelete, onDeleteExecu
             <div className="relative h-0 z-10 flex justify-center">
                 <button
                     onClick={onRun}
-                    className="absolute -top-5 flex items-center justify-center gap-2 px-6 py-2.5 bg-white text-blue-600 font-semibold rounded-full shadow-lg border border-gray-100 hover:bg-blue-50 hover:shadow-xl transform transition-all hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
+                    className="absolute -top-5 flex items-center justify-center gap-2 px-6 py-2.5 bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 font-semibold rounded-full shadow-lg border border-gray-100 dark:border-gray-600 hover:bg-blue-50 dark:hover:bg-gray-700 hover:shadow-xl transform transition-all hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
