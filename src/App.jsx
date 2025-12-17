@@ -23,6 +23,7 @@ function App() {
   const [editingTemplate, setEditingTemplate] = useState(null);
   const [selectedRunTemplate, setSelectedRunTemplate] = useState(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [viewContent, setViewContent] = useState("");
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -73,8 +74,8 @@ function App() {
   };
 
   const handleViewWrapper = (template) => {
+    setViewContent(template.templateString || template.dotPromptString || "No content found");
     setIsViewModalOpen(true);
-    actions.handleViewTemplate(template);
   };
 
   const handleRunWrapper = async ({ inputJson }) => {
@@ -143,8 +144,7 @@ function App() {
       <TemplateViewer
         isOpen={isViewModalOpen}
         onClose={() => setIsViewModalOpen(false)}
-        data={state.viewTemplateData}
-        isLoading={state.isLoading && !state.viewTemplateData}
+        content={viewContent}
       />
     </div>
   );

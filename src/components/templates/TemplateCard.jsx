@@ -3,11 +3,23 @@ import MixedMediaGallery from '../gallery/MixedMediaGallery';
 import IconButton from '../common/IconButton';
 
 const TemplateCard = ({ template, onRun, onView, onEdit, onDelete, onDeleteExecution, onToggleLike, isLiked, getTemplateId, currentUser }) => {
+    const [showTooltip, setShowTooltip] = React.useState(false);
+    const [tooltipPos, setTooltipPos] = React.useState({ x: 0, y: 0 });
+
+    const handleMouseMove = (e) => {
+        setTooltipPos({ x: e.clientX, y: e.clientY });
+    };
 
     return (
         <div className="border border-[#e0e0e0] rounded-xl bg-white shadow-sm flex flex-col h-auto overflow-hidden">
             {/* Header Section */}
-            <div className="p-5 pb-3 cursor-pointer" onClick={onRun}>
+            <div
+                className="p-5 pb-3 cursor-pointer relative"
+                onClick={(e) => { e.stopPropagation(); onView(template); }}
+                onMouseEnter={() => setShowTooltip(true)}
+                onMouseMove={handleMouseMove}
+                onMouseLeave={() => setShowTooltip(false)}
+            >
                 <div className="flex justify-between items-start">
                     <h3 className="m-0 mb-1 text-[#333] font-bold text-lg">{template.displayName}</h3>
                     <span className="text-xs text-gray-400 font-mono">{getTemplateId(template.name)}</span>
@@ -15,6 +27,25 @@ const TemplateCard = ({ template, onRun, onView, onEdit, onDelete, onDeleteExecu
                 <p className="m-0 text-[#888] text-sm line-clamp-2">
                     {template.description || "No description provided."}
                 </p>
+
+                {showTooltip && (
+                    <div
+                        style={{
+                            position: 'fixed',
+                            top: tooltipPos.y + 15, // Offset slightly so cursor doesn't cover text
+                            left: tooltipPos.x + 15,
+                            zIndex: 9999,
+                            maxWidth: '400px',
+                            maxHeight: '600px',
+                            overflow: 'hidden',
+                        }}
+                        className="bg-black/80 text-white p-3 rounded text-xs font-mono shadow-lg backdrop-blur-sm pointer-events-none"
+                    >
+                        <div className="line-clamp-[12] whitespace-pre-wrap">
+                            {template.templateString || template.dotPromptString || "No template string available"}
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* Gallery Section - Hero + Thumbnails */}
@@ -49,12 +80,6 @@ const TemplateCard = ({ template, onRun, onView, onEdit, onDelete, onDeleteExecu
                 />
 
                 <div className="flex justify-end gap-2.5">
-                    <button
-                        onClick={(e) => { e.stopPropagation(); onView(template); }}
-                        className="px-3 py-1.5 text-xs rounded opacity-100 hover:opacity-90 inline-flex items-center justify-center border-none cursor-pointer transition-opacity bg-[#f6ffed] text-[#52c41a] font-bold"
-                    >
-                        Read
-                    </button>
                     <button
                         onClick={onRun}
                         className="px-3 py-1.5 text-xs rounded opacity-100 hover:opacity-90 inline-flex items-center justify-center border-none cursor-pointer transition-opacity bg-[#e6f7ff] text-[#1890ff] font-bold"

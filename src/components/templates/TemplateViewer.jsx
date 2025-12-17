@@ -1,12 +1,12 @@
 import React from 'react';
 import Modal from '../common/Modal';
 
-const TemplateViewer = ({ isOpen, onClose, data, isLoading }) => {
+const TemplateViewer = ({ isOpen, onClose, content }) => {
     if (!isOpen) return null;
 
     return (
         <Modal
-            title="Template Details"
+            title="Template Preview"
             onClose={onClose}
             footer={
                 <button
@@ -18,15 +18,9 @@ const TemplateViewer = ({ isOpen, onClose, data, isLoading }) => {
             }
         >
             <div className="flex-1 overflow-auto bg-[#f5f5f5] p-2.5 rounded border border-[#ddd] h-full max-h-[60vh]">
-                {isLoading ? (
-                    <p>Loading...</p>
-                ) : data ? (
-                    <pre className="m-0 whitespace-pre-wrap font-mono text-sm">
-                        {JSON.stringify(data, null, 2)}
-                    </pre>
-                ) : (
-                    <p>No data available</p>
-                )}
+                <pre className="m-0 whitespace-pre-wrap font-mono text-sm">
+                    {content || "No content available"}
+                </pre>
             </div>
         </Modal>
     );
