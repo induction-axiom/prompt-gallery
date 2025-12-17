@@ -1,6 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
+import Tooltip from '../common/Tooltip';
 
 const ThumbnailStrip = ({ items, selectedIndex, onSelect }) => {
+    const [hoveredIndex, setHoveredIndex] = useState(null);
+    const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
+
+    const handleMouseMove = (e) => {
+        setTooltipPos({ x: e.clientX, y: e.clientY });
+    };
+
     return (
         <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin">
             {items.map((item, idx) => {
@@ -16,6 +24,9 @@ const ThumbnailStrip = ({ items, selectedIndex, onSelect }) => {
                             e.stopPropagation();
                             onSelect(idx);
                         }}
+                        onMouseEnter={() => setHoveredIndex(idx)}
+                        onMouseMove={handleMouseMove}
+                        onMouseLeave={() => setHoveredIndex(null)}
                     >
                         {isImage ? (
                             <img
@@ -33,6 +44,13 @@ const ThumbnailStrip = ({ items, selectedIndex, onSelect }) => {
                     </div>
                 );
             })}
+            <Tooltip
+                content={hoveredIndex !== null && items[hoveredIndex].inputVariables
+                    ? JSON.stringify(items[hoveredIndex].inputVariables, null, 2)
+                    : ""}
+                visible={hoveredIndex !== null}
+                position={tooltipPos}
+            />
         </div>
     );
 };

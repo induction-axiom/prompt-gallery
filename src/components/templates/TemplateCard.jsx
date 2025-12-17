@@ -1,5 +1,6 @@
 import React from 'react';
 import MixedMediaGallery from '../gallery/MixedMediaGallery';
+import Tooltip from '../common/Tooltip';
 import IconButton from '../common/IconButton';
 
 const TemplateCard = ({ template, onRun, onView, onEdit, onDelete, onDeleteExecution, onToggleLike, isLiked, getTemplateId, currentUser }) => {
@@ -28,24 +29,11 @@ const TemplateCard = ({ template, onRun, onView, onEdit, onDelete, onDeleteExecu
                     {template.description || "No description provided."}
                 </p>
 
-                {showTooltip && (
-                    <div
-                        style={{
-                            position: 'fixed',
-                            top: tooltipPos.y + 15, // Offset slightly so cursor doesn't cover text
-                            left: tooltipPos.x + 15,
-                            zIndex: 9999,
-                            maxWidth: '400px',
-                            maxHeight: '600px',
-                            overflow: 'hidden',
-                        }}
-                        className="bg-black/80 text-white p-3 rounded text-xs font-mono shadow-lg backdrop-blur-sm pointer-events-none"
-                    >
-                        <div className="line-clamp-[12] whitespace-pre-wrap">
-                            {template.templateString || template.dotPromptString || "No template string available"}
-                        </div>
-                    </div>
-                )}
+                <Tooltip
+                    content={template.templateString || template.dotPromptString || "No template string available"}
+                    visible={showTooltip}
+                    position={tooltipPos}
+                />
             </div>
 
             {/* Gallery Section - Hero + Thumbnails */}
