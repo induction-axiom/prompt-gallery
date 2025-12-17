@@ -2,10 +2,11 @@ const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { GoogleAuth } = require("google-auth-library");
 const { logger } = require("firebase-functions");
 const { initializeApp } = require("firebase-admin/app");
-const { getFirestore, FieldValue } = require("firebase-admin/firestore");
-
+// getFirestore is still needed for initialization in lib, but we can init here.
+// Actually lib/firestore calls getFirestore() so we just need to ensure app is initialized.
 initializeApp();
-const db = getFirestore();
+
+const { verifyOwnership, syncTemplateToFirestore, deleteTemplateFromFirestore } = require("./lib/firestore");
 
 // Initialize Google Auth
 const auth = new GoogleAuth({
@@ -25,24 +26,8 @@ async function makeApiRequest({ url, method, data, params }) {
         return response.data;
     } catch (error) {
         logger.error(`API Request Failed: ${method} ${url}`, error);
-        throw new HttpsError('internal', 'Vertex AI API request failed', error.message);
+        throw new HttpsError('internal', 'Firebase AI Logic API request failed', error.message);
     }
-}
-
-async function verifyOwnership(templateId, auth) {
-    if (!auth) {
-        throw new HttpsError('unauthenticated', 'User must be authenticated');
-    }
-    const docRef = db.collection("prompts").doc(templateId);
-    const docFn = await docRef.get();
-
-    if (docFn.exists) {
-        const data = docFn.data();
-        if (data.ownerId && data.ownerId !== auth.uid) {
-            throw new HttpsError('permission-denied', 'You do not own this template');
-        }
-    }
-    return docRef; // Return lookup for potential reuse
 }
 
 exports.createPromptTemplate = onCall(
@@ -62,10 +47,7 @@ exports.createPromptTemplate = onCall(
 
         // Sync to Firestore
         const templateId = result.name.split('/').pop();
-        await db.collection("prompts").doc(templateId).set({
-            createdAt: FieldValue.serverTimestamp(),
-            ownerId: request.auth ? request.auth.uid : 'anonymous'
-        });
+        await syncTemplateToFirestore(templateId, request.auth ? request.auth.uid : null);
 
         logger.info("Template created successfully and synced to Firestore");
         return result;
@@ -82,7 +64,7 @@ exports.deletePromptTemplate = onCall(
         logger.info("deletePromptTemplate", { templateId });
 
         // Check ownership
-        const docRef = await verifyOwnership(templateId, request.auth);
+        await verifyOwnership(templateId, request.auth);
 
         const result = await makeApiRequest({
             url: `${BASE_URL}/${templateId}`,
@@ -90,9 +72,9 @@ exports.deletePromptTemplate = onCall(
         });
 
         // Sync to Firestore
-        await docRef.delete();
+        await deleteTemplateFromFirestore(templateId);
 
-        logger.info("Template deleted successfully from Vertex AI and Firestore");
+        logger.info("Template deleted successfully from Firebase AI Logic and Firestore");
         return result;
     }
 );
@@ -109,25 +91,7 @@ exports.listPromptTemplates = onCall(
             params: { pageSize, pageToken }
         });
 
-        const templates = result.templates || [];
-        if (templates.length === 0) return result;
-
-        // Join with Firestore data to get ownerId
-        const templateIds = templates.map(t => t.name.split('/').pop());
-        const refs = templateIds.map(id => db.collection("prompts").doc(id));
-        const snapshots = await db.getAll(...refs);
-
-        const enrichedTemplates = templates.map((template, index) => {
-            const doc = snapshots[index];
-            return {
-                ...template,
-                ownerId: doc.exists ? doc.data().ownerId : null,
-                // Also helpful to return createdAt if we have it
-                createdAt: doc.exists ? doc.data().createdAt : null
-            };
-        });
-
-        return { ...result, templates: enrichedTemplates };
+        return result;
     }
 );
 

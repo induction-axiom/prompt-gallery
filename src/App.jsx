@@ -1,12 +1,10 @@
 import { useState, useEffect } from 'react'
-
 import { getFunctions, httpsCallable } from "firebase/functions";
-import { ref, uploadString, getDownloadURL } from "firebase/storage";
-import { collection, addDoc, serverTimestamp, query, orderBy, limit, getDocs } from "firebase/firestore";
 import { signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
-import { app, auth, db, storage, googleProvider } from "./firebase";
-
+import { app, auth, googleProvider } from "./firebase";
 import { isImageModel, extractImageFromGeminiResult } from './utils/geminiParsers';
+import { getRecentTemplates, saveExecutionMetadata } from './services/firestore';
+import { uploadImage } from './services/storage';
 
 // Components
 import Header from './components/layout/Header';
@@ -78,17 +76,7 @@ function App() {
     setIsLoading(true);
     try {
       // 1. Get recent templates from Firestore
-      const q = query(
-        collection(db, "prompts"),
-        orderBy("createdAt", "desc"),
-        limit(10)
-      );
-      const querySnapshot = await getDocs(q);
-
-      const firestoreDocs = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
+      const firestoreDocs = await getRecentTemplates(10);
 
       if (firestoreDocs.length === 0) {
         setTemplates([]);
@@ -238,31 +226,15 @@ function App() {
         if (imageParams && imageParams.type === 'base64') {
           try {
             // Upload to Storage
-            const timestamp = Date.now();
-            const storagePath = `generated_images/${user.uid}/${timestamp}_${templateId}.png`;
-            const storageRef = ref(storage, storagePath);
-
-            // Upload base64 string
-            await uploadString(storageRef, imageParams.data, 'base64', {
-              contentType: imageParams.mimeType,
-              customMetadata: {
-                public: "true"
-              }
-            });
-
-            // Get URL
-            const downloadURL = await getDownloadURL(storageRef);
+            const { storagePath, downloadURL } = await uploadImage(user.uid, templateId, imageParams.data, imageParams.mimeType);
 
             // Save Metadata to Firestore
-            await addDoc(collection(db, "executions"), {
-              promptId: templateId,
-              userId: user.uid,
-              createdAt: serverTimestamp(),
-              storagePath: storagePath,
-              imageUrl: downloadURL,
-              creatorId: user.uid, // Redundant but explicit
-              inputVariables: reqBody,
-              public: true
+            await saveExecutionMetadata({
+              templateId,
+              user,
+              storagePath,
+              downloadURL,
+              reqBody
             });
             console.log("Image saved successfully");
           } catch (err) {
