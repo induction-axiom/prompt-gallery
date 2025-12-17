@@ -33,11 +33,7 @@ const MixedMediaGallery = ({ items, currentUser, onDelete, likedExecutionIds = [
             <div
                 className="w-full h-64 bg-gray-100 rounded-lg mb-3 overflow-hidden flex items-center justify-center border border-gray-100 cursor-pointer relative group"
                 onClick={() => {
-                    if (isImage) {
-                        window.open(currentItem.imageUrl, '_blank');
-                    } else {
-                        setIsModalOpen(true);
-                    }
+                    setIsModalOpen(true);
                 }}
             >
                 {/* Delete Button Overlay */}
@@ -105,9 +101,9 @@ const MixedMediaGallery = ({ items, currentUser, onDelete, likedExecutionIds = [
             />
 
             {/* View Modal */}
-            {isModalOpen && !isImage && (
+            {isModalOpen && (
                 <Modal
-                    title="Generated Text"
+                    title={isImage ? "Generated Image" : "Generated Text"}
                     onClose={() => setIsModalOpen(false)}
                     footer={
                         <button
@@ -118,9 +114,19 @@ const MixedMediaGallery = ({ items, currentUser, onDelete, likedExecutionIds = [
                         </button>
                     }
                 >
-                    <div className="whitespace-pre-wrap text-left">
-                        {currentItem.textContent}
-                    </div>
+                    {isImage ? (
+                        <div className="flex justify-center items-center h-full">
+                            <img
+                                src={currentItem.imageUrl}
+                                alt="Generated Result"
+                                className="max-w-full max-h-[70vh] object-contain"
+                            />
+                        </div>
+                    ) : (
+                        <div className="whitespace-pre-wrap text-left">
+                            {currentItem.textContent}
+                        </div>
+                    )}
                 </Modal>
             )}
         </div>
