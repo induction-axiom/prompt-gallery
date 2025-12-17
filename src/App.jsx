@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { ref, uploadString, getDownloadURL } from "firebase/storage";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, addDoc, serverTimestamp, query, orderBy, limit, getDocs } from "firebase/firestore";
 import { signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
 import { app, auth, db, storage, googleProvider } from "./firebase";
 
@@ -74,12 +74,55 @@ function App() {
   const getTemplateId = (fullResourceName) => fullResourceName ? fullResourceName.split('/').pop() : 'Unknown';
 
   const fetchTemplates = async () => {
-    setStatus("Fetching...");
+    setStatus("Fetching list from Firestore...");
     setIsLoading(true);
-    const listTemplates = httpsCallable(functions, 'listPromptTemplates');
     try {
-      const result = await listTemplates();
-      setTemplates(result.data.templates || []);
+      // 1. Get recent templates from Firestore
+      const q = query(
+        collection(db, "prompts"),
+        orderBy("createdAt", "desc"),
+        limit(10)
+      );
+      const querySnapshot = await getDocs(q);
+
+      const firestoreDocs = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+
+      if (firestoreDocs.length === 0) {
+        setTemplates([]);
+        setStatus("Ready (No templates found)");
+        return;
+      }
+
+      // 2. Fetch details for each template in parallel
+      setStatus(`Fetching details for ${firestoreDocs.length} templates...`);
+      const getFn = httpsCallable(functions, 'getPromptTemplate');
+
+      const promises = firestoreDocs.map(async (docData) => {
+        try {
+          const res = await getFn({ templateId: docData.id });
+          return {
+            ...res.data,
+            ownerId: docData.ownerId,
+            createdAt: docData.createdAt
+          };
+        } catch (err) {
+          console.error(`Failed to fetch template ${docData.id}`, err);
+          // Return a placeholder so the UI doesn't crash
+          return {
+            name: `projects/-/locations/-/templates/${docData.id}`,
+            displayName: 'Unavailable Template',
+            description: `Could not load details: ${err.message}`,
+            error: true,
+            ownerId: docData.ownerId // Still return ownerId so they might delete it if they own it
+          };
+        }
+      });
+
+      const results = await Promise.all(promises);
+      setTemplates(results);
       setStatus("Ready");
     } catch (error) {
       console.error(error);
