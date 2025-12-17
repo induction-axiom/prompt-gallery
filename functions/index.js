@@ -1,7 +1,10 @@
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
+const { onDocumentDeleted } = require("firebase-functions/v2/firestore");
 const { GoogleAuth } = require("google-auth-library");
 const { logger } = require("firebase-functions");
 const { initializeApp } = require("firebase-admin/app");
+const { getFirestore } = require("firebase-admin/firestore");
+const { getStorage } = require("firebase-admin/storage");
 // getFirestore is still needed for initialization in lib, but we can init here.
 // Actually lib/firestore calls getFirestore() so we just need to ensure app is initialized.
 initializeApp();
@@ -171,3 +174,75 @@ exports.getPromptTemplate = onCall(
         return result;
     }
 );
+
+// ----------------------------------------------------------------------------
+// Background Triggers for Cascading Deletion
+// ----------------------------------------------------------------------------
+
+/**
+ * Trigger: When a prompt template is deleted, delete all its executions.
+ * Path: prompts/{promptId}
+ */
+exports.cleanupExecutions = onDocumentDeleted("prompts/{promptId}", async (event) => {
+    const snap = event.data;
+    const promptId = event.params.promptId;
+
+    if (!snap) {
+        // No data associated with the event
+        return;
+    }
+
+    logger.info(`Cleanup Executions for Prompt: ${promptId}`);
+
+    const db = getFirestore();
+    const executionsRef = db.collection("executions");
+
+    // Find all executions linked to this prompt
+    const snapshot = await executionsRef.where("promptId", "==", promptId).get();
+
+    if (snapshot.empty) {
+        logger.info("No matching executions found.");
+        return;
+    }
+
+    // Delete matches in a batch
+    const batch = db.batch();
+    snapshot.docs.forEach((doc) => {
+        batch.delete(doc.ref);
+    });
+
+    await batch.commit();
+    logger.info(`Deleted ${snapshot.size} executions for prompt ${promptId}`);
+});
+
+/**
+ * Trigger: When an execution is deleted, delete its associated storage image.
+ * Path: executions/{executionId}
+ */
+exports.cleanupStorage = onDocumentDeleted("executions/{executionId}", async (event) => {
+    const snap = event.data;
+    // For onDocumentDeleted, snap is the QueryDocumentSnapshot of the document *before* deletion
+    if (!snap) {
+        return;
+    }
+
+    const data = snap.data();
+    const storagePath = data.storagePath;
+
+    if (storagePath) {
+        logger.info(`Cleanup Storage for Execution: ${event.params.executionId}, Path: ${storagePath}`);
+        try {
+            const bucket = getStorage().bucket(); // access default bucket
+            const file = bucket.file(storagePath);
+            await file.delete();
+            logger.info(`Successfully deleted file: ${storagePath}`);
+        } catch (error) {
+            // If object not found, that's fine, maybe it was already deleted.
+            if (error.code === 404) {
+                logger.info(`File not found (already deleted?): ${storagePath}`);
+            } else {
+                logger.error(`Error deleting file ${storagePath}:`, error);
+            }
+        }
+    }
+});
