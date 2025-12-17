@@ -1,20 +1,95 @@
-import { useState } from 'react';
+import { useReducer } from 'react';
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { extractImageFromGeminiResult, extractTextFromGeminiResult } from '../utils/geminiParsers';
 import { getRecentTemplates, saveExecutionMetadata, getTemplateExecutions, deleteExecution } from '../services/firestore';
 import { uploadImage, deleteImage } from '../services/storage';
 import { app } from "../firebase";
 
-export const useTemplates = (user) => {
-    const [status, setStatus] = useState("Ready");
-    const [templates, setTemplates] = useState([]);
-    const [isLoading, setIsLoading] = useState(false);
-    const [runResult, setRunResult] = useState("");
-    const [viewTemplateData, setViewTemplateData] = useState(null);
+// --- Reducer & Initial State ---
 
+const initialState = {
+    status: "Ready",
+    templates: [],
+    isLoading: false,
+    runResult: "",
+    viewTemplateData: null
+};
+
+const templateReducer = (state, action) => {
+    switch (action.type) {
+        case 'SET_STATUS':
+            return { ...state, status: action.payload };
+        case 'SET_LOADING':
+            return { ...state, isLoading: action.payload };
+        case 'SET_TEMPLATES':
+            return { ...state, templates: action.payload };
+        case 'SET_RUN_RESULT':
+            return { ...state, runResult: action.payload };
+        case 'SET_VIEW_DATA':
+            return { ...state, viewTemplateData: action.payload };
+
+        case 'DELETE_TEMPLATE':
+            // This case is for optimistic deletion. The current handleDeleteTemplate re-fetches all templates,
+            // so this might not be strictly necessary for the current flow but is included for completeness.
+            const templateIdToDelete = action.payload; // Assuming payload is the templateId
+            return {
+                ...state,
+                templates: state.templates.filter(t => {
+                    const nameParts = t.name.split('/');
+                    const currentTemplateId = nameParts[nameParts.length - 1];
+                    return currentTemplateId !== templateIdToDelete;
+                })
+            };
+
+        case 'DELETE_EXECUTION':
+            const { templateId, executionId } = action.payload;
+            return {
+                ...state,
+                templates: state.templates.map(t => {
+                    const nameParts = t.name.split('/');
+                    const currentTemplateId = nameParts[nameParts.length - 1];
+                    if (currentTemplateId === templateId) {
+                        return {
+                            ...t,
+                            executions: t.executions.filter(e => e.id !== executionId)
+                        };
+                    }
+                    return t;
+                })
+            };
+
+        case 'ADD_EXECUTION':
+            const { templateId: targetTid, newExecution } = action.payload;
+            return {
+                ...state,
+                templates: state.templates.map(t => {
+                    const nameParts = t.name.split('/');
+                    const currentTemplateId = nameParts[nameParts.length - 1];
+                    if (currentTemplateId === targetTid) {
+                        return {
+                            ...t,
+                            executions: [newExecution, ...(t.executions || [])]
+                        };
+                    }
+                    return t;
+                })
+            };
+
+        default:
+            return state;
+    }
+};
+
+export const useTemplates = (user) => {
+    const [state, dispatch] = useReducer(templateReducer, initialState);
     const functions = getFunctions(app);
 
     const getTemplateId = (fullResourceName) => fullResourceName ? fullResourceName.split('/').pop() : 'Unknown';
+
+    // Helper dispatch wrappers
+    const setStatus = (msg) => dispatch({ type: 'SET_STATUS', payload: msg });
+    const setIsLoading = (loading) => dispatch({ type: 'SET_LOADING', payload: loading });
+    const setRunResult = (res) => dispatch({ type: 'SET_RUN_RESULT', payload: res });
 
     const fetchTemplates = async () => {
         setStatus("Fetching list from Firestore...");
@@ -24,7 +99,7 @@ export const useTemplates = (user) => {
             const firestoreDocs = await getRecentTemplates(10);
 
             if (firestoreDocs.length === 0) {
-                setTemplates([]);
+                dispatch({ type: 'SET_TEMPLATES', payload: [] });
                 setStatus("Ready (No templates found)");
                 return;
             }
@@ -35,10 +110,7 @@ export const useTemplates = (user) => {
 
             const promises = firestoreDocs.map(async (docData) => {
                 try {
-                    // Fetch template details from Cloud Function
                     const res = await getFn({ templateId: docData.id });
-
-                    // Fetch recent executions (images) from Firestore
                     let executions = [];
                     try {
                         executions = await getTemplateExecutions(docData.id, 10);
@@ -67,7 +139,7 @@ export const useTemplates = (user) => {
             });
 
             const results = await Promise.all(promises);
-            setTemplates(results);
+            dispatch({ type: 'SET_TEMPLATES', payload: results });
             setStatus("Ready");
         } catch (error) {
             console.error(error);
@@ -80,18 +152,17 @@ export const useTemplates = (user) => {
     const handleViewTemplate = async (template) => {
         setStatus("Fetching details...");
         setIsLoading(true);
-        setViewTemplateData(null);
-        // Note: Caller is responsible for opening the modal
+        dispatch({ type: 'SET_VIEW_DATA', payload: null });
 
         const getFn = httpsCallable(functions, 'getPromptTemplate');
         try {
             const templateId = getTemplateId(template.name);
             const result = await getFn({ templateId });
-            setViewTemplateData(result.data);
+            dispatch({ type: 'SET_VIEW_DATA', payload: result.data });
             setStatus("Details loaded");
         } catch (error) {
             console.error(error);
-            setViewTemplateData({ error: error.message });
+            dispatch({ type: 'SET_VIEW_DATA', payload: { error: error.message } });
             setStatus("Error loading details");
         } finally {
             setIsLoading(false);
@@ -121,8 +192,6 @@ export const useTemplates = (user) => {
                 });
                 setStatus("Template Created!");
             }
-
-            // Caller should handle closing editor
             fetchTemplates();
         } catch (error) {
             console.error(error);
@@ -143,7 +212,9 @@ export const useTemplates = (user) => {
         try {
             await deleteFn({ templateId });
             setStatus("Deleted.");
-            fetchTemplates();
+            // Optimistic update (optional, as fetchTemplates() will refresh)
+            // dispatch({ type: 'DELETE_TEMPLATE', payload: templateId });
+            fetchTemplates(); // Re-fetch to ensure state is fully consistent
         } catch (error) {
             alert("Delete Error: " + error.message);
         } finally {
@@ -156,24 +227,16 @@ export const useTemplates = (user) => {
         setStatus("Deleting execution...");
         setIsLoading(true);
         try {
-            // 1. Delete from Firestore
             await deleteExecution(execution.id);
-
-            // 2. Delete image from Storage (if applicable)
             if (execution.storagePath) {
                 await deleteImage(execution.storagePath);
             }
 
-            // 3. Update local state
-            setTemplates(prev => prev.map(t => {
-                if (getTemplateId(t.name) === templateId) {
-                    return {
-                        ...t,
-                        executions: t.executions.filter(e => e.id !== execution.id)
-                    };
-                }
-                return t;
-            }));
+            // Action: DELETE_EXECUTION
+            dispatch({
+                type: 'DELETE_EXECUTION',
+                payload: { templateId, executionId: execution.id }
+            });
 
             setStatus("Execution deleted.");
         } catch (error) {
@@ -198,55 +261,43 @@ export const useTemplates = (user) => {
 
             setRunResult(result.data);
 
-            // Auto-save generated images if detected
             const imageParams = extractImageFromGeminiResult(result.data);
+            const commonExecutionData = {
+                promptId: templateId,
+                userId: user.uid,
+                createdAt: { seconds: Date.now() / 1000 },
+                creatorId: user.uid,
+                inputVariables: reqBody,
+                public: true,
+            };
 
-            if (imageParams) {
-                if (imageParams.type === 'base64') {
-                    try {
-                        // Upload to Storage
-                        const { storagePath, downloadURL } = await uploadImage(user.uid, templateId, imageParams.data, imageParams.mimeType);
+            if (imageParams && imageParams.type === 'base64') {
+                try {
+                    const { storagePath, downloadURL } = await uploadImage(user.uid, templateId, imageParams.data, imageParams.mimeType);
+                    const docRef = await saveExecutionMetadata({
+                        templateId,
+                        user,
+                        storagePath,
+                        downloadURL,
+                        reqBody,
+                        isImage: true
+                    });
+                    console.log("Image saved successfully");
 
-                        // Save Metadata to Firestore
-                        const docRef = await saveExecutionMetadata({
-                            templateId,
-                            user,
-                            storagePath,
-                            downloadURL,
-                            reqBody,
-                            isImage: true
-                        });
-                        console.log("Image saved successfully");
+                    const newExecution = {
+                        ...commonExecutionData,
+                        id: docRef.id,
+                        storagePath,
+                        imageUrl: downloadURL,
+                        textContent: null,
+                        isImage: true,
+                        type: 'image'
+                    };
 
-                        // Update local state
-                        const newExecution = {
-                            id: docRef.id,
-                            promptId: templateId,
-                            userId: user.uid,
-                            createdAt: { seconds: Date.now() / 1000 },
-                            storagePath,
-                            imageUrl: downloadURL,
-                            textContent: null,
-                            creatorId: user.uid,
-                            inputVariables: reqBody,
-                            public: true,
-                            isImage: true,
-                            type: 'image'
-                        };
+                    dispatch({ type: 'ADD_EXECUTION', payload: { templateId, newExecution } });
 
-                        setTemplates(prev => prev.map(t => {
-                            if (getTemplateId(t.name) === templateId) {
-                                return {
-                                    ...t,
-                                    executions: [newExecution, ...(t.executions || [])]
-                                };
-                            }
-                            return t;
-                        }));
-
-                    } catch (err) {
-                        console.error("Failed to save image:", err);
-                    }
+                } catch (err) {
+                    console.error("Failed to save image:", err);
                 }
             } else {
                 const textContent = extractTextFromGeminiResult(result.data);
@@ -263,38 +314,23 @@ export const useTemplates = (user) => {
                         });
                         console.log("Text execution saved successfully");
 
-                        // Update local state
                         const newExecution = {
+                            ...commonExecutionData,
                             id: docRef.id,
-                            promptId: templateId,
-                            userId: user.uid,
-                            createdAt: { seconds: Date.now() / 1000 },
                             storagePath: null,
                             imageUrl: null,
                             textContent: textContent,
-                            creatorId: user.uid,
-                            inputVariables: reqBody,
-                            public: true,
                             isImage: false,
                             type: 'text'
                         };
 
-                        setTemplates(prev => prev.map(t => {
-                            if (getTemplateId(t.name) === templateId) {
-                                return {
-                                    ...t,
-                                    executions: [newExecution, ...(t.executions || [])]
-                                };
-                            }
-                            return t;
-                        }));
+                        dispatch({ type: 'ADD_EXECUTION', payload: { templateId, newExecution } });
 
                     } catch (err) {
                         console.error("Failed to save text execution:", err);
                     }
                 }
             }
-
 
             setStatus("Run Complete");
         } catch (error) {
@@ -307,13 +343,7 @@ export const useTemplates = (user) => {
     const clearRunResult = () => setRunResult("");
 
     return {
-        state: {
-            templates,
-            isLoading,
-            status,
-            runResult,
-            viewTemplateData
-        },
+        state,
         actions: {
             fetchTemplates,
             handleViewTemplate,
