@@ -115,6 +115,7 @@ function App() {
           handleViewWrapper,
           handleOpenEdit,
           handleToggleExecutionLike: actions.handleToggleExecutionLike,
+          setSelectedRunTemplate,
         }}
         user={user}
         likedExecutionIds={state.likedExecutionIds}
