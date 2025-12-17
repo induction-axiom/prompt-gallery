@@ -12,6 +12,7 @@ import TemplateEditor from './components/templates/TemplateEditor';
 import TemplateRunner from './components/templates/TemplateRunner';
 import TemplateViewer from './components/templates/TemplateViewer';
 import TemplateGrid from './components/templates/TemplateGrid';
+import SortDropdown from './components/common/SortDropdown';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -108,6 +109,14 @@ function App() {
         onLogout={handleLogout}
         onCreate={handleOpenCreate}
       />
+
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-xl font-bold text-gray-900 dark:text-white"></h2>
+        <SortDropdown
+          currentSort={state.sortBy}
+          onSortChange={actions.setSortBy}
+        />
+      </div>
 
       <TemplateGrid
         templates={state.templates}

@@ -1,11 +1,11 @@
 import { collection, query, orderBy, limit, getDocs, addDoc, serverTimestamp, where, deleteDoc, doc, runTransaction, setDoc, getDoc } from "firebase/firestore";
 import { db } from "../firebase";
 
-export const getRecentTemplates = async (limitCount = 10) => {
+export const getRecentTemplates = async (limitCount = 10, orderByField = "createdAt") => {
     const q = query(
         collection(db, "prompts"),
         where("public", "==", true),
-        orderBy("createdAt", "desc"),
+        orderBy(orderByField, "desc"),
         limit(limitCount)
     );
     const querySnapshot = await getDocs(q);

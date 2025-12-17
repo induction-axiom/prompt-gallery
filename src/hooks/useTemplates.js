@@ -31,12 +31,13 @@ export const useTemplates = (user) => {
         }
     }, [user]);
 
-    const fetchTemplates = async () => {
+    const fetchTemplates = async (sortOverride) => {
+        const currentSort = typeof sortOverride === 'string' ? sortOverride : state.sortBy;
         setStatus("Fetching list from Firestore...");
         setIsLoading(true);
         try {
             // 1. Get recent templates from Firestore
-            const firestoreDocs = await getRecentTemplates(10);
+            const firestoreDocs = await getRecentTemplates(10, currentSort);
 
             if (firestoreDocs.length === 0) {
                 dispatch({ type: 'SET_TEMPLATES', payload: [] });
@@ -328,6 +329,11 @@ export const useTemplates = (user) => {
 
     const clearRunResult = () => setRunResult("");
 
+    const setSortBy = (sort) => {
+        dispatch({ type: 'SET_SORT_BY', payload: sort });
+        fetchTemplates(sort);
+    };
+
     return {
         state,
         actions: {
@@ -340,7 +346,8 @@ export const useTemplates = (user) => {
             handleToggleLike,
             handleToggleExecutionLike,
             clearRunResult,
-            getTemplateId
+            getTemplateId,
+            setSortBy
         }
     };
 };

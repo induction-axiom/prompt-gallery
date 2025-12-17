@@ -15,6 +15,20 @@
             ]
         },
         {
+            "collectionGroup": "prompts",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "public",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "likeCount",
+                    "order": "DESCENDING"
+                }
+            ]
+        },
+        {
             "collectionGroup": "executions",
             "queryScope": "COLLECTION",
             "fields": [
