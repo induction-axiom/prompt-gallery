@@ -53,6 +53,19 @@ const TemplateCard = ({ template, onRun, onView, onEdit, onDelete, onDeleteExecu
                 />
             </Card.Body>
 
+            {/* Action Section - Run Button (Floating Pill) */}
+            <div className="relative h-0 z-10 flex justify-center">
+                <button
+                    onClick={onRun}
+                    className="absolute -top-5 flex items-center justify-center gap-2 px-6 py-2.5 bg-white text-blue-600 font-semibold rounded-full shadow-lg border border-gray-100 hover:bg-blue-50 hover:shadow-xl transform transition-all hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+                    </svg>
+                    Use this prompt
+                </button>
+            </div>
+
             {/* Actions Footer */}
             <Card.Footer>
                 {/* Like Button Group */}
@@ -78,12 +91,6 @@ const TemplateCard = ({ template, onRun, onView, onEdit, onDelete, onDeleteExecu
                 />
 
                 <div className="flex justify-end gap-2.5">
-                    <button
-                        onClick={onRun}
-                        className="px-3 py-1.5 text-xs rounded opacity-100 hover:opacity-90 inline-flex items-center justify-center border-none cursor-pointer transition-opacity bg-[#e6f7ff] text-[#1890ff] font-bold"
-                    >
-                        Run
-                    </button>
                     {currentUser && template.ownerId === currentUser.uid && (
                         <>
                             <IconButton
