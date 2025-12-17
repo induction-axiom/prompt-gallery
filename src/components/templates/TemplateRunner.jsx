@@ -161,9 +161,13 @@ const TemplateRunner = ({
                         }
 
                         // Default Text/JSON View
+                        let content = runResult;
+                        const extractedText = extractTextFromGeminiResult(runResult);
+                        if (extractedText) content = extractedText;
+
                         return (
                             <pre className="bg-[#f5f5f5] p-[15px] rounded-md overflow-x-auto border border-[#eee] max-h-[200px]">
-                                {typeof runResult === 'string' ? runResult : JSON.stringify(runResult, null, 2)}
+                                {typeof content === 'string' ? content : JSON.stringify(content, null, 2)}
                             </pre>
                         );
                     })()}
