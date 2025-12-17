@@ -2,6 +2,7 @@ export const initialState = {
     status: "Ready",
     templates: [],
     likedTemplateIds: [], // Store IDs of templates liked by the user
+    likedExecutionIds: [], // Store IDs of executions liked by the user
     isLoading: false,
     runResult: "",
     viewTemplateData: null
@@ -17,6 +18,8 @@ export const templateReducer = (state, action) => {
             return { ...state, templates: action.payload };
         case 'SET_USER_LIKES':
             return { ...state, likedTemplateIds: action.payload };
+        case 'SET_USER_EXECUTION_LIKES':
+            return { ...state, likedExecutionIds: action.payload };
         case 'SET_RUN_RESULT':
             return { ...state, runResult: action.payload };
         case 'SET_VIEW_DATA':
@@ -49,6 +52,43 @@ export const templateReducer = (state, action) => {
             return {
                 ...state,
                 likedTemplateIds: newLikedIds,
+                templates: newTemplates
+            };
+        }
+
+        case 'TOGGLE_EXECUTION_LIKE': {
+            const { executionId, templateId, isLiked } = action.payload; // isLiked = true means we JUST liked it.
+
+            // Update likedExecutionIds
+            let newLikedIds;
+            if (isLiked) {
+                newLikedIds = [...state.likedExecutionIds, executionId];
+            } else {
+                newLikedIds = state.likedExecutionIds.filter(id => id !== executionId);
+            }
+
+            // Update likeCount in executions within the correct template
+            const newTemplates = state.templates.map(t => {
+                const tHeaderId = t.name.split('/').pop();
+                if (tHeaderId === templateId && t.executions) {
+                    const updatedExecutions = t.executions.map(e => {
+                        if (e.id === executionId) {
+                            const currentCount = e.likeCount || 0;
+                            return {
+                                ...e,
+                                likeCount: isLiked ? currentCount + 1 : Math.max(0, currentCount - 1)
+                            };
+                        }
+                        return e;
+                    });
+                    return { ...t, executions: updatedExecutions };
+                }
+                return t;
+            });
+
+            return {
+                ...state,
+                likedExecutionIds: newLikedIds,
                 templates: newTemplates
             };
         }

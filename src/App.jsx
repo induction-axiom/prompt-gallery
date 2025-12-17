@@ -114,8 +114,10 @@ function App() {
           ...actions,
           handleViewWrapper,
           handleOpenEdit,
+          handleToggleExecutionLike: actions.handleToggleExecutionLike,
         }}
         user={user}
+        likedExecutionIds={state.likedExecutionIds}
       />
 
       <TemplateEditor

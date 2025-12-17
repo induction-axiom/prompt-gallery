@@ -1,7 +1,7 @@
 import { useReducer, useEffect } from 'react';
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { extractImageFromGeminiResult, extractTextFromGeminiResult } from '../utils/geminiParsers';
-import { getRecentTemplates, saveExecutionMetadata, getTemplateExecutions, deleteExecution, getUserLikes, togglePromptLike } from '../services/firestore';
+import { getRecentTemplates, saveExecutionMetadata, getTemplateExecutions, deleteExecution, getUserLikes, togglePromptLike, getUserExecutionLikes, toggleExecutionLike } from '../services/firestore';
 import { uploadImage, deleteImage } from '../services/storage';
 import { app } from "../firebase";
 import { templateReducer, initialState } from '../reducers/templateReducer';
@@ -23,8 +23,12 @@ export const useTemplates = (user) => {
             getUserLikes(user.uid).then(likes => {
                 dispatch({ type: 'SET_USER_LIKES', payload: likes });
             });
+            getUserExecutionLikes(user.uid).then(likes => {
+                dispatch({ type: 'SET_USER_EXECUTION_LIKES', payload: likes });
+            });
         } else {
             dispatch({ type: 'SET_USER_LIKES', payload: [] });
+            dispatch({ type: 'SET_USER_EXECUTION_LIKES', payload: [] });
         }
     }, [user]);
 
@@ -196,19 +200,28 @@ export const useTemplates = (user) => {
 
         try {
             await togglePromptLike(templateId, user.uid);
-            // My Service: togglePromptLike(templateId, userId, isLiked) -> "isLiked" usually means "is it currently liked? or do we want to make it liked?"
-            // Plan said: "togglePromptLike(templateId, userId, isLiked)" 
-            // My implementation in firestore.js: if (isLiked) { UNLIKE } else { LIKE }
-            // So the 3rd arg is "Is it ALREADY liked?" or "Am I currently holding a like?"
-            // Let's check firestore.js again.
-            // "if (isLiked) { // User wants to UNLIKE ... }" 
-            // So yes, I should pass the BEFORE state.
-            // If I am currently liked (includes(id)), I pass true. Then service unlikes.
-            // So pass state.likedTemplateIds.includes(templateId)
         } catch (error) {
             console.error("Failed to toggle like:", error);
             // Revert on error
             dispatch({ type: 'TOGGLE_LIKE', payload: { templateId, isLiked: !isLiked } });
+            alert("Failed to update like status.");
+        }
+    };
+
+    const handleToggleExecutionLike = async (templateId, executionId) => {
+        if (!user) return alert("Please sign in to like executions.");
+
+        const isLiked = !state.likedExecutionIds.includes(executionId);
+
+        // Optimistic update
+        dispatch({ type: 'TOGGLE_EXECUTION_LIKE', payload: { executionId, templateId, isLiked } });
+
+        try {
+            await toggleExecutionLike(executionId, user.uid);
+        } catch (error) {
+            console.error("Failed to toggle execution like:", error);
+            // Revert on error
+            dispatch({ type: 'TOGGLE_EXECUTION_LIKE', payload: { executionId, templateId, isLiked: !isLiked } });
             alert("Failed to update like status.");
         }
     };
@@ -316,7 +329,9 @@ export const useTemplates = (user) => {
             handleDeleteTemplate,
             handleDeleteExecution,
             handleRunTemplate,
+            handleRunTemplate,
             handleToggleLike,
+            handleToggleExecutionLike,
             clearRunResult,
             getTemplateId
         }

@@ -6,7 +6,7 @@ import Card from '../common/Card';
 
 import { extractModelFromDotPrompt } from '../../utils/geminiParsers';
 
-const TemplateCard = ({ template, onRun, onView, onEdit, onDelete, onDeleteExecution, onToggleLike, isLiked, getTemplateId, currentUser }) => {
+const TemplateCard = ({ template, onRun, onView, onEdit, onDelete, onDeleteExecution, onToggleLike, onToggleExecutionLike, isLiked, likedExecutionIds, getTemplateId, currentUser }) => {
     const [showTooltip, setShowTooltip] = React.useState(false);
     const [tooltipPos, setTooltipPos] = React.useState({ x: 0, y: 0 });
     const modelName = extractModelFromDotPrompt(template.templateString || template.dotPromptString);
@@ -48,6 +48,8 @@ const TemplateCard = ({ template, onRun, onView, onEdit, onDelete, onDeleteExecu
                     items={template.executions}
                     currentUser={currentUser}
                     onDelete={(execution) => onDeleteExecution(getTemplateId(template.name), execution)}
+                    likedExecutionIds={likedExecutionIds}
+                    onToggleLike={(executionId) => onToggleExecutionLike(getTemplateId(template.name), executionId)}
                 />
             </Card.Body>
 

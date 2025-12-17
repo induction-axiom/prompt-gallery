@@ -3,7 +3,7 @@ import TextCard from './TextCard';
 import ThumbnailStrip from './ThumbnailStrip';
 import IconButton from '../common/IconButton';
 
-const MixedMediaGallery = ({ items, currentUser, onDelete }) => {
+const MixedMediaGallery = ({ items, currentUser, onDelete, likedExecutionIds = [], onToggleLike }) => {
     const [selectedIndex, setSelectedIndex] = useState(0);
 
     // Reset selection if items change significantly (optional, but good practice)
@@ -56,6 +56,32 @@ const MixedMediaGallery = ({ items, currentUser, onDelete }) => {
                 )}
 
                 {/* Content */}
+                <div className="absolute top-2 left-2 z-10">
+                    <IconButton
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onToggleLike && onToggleLike(currentItem.id);
+                        }}
+                        active={likedExecutionIds.includes(currentItem.id)}
+                        activeColor="red"
+                        label={currentItem.likeCount || 0}
+                        icon={
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 24 24"
+                                fill={likedExecutionIds.includes(currentItem.id) ? "currentColor" : "none"}
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                className="w-4 h-4"
+                            >
+                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                            </svg>
+                        }
+                    />
+                </div>
+
                 {isImage ? (
                     <img
                         src={currentItem.imageUrl}

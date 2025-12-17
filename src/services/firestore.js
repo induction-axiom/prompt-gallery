@@ -52,8 +52,10 @@ export const saveExecutionMetadata = async ({ templateId, user, storagePath, dow
         creatorId: user.uid,
         inputVariables: reqBody,
         public: true,
+        public: true,
         isImage: isImage,
-        type: isImage ? 'image' : 'text'
+        type: isImage ? 'image' : 'text',
+        likeCount: 0
     });
 };
 
@@ -111,6 +113,58 @@ export const togglePromptLike = async (templateId, userId) => {
             }
 
             transaction.update(templateRef, { likeCount: newLikeCount });
+        });
+        return true;
+    } catch (e) {
+        console.error("Transaction failed: ", e);
+        throw e;
+    }
+};
+
+export const getUserExecutionLikes = async (userId) => {
+    if (!userId) return [];
+    try {
+        const q = query(collection(db, `users/${userId}/executionLikes`));
+        const querySnapshot = await getDocs(q);
+        return querySnapshot.docs.map(doc => doc.id);
+    } catch (e) {
+        console.error("Error fetching user execution likes:", e);
+        return [];
+    }
+};
+
+export const toggleExecutionLike = async (executionId, userId) => {
+    if (!userId || !executionId) throw new Error("Missing userId or executionId");
+
+    const executionRef = doc(db, "executions", executionId);
+    const userLikeRef = doc(db, `users/${userId}/executionLikes`, executionId);
+
+    try {
+        await runTransaction(db, async (transaction) => {
+            const executionDoc = await transaction.get(executionRef);
+            if (!executionDoc.exists()) {
+                throw new Error("Execution does not exist!");
+            }
+
+            const userLikeDoc = await transaction.get(userLikeRef);
+            const doesUserLike = userLikeDoc.exists();
+
+            const currentLikeCount = executionDoc.data().likeCount || 0;
+            let newLikeCount;
+
+            if (doesUserLike) {
+                // User ALREADY likes it -> UNLIKE
+                newLikeCount = Math.max(0, currentLikeCount - 1);
+                transaction.delete(userLikeRef);
+            } else {
+                // User does NOT like it -> LIKE
+                newLikeCount = currentLikeCount + 1;
+                transaction.set(userLikeRef, {
+                    likedAt: serverTimestamp()
+                });
+            }
+
+            transaction.update(executionRef, { likeCount: newLikeCount });
         });
         return true;
     } catch (e) {

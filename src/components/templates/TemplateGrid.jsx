@@ -1,7 +1,7 @@
 import React from 'react';
 import TemplateCard from './TemplateCard';
 
-const TemplateGrid = ({ templates, actions, user, state }) => {
+const TemplateGrid = ({ templates, state, actions, user, likedExecutionIds }) => {
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {templates.map((t) => (
@@ -11,11 +11,13 @@ const TemplateGrid = ({ templates, actions, user, state }) => {
                     getTemplateId={actions.getTemplateId}
                     onRun={() => actions.setSelectedRunTemplate(t)}
                     onView={() => actions.handleViewWrapper(t)}
-                    onEdit={(e) => actions.handleOpenEdit(e, t)}
+                    onEdit={actions.handleOpenEdit}
                     onDelete={actions.handleDeleteTemplate}
                     onDeleteExecution={actions.handleDeleteExecution}
                     onToggleLike={actions.handleToggleLike}
+                    onToggleExecutionLike={actions.handleToggleExecutionLike}
                     isLiked={state.likedTemplateIds.includes(actions.getTemplateId(t.name))}
+                    likedExecutionIds={state.likedExecutionIds}
                     currentUser={user}
                 />
             ))}
