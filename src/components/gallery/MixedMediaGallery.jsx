@@ -12,7 +12,7 @@ const MixedMediaGallery = ({ items, currentUser, onDelete }) => {
         if (selectedIndex >= items.length) {
             setSelectedIndex(0);
         }
-    }, [items]);
+    }, [items, selectedIndex]);
 
     if (!items || items.length === 0) {
         return (

@@ -10,6 +10,7 @@ import TemplateCard from './components/templates/TemplateCard';
 import TemplateEditor from './components/templates/TemplateEditor';
 import TemplateRunner from './components/templates/TemplateRunner';
 import TemplateViewer from './components/templates/TemplateViewer';
+import TemplateGrid from './components/templates/TemplateGrid';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -106,23 +107,16 @@ function App() {
         onCreate={handleOpenCreate}
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {state.templates.map((t) => (
-          <TemplateCard
-            key={t.name}
-            template={t}
-            getTemplateId={actions.getTemplateId}
-            onRun={() => setSelectedRunTemplate(t)}
-            onView={handleViewWrapper}
-            onEdit={handleOpenEdit}
-            onDelete={actions.handleDeleteTemplate}
-            onDeleteExecution={actions.handleDeleteExecution}
-            onToggleLike={actions.handleToggleLike}
-            isLiked={state.likedTemplateIds.includes(actions.getTemplateId(t.name))}
-            currentUser={user}
-          />
-        ))}
-      </div>
+      <TemplateGrid
+        templates={state.templates}
+        state={state}
+        actions={{
+          ...actions,
+          handleViewWrapper,
+          handleOpenEdit,
+        }}
+        user={user}
+      />
 
       <TemplateEditor
         isOpen={isEditorOpen}

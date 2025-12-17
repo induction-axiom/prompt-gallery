@@ -2,6 +2,7 @@ import React from 'react';
 import MixedMediaGallery from '../gallery/MixedMediaGallery';
 import Tooltip from '../common/Tooltip';
 import IconButton from '../common/IconButton';
+import Card from '../common/Card';
 
 import { extractModelFromDotPrompt } from '../../utils/geminiParsers';
 
@@ -15,10 +16,10 @@ const TemplateCard = ({ template, onRun, onView, onEdit, onDelete, onDeleteExecu
     };
 
     return (
-        <div className="border border-[#e0e0e0] rounded-xl bg-white shadow-sm flex flex-col h-auto overflow-hidden">
+        <Card className="h-auto">
             {/* Header Section */}
-            <div
-                className="p-5 pb-3 cursor-pointer relative"
+            <Card.Header
+                className="cursor-pointer relative"
                 onClick={(e) => { e.stopPropagation(); onView(template); }}
                 onMouseEnter={() => setShowTooltip(true)}
                 onMouseMove={handleMouseMove}
@@ -39,17 +40,19 @@ const TemplateCard = ({ template, onRun, onView, onEdit, onDelete, onDeleteExecu
                     visible={showTooltip}
                     position={tooltipPos}
                 />
-            </div>
+            </Card.Header>
 
             {/* Gallery Section - Hero + Thumbnails */}
-            <MixedMediaGallery
-                items={template.executions}
-                currentUser={currentUser}
-                onDelete={(execution) => onDeleteExecution(getTemplateId(template.name), execution)}
-            />
+            <Card.Body>
+                <MixedMediaGallery
+                    items={template.executions}
+                    currentUser={currentUser}
+                    onDelete={(execution) => onDeleteExecution(getTemplateId(template.name), execution)}
+                />
+            </Card.Body>
 
             {/* Actions Footer */}
-            <div className="mt-auto px-5 py-3 flex items-center justify-between border-t border-[#f0f0f0] bg-gray-50/50">
+            <Card.Footer>
                 {/* Like Button Group */}
                 <IconButton
                     onClick={(e) => { e.stopPropagation(); onToggleLike(getTemplateId(template.name)); }}
@@ -104,8 +107,8 @@ const TemplateCard = ({ template, onRun, onView, onEdit, onDelete, onDeleteExecu
                         </>
                     )}
                 </div>
-            </div>
-        </div>
+            </Card.Footer>
+        </Card>
     );
 };
 
