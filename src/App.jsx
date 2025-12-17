@@ -184,7 +184,7 @@ function App() {
       const reqBody = JSON.parse(inputJson);
       const templateId = getTemplateId(selectedRunTemplate.name);
       const result = await runFn({ templateId, reqBody });
-      setRunResult(JSON.stringify(result.data, null, 2));
+      setRunResult(result.data);
       setStatus("Run Complete");
     } catch (error) {
       setRunResult("Error: " + error.message);
