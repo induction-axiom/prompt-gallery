@@ -10,13 +10,19 @@ const MixedMediaGallery = ({ items, currentUser, onDelete, likedExecutionIds = [
     const [selectedIndex, setSelectedIndex] = useState(0);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    // Reset selection if items change significantly (optional, but good practice)
+    // Derived state: calculate a safe index based on current items
+    // This protects against the race condition where items shrinks (deletion) before state updates
+    const safeIndex = Math.min(selectedIndex, items.length - 1);
+
+    // Sync state if necessary (e.g. if we were forced to clamp the index)
     useEffect(() => {
         if (!items || items.length === 0) return;
+
+        // If the stored state is invalid (out of bounds), update it to the safe value
         if (selectedIndex >= items.length) {
-            setSelectedIndex(0);
+            setSelectedIndex(safeIndex);
         }
-    }, [items, selectedIndex]);
+    }, [items.length, selectedIndex, safeIndex]);
 
     if (!items || items.length === 0) {
         return (
@@ -26,8 +32,8 @@ const MixedMediaGallery = ({ items, currentUser, onDelete, likedExecutionIds = [
         );
     }
 
-    const currentItem = items[selectedIndex];
-    const isImage = currentItem.type === 'image' || !!currentItem.imageUrl;
+    const currentItem = items[safeIndex];
+    const isImage = currentItem?.type === 'image' || !!currentItem?.imageUrl;
 
     return (
         <div className="px-5 pb-3">
@@ -103,7 +109,7 @@ const MixedMediaGallery = ({ items, currentUser, onDelete, likedExecutionIds = [
             {/* Thumbnails */}
             <ThumbnailStrip
                 items={items}
-                selectedIndex={selectedIndex}
+                selectedIndex={safeIndex}
                 onSelect={setSelectedIndex}
             />
 

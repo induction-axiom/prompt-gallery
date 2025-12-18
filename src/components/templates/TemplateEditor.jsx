@@ -191,7 +191,7 @@ const TemplateEditor = ({
                 <textarea
                     value={jsonInputSchema}
                     onChange={(e) => setJsonInputSchema(e.target.value)}
-                    placeholder='{"key": ""}'
+                    placeholder={'e.g. { "topic": "" }\nProvide a scaffold JSON so users can easily start with the correct structure.'}
                     className="w-full p-3 border border-gray-300 dark:border-gray-700 rounded-lg resize-none font-mono text-sm h-[100px] focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all bg-white dark:bg-gray-800 dark:text-gray-100"
                 />
             </div>
