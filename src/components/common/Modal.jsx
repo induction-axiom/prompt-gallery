@@ -1,7 +1,17 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import Card from './Card';
 
 const Modal = ({ title, onClose, children, footer, maxWidth = 'max-w-[600px]' }) => {
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.key === 'Escape' && onClose) {
+                onClose();
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [onClose]);
+
     return (
         <div className="fixed top-0 left-0 right-0 bottom-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[1000] p-5 box-border transition-all">
             <Card className={`w-full ${maxWidth} max-h-[90vh] shadow-2xl border-none flex flex-col`}>
