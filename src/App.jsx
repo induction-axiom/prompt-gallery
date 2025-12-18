@@ -144,7 +144,7 @@ function App() {
         template={selectedRunTemplate}
         onClose={handleCloseRun}
         onRun={handleRunWrapper}
-        isLoading={state.isLoading}
+        isGenerating={state.isGenerating}
         runResult={state.runResult}
       />
 

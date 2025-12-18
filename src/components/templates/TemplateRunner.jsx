@@ -10,7 +10,7 @@ const TemplateRunner = ({
     template,
     onClose,
     onRun,
-    isLoading,
+    isGenerating,
     runResult
 }) => {
     const [inputJson, setInputJson] = React.useState(''); // Start empty to avoid jump
@@ -21,13 +21,13 @@ const TemplateRunner = ({
     const resultRef = React.useRef(null);
 
     React.useEffect(() => {
-        if (runResult && !isLoading) {
+        if (runResult && !isGenerating) {
             // Small timeout to ensure DOM is updated
             setTimeout(() => {
                 resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }, 100);
         }
-    }, [runResult, isLoading]);
+    }, [runResult, isGenerating]);
 
     React.useEffect(() => {
         if (template) {
@@ -80,14 +80,14 @@ const TemplateRunner = ({
                 <Button
                     variant="primary"
                     onClick={handleRun}
-                    disabled={isLoading}
+                    disabled={isGenerating}
                     icon={
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
                         </svg>
                     }
                 >
-                    {isLoading ? 'Running...' : 'Run Prompt'}
+                    {isGenerating ? 'Running...' : 'Run Prompt'}
                 </Button>
             }
         >
@@ -136,51 +136,55 @@ const TemplateRunner = ({
                 </div>
             </div>
 
-            {isLoading && (
-                <div className="flex flex-col items-center justify-center p-8 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 animate-pulse">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mb-2"></div>
-                    <p className="text-gray-500 dark:text-gray-400">Generating content...</p>
+            {isGenerating ? (
+                <div className="flex flex-col items-center justify-center p-12 bg-gray-50 dark:bg-gray-800 rounded-xl border border-dashed border-gray-300 dark:border-gray-700 min-h-[200px]">
+                    <div className="relative mb-4">
+                        <div className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-20"></div>
+                        <div className="relative animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent shadow-lg text-blue-600"></div>
+                    </div>
+                    <p className="font-semibold text-gray-600 dark:text-gray-300 animate-pulse text-lg">Generating your masterpiece...</p>
+                    <p className="text-xs text-gray-400 mt-2">This may take a few moments</p>
                 </div>
-            )}
-
-            {runResult && (
-                <div ref={resultRef} className="result-container scroll-mt-4">
-                    <label className="block mb-1.5 font-bold text-gray-700 dark:text-gray-300">Result</label>
-                    {(() => {
-                        // Try to extract image result first, regardless of template type
-                        const imageParams = extractImageFromGeminiResult(runResult);
-                        if (imageParams) {
-                            if (imageParams.type === 'base64') {
-                                return (
-                                    <img
-                                        src={`data:${imageParams.mimeType};base64,${imageParams.data}`}
-                                        alt="Generated Content"
-                                        className="max-w-full h-auto rounded-lg border border-gray-200 dark:border-gray-700"
-                                    />
-                                );
-                            } else if (imageParams.type === 'url') {
-                                return (
-                                    <img
-                                        src={imageParams.url}
-                                        alt="Generated Content"
-                                        className="max-w-full h-auto rounded-lg border border-gray-200 dark:border-gray-700"
-                                    />
-                                );
+            ) : (
+                runResult && (
+                    <div ref={resultRef} className="result-container scroll-mt-4">
+                        <label className="block mb-1.5 font-bold text-gray-700 dark:text-gray-300">Result</label>
+                        {(() => {
+                            // Try to extract image result first, regardless of template type
+                            const imageParams = extractImageFromGeminiResult(runResult);
+                            if (imageParams) {
+                                if (imageParams.type === 'base64') {
+                                    return (
+                                        <img
+                                            src={`data:${imageParams.mimeType};base64,${imageParams.data}`}
+                                            alt="Generated Content"
+                                            className="max-w-full h-auto rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm"
+                                        />
+                                    );
+                                } else if (imageParams.type === 'url') {
+                                    return (
+                                        <img
+                                            src={imageParams.url}
+                                            alt="Generated Content"
+                                            className="max-w-full h-auto rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm"
+                                        />
+                                    );
+                                }
                             }
-                        }
 
-                        // Default Text/JSON View
-                        let content = runResult;
-                        const extractedText = extractTextFromGeminiResult(runResult);
-                        if (extractedText) content = extractedText;
+                            // Default Text/JSON View
+                            let content = runResult;
+                            const extractedText = extractTextFromGeminiResult(runResult);
+                            if (extractedText) content = extractedText;
 
-                        return (
-                            <pre className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg overflow-x-auto border border-gray-200 dark:border-gray-700 max-h-[200px] text-sm dark:text-gray-200">
-                                {typeof content === 'string' ? content : JSON.stringify(content, null, 2)}
-                            </pre>
-                        );
-                    })()}
-                </div>
+                            return (
+                                <pre className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg overflow-x-auto border border-gray-200 dark:border-gray-700 max-h-[400px] text-sm dark:text-gray-200 font-mono shadow-inner whitespace-pre-wrap">
+                                    {typeof content === 'string' ? content : JSON.stringify(content, null, 2)}
+                                </pre>
+                            );
+                        })()}
+                    </div>
+                )
             )}
         </Modal>
     );

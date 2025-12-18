@@ -303,11 +303,9 @@ export const useTemplates = (user) => {
     const handleRunTemplate = async ({ selectedRunTemplate, inputJson }) => {
         if (!selectedRunTemplate) return;
         setStatus("Running...");
-        setIsLoading(true);
-        setRunResult("");
-        if (!selectedRunTemplate) return;
-        setStatus("Running...");
-        setIsLoading(true);
+        const setIsGenerating = (generating) => dispatch({ type: 'SET_GENERATING', payload: generating });
+
+        setIsGenerating(true);
         setRunResult("");
         try {
             const reqBody = JSON.parse(inputJson);
@@ -391,7 +389,7 @@ export const useTemplates = (user) => {
         } catch (error) {
             setRunResult("Error: " + error.message);
         } finally {
-            setIsLoading(false);
+            dispatch({ type: 'SET_GENERATING', payload: false });
         }
     };
 
