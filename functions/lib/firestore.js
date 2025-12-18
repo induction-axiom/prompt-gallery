@@ -32,13 +32,15 @@ async function verifyOwnership(templateId, authContext) {
  * @param {string} templateId 
  * @param {string} userId 
  * @param {string} jsonInputSchema
+ * @param {Array<string>} tags
  */
-async function syncTemplateToFirestore(templateId, userId, jsonInputSchema) {
+async function syncTemplateToFirestore(templateId, userId, jsonInputSchema, tags) {
     await db.collection("prompts").doc(templateId).set({
         createdAt: FieldValue.serverTimestamp(),
         ownerId: userId || 'anonymous',
         public: true,
         jsonInputSchema: jsonInputSchema || '',
+        tags: tags || [],
         likeCount: 0
     }, { merge: true });
 }

@@ -30,17 +30,17 @@ export const getPromptTemplate = async ({ templateId }) => {
     return result;
 };
 
-export const createPromptTemplate = async ({ displayName, dotPromptString, jsonInputSchema }) => {
+export const createPromptTemplate = async ({ displayName, dotPromptString, jsonInputSchema, tags }) => {
     const createFn = httpsCallable(functions, 'createPromptTemplate');
-    return await createFn({ displayName, dotPromptString, jsonInputSchema });
+    return await createFn({ displayName, dotPromptString, jsonInputSchema, tags });
 };
 
-export const updatePromptTemplate = async ({ templateId, displayName, dotPromptString, jsonInputSchema }) => {
+export const updatePromptTemplate = async ({ templateId, displayName, dotPromptString, jsonInputSchema, tags }) => {
     // Invalidate cache
     promptTemplateCache.delete(templateId);
 
     const updateFn = httpsCallable(functions, 'updatePromptTemplate');
-    return await updateFn({ templateId, displayName, dotPromptString, jsonInputSchema });
+    return await updateFn({ templateId, displayName, dotPromptString, jsonInputSchema, tags });
 };
 
 export const deletePromptTemplate = async ({ templateId }) => {

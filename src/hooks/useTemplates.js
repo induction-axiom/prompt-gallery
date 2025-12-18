@@ -82,6 +82,7 @@ export const useTemplates = (user) => {
                         createdAt: docData.createdAt,
                         isImage: docData.isImage,
                         jsonInputSchema: docData.jsonInputSchema || '',
+                        tags: docData.tags || [],
                         likeCount: docData.likeCount || 0,
                         executions: executions
                     };
@@ -159,6 +160,7 @@ export const useTemplates = (user) => {
                         createdAt: docData.createdAt,
                         isImage: docData.isImage,
                         jsonInputSchema: docData.jsonInputSchema || '',
+                        tags: docData.tags || [],
                         likeCount: docData.likeCount || 0,
                         executions: executions
                     };

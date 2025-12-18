@@ -186,4 +186,65 @@ Schema:
   "target_schema": ""
 }`
   },
+  '0292424d-84a6-48ce-85e3-f01e01172ad4': {
+    displayName: 'Prompt Labeler',
+    templateString: `---
+model: gemini-3-flash-preview
+config:
+  temperature: 0.1
+input:
+  schema:
+    target_display_name: string
+    target_template_string: string
+output:
+  format: json
+  schema:
+    labels:
+      type: array
+      items:
+        type: string
+---
+You are an expert taxonomist for an AI Prompt Marketplace. Your job is to assign high-level category labels to prompt templates to help users filter the gallery.
+
+### Input Data
+* **Display Name:** {{target_display_name}}
+* **Template Content:** See below.
+
+### Labeling Rules
+1.  **Mandatory Type Label (First Label):**
+    * Analyze the \`model\` field in the template frontmatter AND the prompt text instructions.
+    * If the model is an image generator (e.g., contains "image", "vision", "diffusion") OR the prompt explicitly asks to "draw", "create a picture", or "generate art" -> Label **"Image"**.
+    * Otherwise -> Label **"Text"**.
+    * *This must always be the first item in the array.*
+
+2.  **Category Labels (2-4 Tags):**
+    * Assign general, high-level tags that describe the **Utility** or **Domain**.
+    * *Good Tags:* Coding, Business, Creative Writing, Productivity, Roleplay, Education, Data, Funny, Utility.
+    * *Avoid:* Overly specific tags (e.g., use "Coding" instead of "React Hooks Middleware").
+
+3.  **Constraints:**
+    * Total number of labels: **3 to 5**.
+    * Format: A flat JSON array of strings.
+
+### Examples
+
+**Input:** "Python Debugger", Template: "Fix bugs in this code..."
+**Output:** ["Text", "Coding", "Productivity"]
+
+**Input:** "Neon City Scape", Template: "Generate a cyberpunk city image..."
+**Output:** ["Image", "Art", "Sci-Fi", "3D"]
+
+**Input:** "Email Polisher", Template: "Rewrite this email to be professional..."
+**Output:** ["Text", "Business", "Writing", "Utility"]
+
+### Task
+Generate the labels for the following prompt:
+
+Template Content:
+{{target_template_string}}`,
+    jsonInputSchema: `{
+  "target_display_name": "",
+  "target_template_string": ""
+}`
+  }
 };

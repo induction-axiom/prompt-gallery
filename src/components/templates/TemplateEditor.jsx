@@ -22,12 +22,15 @@ const TemplateEditor = ({
     const [displayName, setDisplayName] = React.useState("");
     const [dotPromptString, setDotPromptString] = React.useState("");
     const [jsonInputSchema, setJsonInputSchema] = React.useState("");
+    const [tags, setTags] = React.useState([]);
+    const [tagsInput, setTagsInput] = React.useState("");
 
     // Local loading states
     const [isSaving, setIsSaving] = React.useState(false);
     const [isGeneratingSchema, setIsGeneratingSchema] = React.useState(false);
     const [isGeneratingName, setIsGeneratingName] = React.useState(false);
     const [isFormatting, setIsFormatting] = React.useState(false);
+    const [isLabeling, setIsLabeling] = React.useState(false);
 
     React.useEffect(() => {
         if (isOpen) {
@@ -35,10 +38,14 @@ const TemplateEditor = ({
                 setDisplayName(initialData.displayName || "");
                 setDotPromptString(initialData.templateString || "");
                 setJsonInputSchema(initialData.jsonInputSchema || "");
+                setTags(initialData.tags || []);
+                setTagsInput((initialData.tags || []).join(", "));
             } else {
                 setDisplayName("");
                 setDotPromptString("");
                 setJsonInputSchema("");
+                setTags([]);
+                setTagsInput("");
             }
         }
     }, [isOpen, isEditing, initialData]);
@@ -112,8 +119,57 @@ const TemplateEditor = ({
         }
     };
 
+    const handleAutoLabel = async () => {
+        if (!dotPromptString || !displayName) return alert("Please enter a name and prompt first");
+        setIsLabeling(true);
+        try {
+            const result = await runPromptTemplate({
+                templateId: SYSTEM_PROMPT_IDS.PROMPT_LABELER,
+                reqBody: {
+                    target_display_name: displayName,
+                    target_template_string: dotPromptString
+                }
+            });
+
+            let parsed = extractTextFromGeminiResult(result.data);
+            if (!parsed) parsed = result.data;
+            parsed = cleanJsonString(parsed);
+
+            // Expecting ["Label1", "Label2"]
+            try {
+                const tagsArray = JSON.parse(parsed);
+                let finalTags = [];
+                if (Array.isArray(tagsArray)) {
+                    finalTags = tagsArray;
+                } else if (tagsArray.labels && Array.isArray(tagsArray.labels)) {
+                    // Handle case where it returns { labels: [...] }
+                    finalTags = tagsArray.labels;
+                } else {
+                    alert("Received unexpected format for labels");
+                }
+
+                if (finalTags.length > 0) {
+                    setTags(finalTags);
+                    setTagsInput(finalTags.join(", "));
+                }
+            } catch (e) {
+                console.error("Failed to parse labels JSON", e);
+                alert("Failed to parse generated labels");
+            }
+
+        } catch (error) {
+            console.error("Failed to auto-label:", error);
+            alert("Failed to auto-label");
+        } finally {
+            setIsLabeling(false);
+        }
+    };
+
     const handleSave = async () => {
         if (!displayName || !dotPromptString) return alert("Missing fields");
+
+        // Parse tags from input
+        const finalTags = tagsInput.split(",").map(t => t.trim()).filter(Boolean);
 
         setIsSaving(true);
         try {
@@ -122,13 +178,15 @@ const TemplateEditor = ({
                     templateId: getTemplateId(initialData.name),
                     displayName,
                     dotPromptString,
-                    jsonInputSchema
+                    jsonInputSchema,
+                    tags: finalTags
                 });
             } else {
                 await createPromptTemplate({
                     displayName,
                     dotPromptString,
-                    jsonInputSchema
+                    jsonInputSchema,
+                    tags: finalTags
                 });
             }
             // Refresh global list
@@ -227,7 +285,31 @@ const TemplateEditor = ({
                     value={jsonInputSchema}
                     onChange={(e) => setJsonInputSchema(e.target.value)}
                     placeholder={'e.g. { "topic": "" }\nProvide a scaffold JSON so users can easily start with the correct structure.'}
-                    className="w-full p-3 border border-gray-300 dark:border-gray-700 rounded-lg resize-none font-mono text-sm h-[100px] focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all bg-white dark:bg-gray-800 dark:text-gray-100"
+                    className="w-full p-3 border border-gray-300 dark:border-gray-700 rounded-lg resize-none font-mono text-sm h-[100px] mb-4 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all bg-white dark:bg-gray-800 dark:text-gray-100"
+                />
+
+                <div className="flex justify-between items-center mb-1.5">
+                    <label className="block font-bold text-gray-700 dark:text-gray-300">Tags</label>
+                    <Button
+                        variant="ghost"
+                        onClick={handleAutoLabel}
+                        disabled={isLabeling}
+                        className="!px-3 !py-1 text-xs"
+                        icon={
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                            </svg>
+                        }
+                    >
+                        {isLabeling ? 'Labeling...' : 'Auto Label'}
+                    </Button>
+                </div>
+                <input
+                    type="text"
+                    value={tagsInput}
+                    onChange={(e) => setTagsInput(e.target.value)}
+                    placeholder="e.g. Image, Sci-Fi, Creative (comma separated)"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all bg-white dark:bg-gray-800 dark:text-gray-100"
                 />
             </div>
         </Modal >

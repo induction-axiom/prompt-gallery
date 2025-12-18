@@ -70,10 +70,11 @@ async function executePromptUpdate(templateId, updates) {
     }
 
     // 2. Sync to Firestore
-    // Firestore cares about displayName and jsonInputSchema
+    // Firestore cares about displayName, jsonInputSchema, and tags
     const firestoreUpdates = {};
     if (updates.displayName) firestoreUpdates.displayName = updates.displayName;
     if (updates.jsonInputSchema !== undefined) firestoreUpdates.jsonInputSchema = updates.jsonInputSchema;
+    if (updates.tags !== undefined) firestoreUpdates.tags = updates.tags;
 
     if (Object.keys(firestoreUpdates).length > 0) {
         await updateTemplateInFirestore(templateId, firestoreUpdates);
@@ -115,7 +116,7 @@ exports.syncSystemPrompts = onCall(
 exports.createPromptTemplate = onCall(
     { maxInstances: 10, enforceAppCheck: true },
     async (request) => {
-        const { displayName, dotPromptString } = request.data;
+        const { displayName, dotPromptString, jsonInputSchema, tags } = request.data;
         logger.info("createPromptTemplate", { displayName });
 
         const result = await makeApiRequest({
@@ -130,7 +131,7 @@ exports.createPromptTemplate = onCall(
         // Sync to Firestore
         const templateId = result.name.split('/').pop();
 
-        await syncTemplateToFirestore(templateId, request.auth ? request.auth.uid : null, request.data.jsonInputSchema);
+        await syncTemplateToFirestore(templateId, request.auth ? request.auth.uid : null, jsonInputSchema, tags);
 
         logger.info("Prompt created successfully and synced to Firestore");
         return result;
@@ -185,7 +186,7 @@ exports.runPromptTemplate = onCall(
 exports.updatePromptTemplate = onCall(
     { maxInstances: 10, enforceAppCheck: true },
     async (request) => {
-        const { templateId, displayName, dotPromptString, jsonInputSchema } = request.data;
+        const { templateId, displayName, dotPromptString, jsonInputSchema, tags } = request.data;
         if (!templateId) throw new HttpsError('invalid-argument', 'Missing templateId');
 
         logger.info("updatePromptTemplate", { templateId });
@@ -197,6 +198,7 @@ exports.updatePromptTemplate = onCall(
         if (displayName) updates.displayName = displayName;
         if (dotPromptString) updates.templateString = dotPromptString;
         if (jsonInputSchema !== undefined) updates.jsonInputSchema = jsonInputSchema;
+        if (tags !== undefined) updates.tags = tags;
 
         const result = await executePromptUpdate(templateId, updates);
 
