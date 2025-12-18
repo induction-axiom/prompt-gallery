@@ -149,7 +149,7 @@ Process the following input and return ONLY the raw .prompt text (no code blocks
   "rawInput": ""
 }`
   },
-  'a4f6d8c4-2f01-4281-a833-c7e36aa0dc21': {
+  '062aa359-5efc-4816-af75-2c5eb17d2957': {
     displayName: 'Random Data Generator',
     templateString: `---
 model: gemini-3-flash-preview
