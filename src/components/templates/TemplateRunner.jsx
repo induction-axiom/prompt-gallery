@@ -18,6 +18,16 @@ const TemplateRunner = ({
     const userEditedRef = React.useRef(false);
 
     const [isGeneratingRandom, setIsGeneratingRandom] = React.useState(false);
+    const resultRef = React.useRef(null);
+
+    React.useEffect(() => {
+        if (runResult && !isLoading) {
+            // Small timeout to ensure DOM is updated
+            setTimeout(() => {
+                resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+        }
+    }, [runResult, isLoading]);
 
     React.useEffect(() => {
         if (template) {
@@ -126,8 +136,15 @@ const TemplateRunner = ({
                 </div>
             </div>
 
+            {isLoading && (
+                <div className="flex flex-col items-center justify-center p-8 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 animate-pulse">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mb-2"></div>
+                    <p className="text-gray-500 dark:text-gray-400">Generating content...</p>
+                </div>
+            )}
+
             {runResult && (
-                <div className="result-container">
+                <div ref={resultRef} className="result-container scroll-mt-4">
                     <label className="block mb-1.5 font-bold text-gray-700 dark:text-gray-300">Result</label>
                     {(() => {
                         // Try to extract image result first, regardless of template type
