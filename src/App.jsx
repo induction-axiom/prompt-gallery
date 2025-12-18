@@ -57,6 +57,7 @@ function App() {
   const handleViewWrapper = (template) => {
     setViewTemplate(template);
     setIsViewModalOpen(true);
+    actions.incrementPromptView(actions.getTemplateId(template.name));
   };
 
   const handleCloseRun = () => {

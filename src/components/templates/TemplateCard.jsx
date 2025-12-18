@@ -7,7 +7,7 @@ import UserBadge from '../common/UserBadge';
 
 import { extractModelFromDotPrompt } from '../../utils/geminiParsers';
 
-const TemplateCard = ({ template, onRun, onView, onEdit, onDelete, onDeleteExecution, onToggleLike, onToggleExecutionLike, isLiked, likedExecutionIds, getTemplateId, currentUser }) => {
+const TemplateCard = ({ template, onRun, onView, onEdit, onDelete, onDeleteExecution, onToggleLike, onToggleExecutionLike, onViewExecution, isLiked, likedExecutionIds, getTemplateId, currentUser }) => {
     const [showTooltip, setShowTooltip] = React.useState(false);
     const [tooltipPos, setTooltipPos] = React.useState({ x: 0, y: 0 });
     const modelName = extractModelFromDotPrompt(template.templateString || template.dotPromptString);
@@ -58,6 +58,7 @@ const TemplateCard = ({ template, onRun, onView, onEdit, onDelete, onDeleteExecu
                     onDelete={(execution) => onDeleteExecution(getTemplateId(template.name), execution)}
                     likedExecutionIds={likedExecutionIds}
                     onToggleLike={(executionId) => onToggleExecutionLike(getTemplateId(template.name), executionId)}
+                    onView={(executionId) => onViewExecution && onViewExecution(executionId)}
                 />
             </Card.Body>
 
@@ -77,26 +78,35 @@ const TemplateCard = ({ template, onRun, onView, onEdit, onDelete, onDeleteExecu
             {/* Actions Footer */}
             <Card.Footer>
                 {/* Like Button Group */}
-                <IconButton
-                    onClick={(e) => { e.stopPropagation(); onToggleLike(getTemplateId(template.name)); }}
-                    active={isLiked}
-                    activeColor="red"
-                    label={template.likeCount || 0}
-                    icon={
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 24 24"
-                            fill={isLiked ? "currentColor" : "none"}
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            className="w-4 h-4"
-                        >
-                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                <div className="flex items-center gap-2">
+                    <IconButton
+                        onClick={(e) => { e.stopPropagation(); onToggleLike(getTemplateId(template.name)); }}
+                        active={isLiked}
+                        activeColor="red"
+                        label={template.likeCount || 0}
+                        icon={
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 24 24"
+                                fill={isLiked ? "currentColor" : "none"}
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                className="w-4 h-4"
+                            >
+                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                            </svg>
+                        }
+                    />
+                    <div className="flex items-center text-gray-400 dark:text-gray-500 text-sm gap-1 ml-1" title="Views">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                         </svg>
-                    }
-                />
+                        <span>{template.viewCount || 0}</span>
+                    </div>
+                </div>
 
                 <div className="flex justify-end gap-2.5 items-center">
                     {isOwner && isHovered ? (

@@ -7,7 +7,7 @@ import Modal from '../common/Modal';
 import Button from '../common/Button';
 import UserBadge from '../common/UserBadge';
 
-const MixedMediaGallery = ({ items, currentUser, onDelete, likedExecutionIds = [], onToggleLike }) => {
+const MixedMediaGallery = ({ items, currentUser, onDelete, likedExecutionIds = [], onToggleLike, onView }) => {
     const [selectedIndex, setSelectedIndex] = useState(0);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isExpanded, setIsExpanded] = useState(false);
@@ -71,6 +71,7 @@ const MixedMediaGallery = ({ items, currentUser, onDelete, likedExecutionIds = [
                 onClick={() => {
                     setIsModalOpen(true);
                     setIsExpanded(false);
+                    onView && onView(currentItem.id);
                 }}
             >
                 {/* Delete Button Overlay */}

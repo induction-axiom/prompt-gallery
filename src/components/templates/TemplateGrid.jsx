@@ -42,6 +42,7 @@ const TemplateGrid = ({ handleViewWrapper, handleOpenEdit, setSelectedRunTemplat
                         onDeleteExecution={actions.handleDeleteExecution}
                         onToggleLike={actions.handleToggleLike}
                         onToggleExecutionLike={actions.handleToggleExecutionLike}
+                        onViewExecution={(executionId) => actions.incrementExecutionView(executionId, actions.getTemplateId(t.name))}
                         isLiked={state.likedTemplateIds.includes(actions.getTemplateId(t.name))}
                         likedExecutionIds={state.likedExecutionIds}
                         currentUser={user}

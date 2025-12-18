@@ -17,6 +17,9 @@ export const getRecentTemplates = async (limitCount = 10, orderByField = "create
     }
 
     constraints.push(orderBy(orderByField, "desc"));
+    if (orderByField === 'likeCount') {
+        constraints.push(orderBy("viewCount", "desc"));
+    }
     constraints.push(limit(limitCount));
 
     if (startAfterDoc) {
@@ -246,5 +249,61 @@ export const getUserProfile = async (userId) => {
         console.error("Error fetching user profile:", e);
     }
     return null;
+};
+
+export const incrementPromptView = async (templateId) => {
+    if (!templateId) return;
+    const ref = doc(db, "prompts", templateId);
+    try {
+        await runTransaction(db, async (transaction) => {
+            const docSnap = await transaction.get(ref);
+            if (!docSnap.exists()) return;
+
+            const data = docSnap.data();
+            const newSelfViews = (data.selfViewCount || 0) + 1;
+            const currentMax = data.viewCount || 0;
+            // The view count on the card is the max of prompt views and any execution views
+            const newMax = Math.max(currentMax, newSelfViews);
+
+            transaction.update(ref, {
+                selfViewCount: newSelfViews,
+                viewCount: newMax
+            });
+        });
+    } catch (e) {
+        console.error("Error incrementing prompt view:", e);
+    }
+};
+
+export const incrementExecutionView = async (executionId, templateId) => {
+    if (!executionId || !templateId) return;
+    const execRef = doc(db, "executions", executionId);
+    const promptRef = doc(db, "prompts", templateId);
+
+    try {
+        await runTransaction(db, async (transaction) => {
+            const execDoc = await transaction.get(execRef);
+            const promptDoc = await transaction.get(promptRef);
+
+            if (!execDoc.exists() || !promptDoc.exists()) return;
+
+            const execData = execDoc.data();
+            const promptData = promptDoc.data();
+
+            const newExecViews = (execData.viewCount || 0) + 1;
+            const currentMax = promptData.viewCount || 0;
+            // The view count on the card is the max of prompt views and any execution views
+            const newMax = Math.max(currentMax, newExecViews);
+
+            transaction.update(execRef, { viewCount: newExecViews });
+
+            // Only update prompt if the max increases
+            if (newMax > currentMax) {
+                transaction.update(promptRef, { viewCount: newMax });
+            }
+        });
+    } catch (e) {
+        console.error("Error incrementing execution view:", e);
+    }
 };
 

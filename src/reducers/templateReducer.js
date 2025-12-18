@@ -173,6 +173,54 @@ export const templateReducer = (state, action) => {
                     return t;
                 })
             };
+        case 'INCREMENT_PROMPT_VIEW': {
+            const templateId = action.payload;
+            return {
+                ...state,
+                templates: state.templates.map(t => {
+                    const tHeaderId = t.name.split('/').pop();
+                    if (tHeaderId === templateId) {
+                        const newSelfViewCount = (t.selfViewCount || 0) + 1;
+                        const currentMax = t.viewCount || 0;
+                        return {
+                            ...t,
+                            selfViewCount: newSelfViewCount,
+                            viewCount: Math.max(currentMax, newSelfViewCount)
+                        };
+                    }
+                    return t;
+                })
+            };
+        }
+        case 'INCREMENT_EXECUTION_VIEW': {
+            const { templateId, executionId } = action.payload;
+            return {
+                ...state,
+                templates: state.templates.map(t => {
+                    const tHeaderId = t.name.split('/').pop();
+                    if (tHeaderId === templateId && t.executions) {
+                        let newMax = t.viewCount || 0;
+                        const updatedExecutions = t.executions.map(e => {
+                            if (e.id === executionId) {
+                                const newExecViewCount = (e.viewCount || 0) + 1;
+                                newMax = Math.max(newMax, newExecViewCount); // Check if this new count sets a new max
+                                return {
+                                    ...e,
+                                    viewCount: newExecViewCount
+                                };
+                            }
+                            return e;
+                        });
+                        return {
+                            ...t,
+                            executions: updatedExecutions,
+                            viewCount: newMax
+                        };
+                    }
+                    return t;
+                })
+            };
+        }
         default:
             return state;
     }

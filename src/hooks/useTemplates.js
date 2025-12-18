@@ -1,6 +1,6 @@
 import { useReducer, useEffect, useRef } from 'react';
 import { getPromptTemplate } from '../services/functions';
-import { getRecentTemplates, getTemplateExecutions, deleteExecution, getUserLikes, togglePromptLike, getUserExecutionLikes, toggleExecutionLike, getUserProfile } from '../services/firestore';
+import { getRecentTemplates, getTemplateExecutions, deleteExecution, getUserLikes, togglePromptLike, getUserExecutionLikes, toggleExecutionLike, getUserProfile, incrementPromptView, incrementExecutionView } from '../services/firestore';
 import { deleteImage } from '../services/storage';
 import { templateReducer, initialState } from '../reducers/templateReducer';
 import { deletePromptTemplate } from '../services/functions';
@@ -92,6 +92,7 @@ export const useTemplates = (user) => {
                         jsonInputSchema: docData.jsonInputSchema || '',
                         tags: docData.tags || [],
                         likeCount: docData.likeCount || 0,
+                        viewCount: docData.viewCount || 0,
                         executions: executions
                     };
                 } catch (err) {
@@ -171,6 +172,7 @@ export const useTemplates = (user) => {
                         jsonInputSchema: docData.jsonInputSchema || '',
                         tags: docData.tags || [],
                         likeCount: docData.likeCount || 0,
+                        viewCount: docData.viewCount || 0,
                         executions: executions
                     };
                 } catch (err) {
@@ -283,6 +285,8 @@ export const useTemplates = (user) => {
         dispatch({ type: 'ADD_EXECUTION', payload: { templateId, newExecution } });
     };
 
+    const clearRunResult = () => setRunResult("");
+
     const setSortBy = (sort) => {
         dispatch({ type: 'SET_SORT_BY', payload: sort });
         fetchTemplates(sort);
@@ -295,6 +299,18 @@ export const useTemplates = (user) => {
 
     const updateLocalTemplate = (template) => {
         dispatch({ type: 'UPDATE_TEMPLATE', payload: template });
+    };
+
+    const handleIncrementPromptView = (templateId) => {
+        if (!templateId) return;
+        dispatch({ type: 'INCREMENT_PROMPT_VIEW', payload: templateId });
+        incrementPromptView(templateId).catch(e => console.error("Failed to increment prompt view", e));
+    };
+
+    const handleIncrementExecutionView = (executionId, templateId) => {
+        if (!executionId || !templateId) return;
+        dispatch({ type: 'INCREMENT_EXECUTION_VIEW', payload: { templateId, executionId } });
+        incrementExecutionView(executionId, templateId).catch(e => console.error("Failed to increment execution view", e));
     };
 
     return {
@@ -310,7 +326,9 @@ export const useTemplates = (user) => {
             setSortBy,
             setTags,
             loadMoreTemplates,
-            updateLocalTemplate
+            updateLocalTemplate,
+            incrementPromptView: handleIncrementPromptView,
+            incrementExecutionView: handleIncrementExecutionView
         }
     };
 };

@@ -4,11 +4,13 @@ service cloud.firestore {
     match /prompts/{document=**} {
       allow read: if true;
       allow create: if request.auth != null;
-      // Allow update if owner OR if only updating likeCount by 1
+      // Allow update if owner OR if only updating likeCount OR viewCount by 1
       allow update: if request.auth != null && (
         request.auth.uid == resource.data.ownerId || 
         (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likeCount']) && 
-         math.abs(request.resource.data.likeCount - resource.data.likeCount) == 1)
+         math.abs(request.resource.data.likeCount - resource.data.likeCount) == 1) ||
+        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['viewCount']) && 
+         math.abs(request.resource.data.viewCount - resource.data.viewCount) == 1)
       );
       allow delete: if request.auth != null && request.auth.uid == resource.data.ownerId;
     }
@@ -21,7 +23,9 @@ service cloud.firestore {
       allow update: if request.auth != null && (
         request.auth.uid == resource.data.userId || 
         (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likeCount']) && 
-         math.abs(request.resource.data.likeCount - resource.data.get('likeCount', 0)) == 1)
+         math.abs(request.resource.data.likeCount - resource.data.get('likeCount', 0)) == 1) ||
+        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['viewCount']) && 
+         math.abs(request.resource.data.viewCount - resource.data.get('viewCount', 0)) == 1)
       );
     }
   }
