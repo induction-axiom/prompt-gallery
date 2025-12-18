@@ -1,8 +1,9 @@
-import { useReducer, useEffect } from 'react';
-import { getPromptTemplate, createPromptTemplate, updatePromptTemplate, deletePromptTemplate } from '../services/functions';
+import { useReducer, useEffect, useRef } from 'react';
+import { getPromptTemplate } from '../services/functions';
 import { getRecentTemplates, getTemplateExecutions, deleteExecution, getUserLikes, togglePromptLike, getUserExecutionLikes, toggleExecutionLike, getUserProfile } from '../services/firestore';
 import { deleteImage } from '../services/storage';
 import { templateReducer, initialState } from '../reducers/templateReducer';
+import { deletePromptTemplate } from '../services/functions';
 
 export const useTemplates = (user) => {
     const [state, dispatch] = useReducer(templateReducer, initialState);
@@ -28,13 +29,25 @@ export const useTemplates = (user) => {
         }
     }, [user]);
 
+    // Ref to store the current abort controller
+    const abortControllerRef = useRef(null);
+
     const fetchTemplates = async (sortOverride) => {
+        // Cancel previous request if it exists
+        if (abortControllerRef.current) {
+            abortControllerRef.current.abort();
+        }
+        abortControllerRef.current = new AbortController();
+        const signal = abortControllerRef.current.signal;
+
         const currentSort = typeof sortOverride === 'string' ? sortOverride : state.sortBy;
         setStatus("Fetching list from Firestore...");
         setIsLoading(true);
         try {
             // 1. Get recent templates from Firestore
             const { templates: firestoreDocs, lastDoc } = await getRecentTemplates(6, currentSort); // Initial load 6
+
+            if (signal.aborted) return;
 
             if (firestoreDocs.length === 0) {
                 dispatch({ type: 'SET_TEMPLATES', payload: { templates: [], lastDoc: null, hasMore: false } });
@@ -48,6 +61,8 @@ export const useTemplates = (user) => {
             const promises = firestoreDocs.map(async (docData) => {
                 try {
                     const res = await getPromptTemplate({ templateId: docData.id });
+                    if (signal.aborted) return null;
+
                     let executions = [];
                     let ownerProfile = null;
 
@@ -84,13 +99,24 @@ export const useTemplates = (user) => {
             });
 
             const results = await Promise.all(promises);
-            dispatch({ type: 'SET_TEMPLATES', payload: { templates: results, lastDoc, hasMore: !!lastDoc } });
+            if (signal.aborted) return;
+
+            // Filter out any nulls from aborted mid-flight optimization
+            const validResults = results.filter(r => r !== null);
+
+            dispatch({ type: 'SET_TEMPLATES', payload: { templates: validResults, lastDoc, hasMore: !!lastDoc } });
             setStatus("Ready");
         } catch (error) {
-            console.error(error);
-            setStatus("Fetch Error: " + error.message);
+            if (error.name === 'AbortError') {
+                console.log('Fetch aborted');
+            } else {
+                console.error(error);
+                setStatus("Fetch Error: " + error.message);
+            }
         } finally {
-            setIsLoading(false);
+            if (!signal.aborted) {
+                setIsLoading(false);
+            }
         }
     };
 
@@ -162,57 +188,6 @@ export const useTemplates = (user) => {
         }
     };
 
-    const handleViewTemplate = async (template) => {
-        setStatus("Fetching details...");
-        setIsLoading(true);
-        dispatch({ type: 'SET_VIEW_DATA', payload: null });
-
-        try {
-            const templateId = getTemplateId(template.name);
-            const result = await getPromptTemplate({ templateId });
-            dispatch({ type: 'SET_VIEW_DATA', payload: result.data });
-            setStatus("Details loaded");
-        } catch (error) {
-            console.error(error);
-            dispatch({ type: 'SET_VIEW_DATA', payload: { error: error.message } });
-            setStatus("Error loading details");
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const handleSaveTemplate = async ({ displayName, dotPromptString, jsonInputSchema, editingTemplate }) => {
-        if (!displayName || !dotPromptString) return alert("Missing fields");
-
-        setIsLoading(true);
-        try {
-            if (editingTemplate) {
-                setStatus("Updating...");
-                await updatePromptTemplate({
-                    templateId: getTemplateId(editingTemplate.name),
-                    displayName,
-                    dotPromptString,
-                    jsonInputSchema
-                });
-                setStatus("Prompt Updated!");
-            } else {
-                setStatus("Creating...");
-                await createPromptTemplate({
-                    displayName,
-                    dotPromptString,
-                    jsonInputSchema
-                });
-                setStatus("Prompt Created!");
-            }
-            fetchTemplates();
-        } catch (error) {
-            console.error(error);
-            alert("Error: " + error.message);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
     const handleDeleteTemplate = async (e, fullResourceName) => {
         e.stopPropagation();
         const templateId = getTemplateId(fullResourceName);
@@ -220,14 +195,10 @@ export const useTemplates = (user) => {
 
         setStatus(`Deleting ${templateId}...`);
         setIsLoading(true);
-        setStatus(`Deleting ${templateId}...`);
-        setIsLoading(true);
         try {
             await deletePromptTemplate({ templateId });
             setStatus("Deleted.");
-            // Optimistic update (optional, as fetchTemplates() will refresh)
-            // dispatch({ type: 'DELETE_TEMPLATE', payload: templateId });
-            fetchTemplates(); // Re-fetch to ensure state is fully consistent
+            fetchTemplates();
         } catch (error) {
             alert("Delete Error: " + error.message);
         } finally {
@@ -310,8 +281,6 @@ export const useTemplates = (user) => {
         state,
         actions: {
             fetchTemplates,
-            handleViewTemplate,
-            handleSaveTemplate,
             handleDeleteTemplate,
             handleDeleteExecution,
             handleToggleLike,

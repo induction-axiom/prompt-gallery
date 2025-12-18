@@ -1,8 +1,7 @@
-import { useState, useEffect } from 'react'
-import { signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
+import { useState } from 'react'
+import { signInWithPopup, signOut } from "firebase/auth";
 import { auth, googleProvider } from "./firebase";
-import { getRecentTemplates, saveExecutionMetadata, getTemplateExecutions, deleteExecution, getUserLikes, togglePromptLike, getUserExecutionLikes, toggleExecutionLike, syncUserInfo } from './services/firestore';
-import { useTemplates } from './hooks/useTemplates';
+import { useTemplatesContext } from './context/TemplatesContext';
 
 // Components
 import Header from './components/layout/Header';
@@ -14,11 +13,7 @@ import TemplateGrid from './components/templates/TemplateGrid';
 import SortDropdown from './components/common/SortDropdown';
 
 function App() {
-  const [user, setUser] = useState(null);
-  const [isAuthLoading, setIsAuthLoading] = useState(true);
-
-  // Use Custom Hook for Data & Logic
-  const { state, actions } = useTemplates(user);
+  const { state, actions, user, isAuthLoading } = useTemplatesContext();
 
   // UI State (Visuals only)
   const [isEditorOpen, setIsEditorOpen] = useState(false);
@@ -26,19 +21,6 @@ function App() {
   const [selectedRunTemplate, setSelectedRunTemplate] = useState(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [viewTemplate, setViewTemplate] = useState(null);
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-      setIsAuthLoading(false);
-
-      if (currentUser) {
-        syncUserInfo(currentUser);
-        actions.fetchTemplates();
-      }
-    });
-    return () => unsubscribe();
-  }, []);
 
   // --- Auth Handlers ---
   const handleGoogleLogin = async () => {
@@ -71,17 +53,10 @@ function App() {
     setIsEditorOpen(true);
   };
 
-  const handleSaveWrapper = async (data) => {
-    await actions.handleSaveTemplate({ ...data, editingTemplate });
-    setIsEditorOpen(false);
-  };
-
   const handleViewWrapper = (template) => {
     setViewTemplate(template);
     setIsViewModalOpen(true);
   };
-
-
 
   const handleCloseRun = () => {
     setSelectedRunTemplate(null);
@@ -100,48 +75,31 @@ function App() {
   return (
     <div className="max-w-[1600px] mx-auto p-5">
       <Header
-        user={user}
-        status={state.status}
         onLogout={handleLogout}
         onCreate={handleOpenCreate}
       />
 
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-bold text-gray-900 dark:text-white"></h2>
-        <SortDropdown
-          currentSort={state.sortBy}
-          onSortChange={actions.setSortBy}
-        />
+        <SortDropdown />
       </div>
 
       <TemplateGrid
-        templates={state.templates}
-        state={state}
-        actions={{
-          ...actions,
-          handleViewWrapper,
-          handleOpenEdit,
-          handleToggleExecutionLike: actions.handleToggleExecutionLike,
-          setSelectedRunTemplate,
-        }}
-        user={user}
-        likedExecutionIds={state.likedExecutionIds}
+        handleViewWrapper={handleViewWrapper}
+        handleOpenEdit={handleOpenEdit}
+        setSelectedRunTemplate={setSelectedRunTemplate}
       />
 
       <TemplateEditor
         isOpen={isEditorOpen}
         isEditing={!!editingTemplate}
         onClose={() => setIsEditorOpen(false)}
-        onSave={handleSaveWrapper}
-        isLoading={state.isLoading}
         initialData={editingTemplate}
       />
 
       <TemplateRunner
         template={selectedRunTemplate}
         onClose={handleCloseRun}
-        onSave={actions.handleSaveExecution}
-        user={user}
       />
 
       <TemplateViewer

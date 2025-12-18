@@ -4,7 +4,6 @@ export const initialState = {
     likedTemplateIds: [], // Store IDs of templates liked by the user
     likedExecutionIds: [], // Store IDs of executions liked by the user
     isLoading: false,
-    viewTemplateData: null,
     sortBy: "likeCount", // Default sort
     lastDoc: null,
     hasMore: true
@@ -37,8 +36,7 @@ export const templateReducer = (state, action) => {
             return { ...state, likedTemplateIds: action.payload };
         case 'SET_USER_EXECUTION_LIKES':
             return { ...state, likedExecutionIds: action.payload };
-        case 'SET_VIEW_DATA':
-            return { ...state, viewTemplateData: action.payload };
+        // SET_VIEW_DATA Removed
 
         case 'TOGGLE_LIKE': {
             const { templateId, isLiked } = action.payload; // isLiked = true means we JUST liked it.

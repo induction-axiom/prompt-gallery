@@ -1,7 +1,12 @@
 import React from 'react';
 import { ArrowUpDown } from 'lucide-react';
+import { useTemplatesContext } from '../../context/TemplatesContext';
 
-const SortDropdown = ({ currentSort, onSortChange }) => {
+const SortDropdown = () => {
+    const { state, actions } = useTemplatesContext();
+    const currentSort = state.sortBy;
+    const onSortChange = actions.setSortBy;
+
     return (
         <div className="flex items-center gap-2">
             <ArrowUpDown size={16} className="text-gray-500 dark:text-gray-400" />

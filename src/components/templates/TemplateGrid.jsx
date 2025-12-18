@@ -1,7 +1,9 @@
 import React, { useRef, useEffect } from 'react';
 import TemplateCard from './TemplateCard';
+import { useTemplatesContext } from '../../context/TemplatesContext';
 
-const TemplateGrid = ({ templates, state, actions, user, likedExecutionIds }) => {
+const TemplateGrid = ({ handleViewWrapper, handleOpenEdit, setSelectedRunTemplate }) => {
+    const { state, actions, user } = useTemplatesContext();
     const observerTarget = useRef(null);
 
     useEffect(() => {
@@ -28,14 +30,14 @@ const TemplateGrid = ({ templates, state, actions, user, likedExecutionIds }) =>
     return (
         <>
             <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-8 pb-8">
-                {templates.map((t) => (
+                {state.templates.map((t) => (
                     <TemplateCard
                         key={t.name}
                         template={t}
                         getTemplateId={actions.getTemplateId}
-                        onRun={() => actions.setSelectedRunTemplate(t)}
-                        onView={() => actions.handleViewWrapper(t)}
-                        onEdit={actions.handleOpenEdit}
+                        onRun={() => setSelectedRunTemplate(t)}
+                        onView={() => handleViewWrapper(t)}
+                        onEdit={handleOpenEdit}
                         onDelete={actions.handleDeleteTemplate}
                         onDeleteExecution={actions.handleDeleteExecution}
                         onToggleLike={actions.handleToggleLike}
@@ -55,7 +57,7 @@ const TemplateGrid = ({ templates, state, actions, user, likedExecutionIds }) =>
                         <span>Loading more...</span>
                     </div>
                 )}
-                {!state.hasMore && templates.length > 0 && (
+                {!state.hasMore && state.templates.length > 0 && (
                     <span className="text-gray-400 text-sm">No more templates</span>
                 )}
             </div>

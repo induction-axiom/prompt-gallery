@@ -2,6 +2,7 @@ import React from 'react';
 import Modal from '../common/Modal';
 import Button from '../common/Button';
 import { usePromptExecution } from '../../hooks/usePromptExecution';
+import { useTemplatesContext } from '../../context/TemplatesContext';
 import { extractImageFromGeminiResult, extractTextFromGeminiResult } from '../../utils/geminiParsers';
 import { cleanJsonString } from '../../utils/jsonUtils';
 import { runPromptTemplate } from '../../services/functions';
@@ -9,10 +10,11 @@ import { SYSTEM_PROMPT_IDS } from '../../config/systemPrompts';
 
 const TemplateRunner = ({
     template,
-    onClose,
-    onSave, // New prop to handle saving back to global list
-    user    // New prop: need user to save execution
+    onClose
 }) => {
+    const { user, actions } = useTemplatesContext();
+    const onSave = actions.handleSaveExecution;
+
     // Local execution state
     const { isGenerating, runResult, executePrompt, clearResult } = usePromptExecution(user);
     const [inputJson, setInputJson] = React.useState(''); // Start empty to avoid jump

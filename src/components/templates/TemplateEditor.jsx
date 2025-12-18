@@ -1,22 +1,30 @@
 import React from 'react';
 import Modal from '../common/Modal';
 import Button from '../common/Button';
-import { runPromptTemplate } from '../../services/functions';
+import { runPromptTemplate, createPromptTemplate, updatePromptTemplate } from '../../services/functions';
 import { extractTextFromGeminiResult } from '../../utils/geminiParsers';
 import { cleanJsonString } from '../../utils/jsonUtils';
 import { SYSTEM_PROMPT_IDS } from '../../config/systemPrompts';
+import { useTemplatesContext } from '../../context/TemplatesContext';
+
+// Helper
+const getTemplateId = (fullResourceName) => fullResourceName ? fullResourceName.split('/').pop() : 'Unknown';
 
 const TemplateEditor = ({
     isOpen,
     isEditing,
     onClose,
-    onSave,
-    isLoading,
     initialData
 }) => {
+    // Consume context for refreshing list
+    const { actions } = useTemplatesContext();
+
     const [displayName, setDisplayName] = React.useState("");
     const [dotPromptString, setDotPromptString] = React.useState("");
     const [jsonInputSchema, setJsonInputSchema] = React.useState("");
+
+    // Local loading states
+    const [isSaving, setIsSaving] = React.useState(false);
     const [isGeneratingSchema, setIsGeneratingSchema] = React.useState(false);
     const [isGeneratingName, setIsGeneratingName] = React.useState(false);
     const [isFormatting, setIsFormatting] = React.useState(false);
@@ -104,8 +112,34 @@ const TemplateEditor = ({
         }
     };
 
-    const handleSave = () => {
-        onSave({ displayName, dotPromptString, jsonInputSchema });
+    const handleSave = async () => {
+        if (!displayName || !dotPromptString) return alert("Missing fields");
+
+        setIsSaving(true);
+        try {
+            if (isEditing && initialData) {
+                await updatePromptTemplate({
+                    templateId: getTemplateId(initialData.name),
+                    displayName,
+                    dotPromptString,
+                    jsonInputSchema
+                });
+            } else {
+                await createPromptTemplate({
+                    displayName,
+                    dotPromptString,
+                    jsonInputSchema
+                });
+            }
+            // Refresh global list
+            actions.fetchTemplates();
+            onClose();
+        } catch (error) {
+            console.error(error);
+            alert("Error saving: " + error.message);
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     if (!isOpen) return null;
@@ -119,8 +153,8 @@ const TemplateEditor = ({
                     <Button variant="secondary" onClick={onClose}>
                         Cancel
                     </Button>
-                    <Button variant="primary" onClick={handleSave} disabled={isLoading}>
-                        {isLoading ? 'Saving...' : 'Save Prompt'}
+                    <Button variant="primary" onClick={handleSave} disabled={isSaving}>
+                        {isSaving ? 'Saving...' : 'Save Prompt'}
                     </Button>
                 </>
             }

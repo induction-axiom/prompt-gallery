@@ -3,8 +3,12 @@ import useDarkMode from '../../hooks/useDarkMode';
 import { Sun, Moon, RefreshCw } from 'lucide-react';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { app } from '../../firebase';
+import { useTemplatesContext } from '../../context/TemplatesContext';
 
-const Header = ({ user, status, onLogout, onCreate }) => {
+const Header = ({ onLogout, onCreate }) => {
+    const { user, state } = useTemplatesContext();
+    const status = state.status;
+
     const [theme, setTheme] = useDarkMode();
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [isVisible, setIsVisible] = useState(true);
