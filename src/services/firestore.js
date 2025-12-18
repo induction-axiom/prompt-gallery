@@ -1,19 +1,31 @@
 import { collection, query, orderBy, limit, getDocs, addDoc, serverTimestamp, where, deleteDoc, doc, runTransaction, setDoc, getDoc, startAfter } from "firebase/firestore";
 import { db } from "../firebase";
 
-export const getRecentTemplates = async (limitCount = 10, orderByField = "createdAt", startAfterDoc = null) => {
-    let q = query(
-        collection(db, "prompts"),
-        where("public", "==", true),
-        orderBy(orderByField, "desc"),
-        limit(limitCount)
-    );
+export const getRecentTemplates = async (limitCount = 10, orderByField = "createdAt", startAfterDoc = null, filterTags = []) => {
+    let q = collection(db, "prompts");
 
-    if (startAfterDoc) {
-        q = query(q, startAfter(startAfterDoc));
+    // "array-contains-any" limits to 10 items.
+    // If filterTags is present, we MUST use it as the primary filter.
+    // Note: Firestore requires a composite index for array-contains-any + orderBy
+
+    const constraints = [
+        where("public", "==", true)
+    ];
+
+    if (filterTags && filterTags.length > 0) {
+        constraints.push(where("tags", "array-contains-any", filterTags.slice(0, 10)));
     }
 
-    const querySnapshot = await getDocs(q);
+    constraints.push(orderBy(orderByField, "desc"));
+    constraints.push(limit(limitCount));
+
+    if (startAfterDoc) {
+        constraints.push(startAfter(startAfterDoc));
+    }
+
+    const finalQuery = query(q, ...constraints);
+
+    const querySnapshot = await getDocs(finalQuery);
 
     return {
         templates: querySnapshot.docs.map(doc => ({

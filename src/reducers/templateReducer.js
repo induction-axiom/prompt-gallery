@@ -5,6 +5,7 @@ export const initialState = {
     likedExecutionIds: [], // Store IDs of executions liked by the user
     isLoading: false,
     sortBy: "likeCount", // Default sort
+    selectedTags: [],
     lastDoc: null,
     hasMore: true
 };
@@ -32,6 +33,8 @@ export const templateReducer = (state, action) => {
             return { ...state, queryType: action.payload };
         case 'SET_SORT_BY':
             return { ...state, sortBy: action.payload };
+        case 'SET_TAGS':
+            return { ...state, selectedTags: action.payload };
         case 'SET_USER_LIKES':
             return { ...state, likedTemplateIds: action.payload };
         case 'SET_USER_EXECUTION_LIKES':

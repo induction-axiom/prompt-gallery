@@ -32,7 +32,7 @@ export const useTemplates = (user) => {
     // Ref to store the current abort controller
     const abortControllerRef = useRef(null);
 
-    const fetchTemplates = async (sortOverride) => {
+    const fetchTemplates = async (sortOverride, tagsOverride) => {
         // Cancel previous request if it exists
         if (abortControllerRef.current) {
             abortControllerRef.current.abort();
@@ -41,11 +41,19 @@ export const useTemplates = (user) => {
         const signal = abortControllerRef.current.signal;
 
         const currentSort = typeof sortOverride === 'string' ? sortOverride : state.sortBy;
-        setStatus("Fetching list from Firestore...");
+        const currentTags = Array.isArray(tagsOverride) ? tagsOverride : state.selectedTags;
+
+        // Optimization: When filtering by tags, we might want to inform the user
+        const statusMsg = currentTags.length > 0
+            ? `Filtering by ${currentTags.length} tags...`
+            : "Fetching list from Firestore...";
+
+        setStatus(statusMsg);
         setIsLoading(true);
         try {
             // 1. Get recent templates from Firestore
-            const { templates: firestoreDocs, lastDoc } = await getRecentTemplates(6, currentSort); // Initial load 6
+            // Updated to pass selectedTags
+            const { templates: firestoreDocs, lastDoc } = await getRecentTemplates(6, currentSort, null, currentTags);
 
             if (signal.aborted) return;
 
@@ -129,7 +137,8 @@ export const useTemplates = (user) => {
 
         try {
             // 1. Get next batch of templates from Firestore
-            const { templates: firestoreDocs, lastDoc } = await getRecentTemplates(6, state.sortBy, state.lastDoc);
+            // Updated to pass selectedTags
+            const { templates: firestoreDocs, lastDoc } = await getRecentTemplates(6, state.sortBy, state.lastDoc, state.selectedTags);
 
             if (firestoreDocs.length === 0) {
                 dispatch({ type: 'SET_PAGINATION', payload: { lastDoc: null, hasMore: false } });
@@ -279,6 +288,11 @@ export const useTemplates = (user) => {
         fetchTemplates(sort);
     };
 
+    const setTags = (tags) => {
+        dispatch({ type: 'SET_TAGS', payload: tags });
+        fetchTemplates(null, tags);
+    };
+
     return {
         state,
         actions: {
@@ -290,6 +304,7 @@ export const useTemplates = (user) => {
             handleSaveExecution,
             getTemplateId,
             setSortBy,
+            setTags,
             loadMoreTemplates
         }
     };

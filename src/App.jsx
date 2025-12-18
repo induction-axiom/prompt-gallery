@@ -11,6 +11,7 @@ import TemplateRunner from './components/templates/TemplateRunner';
 import TemplateViewer from './components/templates/TemplateViewer';
 import TemplateGrid from './components/templates/TemplateGrid';
 import SortDropdown from './components/common/SortDropdown';
+import LabelFilter from './components/common/LabelFilter';
 
 function App() {
   const { state, actions, user, isAuthLoading } = useTemplatesContext();
@@ -80,7 +81,9 @@ function App() {
       />
 
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-bold text-gray-900 dark:text-white"></h2>
+        <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+          <LabelFilter />
+        </h2>
         <SortDropdown />
       </div>
 
