@@ -17,8 +17,8 @@ const TemplateEditor = ({
     const [dotPromptString, setDotPromptString] = React.useState("");
     const [jsonInputSchema, setJsonInputSchema] = React.useState("");
     const [isGeneratingSchema, setIsGeneratingSchema] = React.useState(false);
-
-
+    const [isGeneratingName, setIsGeneratingName] = React.useState(false);
+    const [isFormatting, setIsFormatting] = React.useState(false);
 
     React.useEffect(() => {
         if (isOpen) {
@@ -28,15 +28,7 @@ const TemplateEditor = ({
                 setJsonInputSchema(initialData.jsonInputSchema || "");
             } else {
                 setDisplayName("");
-                setDotPromptString(`---
-model: gemini-3-pro-image-preview
-config:
-  temperature: 0.9
-input:
-  schema:
-    object: string
----
-Create a cute, isometric miniature 3D cartoon scene of a {{object}}. The style should feature soft, refined textures with realistic PBR materials and gentle, lifelike lighting and shadows. Use a clean, minimalistic composition with a soft, solid-colored background.`);
+                setDotPromptString("");
                 setJsonInputSchema("");
             }
         }
@@ -65,6 +57,52 @@ Create a cute, isometric miniature 3D cartoon scene of a {{object}}. The style s
         }
     };
 
+    const handleAutoGenerateName = async () => {
+        if (!dotPromptString) return alert("Please enter a prompt first to generate a name");
+        setIsGeneratingName(true);
+        try {
+            const result = await runPromptTemplate({
+                templateId: '513d9c40-47d9-46cb-9af7-bb6fa5fec286',
+                reqBody: { target_template: dotPromptString }
+            });
+
+            const title = extractTextFromGeminiResult(result.data);
+            if (title) {
+                setDisplayName(title.trim());
+            } else {
+                alert("Could not generate a title");
+            }
+        } catch (error) {
+            console.error("Failed to generate name:", error);
+            alert("Failed to generate name");
+        } finally {
+            setIsGeneratingName(false);
+        }
+    };
+
+    const handleAutoFormat = async () => {
+        if (!dotPromptString) return alert("Please enter a prompt first to format");
+        setIsFormatting(true);
+        try {
+            const result = await runPromptTemplate({
+                templateId: 'c76b911c-cc67-40e6-a1f6-318bb8d13efa',
+                reqBody: { rawInput: dotPromptString }
+            });
+
+            const formatted = extractTextFromGeminiResult(result.data);
+            if (formatted) {
+                setDotPromptString(formatted);
+            } else {
+                alert("Could not format prompt");
+            }
+        } catch (error) {
+            console.error("Failed to format prompt:", error);
+            alert("Failed to format prompt");
+        } finally {
+            setIsFormatting(false);
+        }
+    };
+
     const handleSave = () => {
         onSave({ displayName, dotPromptString, jsonInputSchema });
     };
@@ -87,20 +125,51 @@ Create a cute, isometric miniature 3D cartoon scene of a {{object}}. The style s
             }
         >
             <div className="mb-4">
-                <label className="block mb-1.5 font-bold text-gray-700 dark:text-gray-300">Prompt Name</label>
+                <div className="flex justify-between items-center mb-1.5">
+                    <label className="block font-bold text-gray-700 dark:text-gray-300">Prompt Name</label>
+                    <Button
+                        variant="ghost"
+                        onClick={handleAutoGenerateName}
+                        disabled={isGeneratingName}
+                        className="!px-3 !py-1 text-xs"
+                        icon={
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                            </svg>
+                        }
+                    >
+                        {isGeneratingName ? 'Generating...' : 'Auto Generate Name'}
+                    </Button>
+                </div>
                 <input
                     type="text"
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
-                    placeholder="e.g., 3D Cartoon"
+                    placeholder="Add a name for this prompt"
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all bg-white dark:bg-gray-800 dark:text-gray-100"
                 />
             </div>
             <div className="mb-4 flex-1 flex flex-col">
-                <label className="block mb-1.5 font-bold text-gray-700 dark:text-gray-300">DotPrompt String</label>
+                <div className="flex justify-between items-center mb-1.5">
+                    <label className="block font-bold text-gray-700 dark:text-gray-300">DotPrompt String</label>
+                    <Button
+                        variant="ghost"
+                        onClick={handleAutoFormat}
+                        disabled={isFormatting}
+                        className="!px-3 !py-1 text-xs"
+                        icon={
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                            </svg>
+                        }
+                    >
+                        {isFormatting ? 'Formatting...' : 'Auto Format'}
+                    </Button>
+                </div>
                 <textarea
                     value={dotPromptString}
                     onChange={(e) => setDotPromptString(e.target.value)}
+                    placeholder="Format your prompt using dotprompt syntax"
                     className="w-full p-3 border border-gray-300 dark:border-gray-700 rounded-lg resize-none font-mono text-sm h-[400px] mb-4 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all bg-white dark:bg-gray-800 dark:text-gray-100"
                 />
                 <div className="flex justify-between items-center mb-2">

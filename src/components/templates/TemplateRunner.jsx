@@ -63,7 +63,7 @@ const TemplateRunner = ({
 
     return (
         <Modal
-            title={`Run: ${template.displayName}`}
+            title={template.displayName}
             onClose={onClose}
             footer={
                 <Button

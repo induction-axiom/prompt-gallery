@@ -70,7 +70,7 @@ export const useTemplates = (user) => {
                         createdAt: docData.createdAt,
                         isImage: docData.isImage,
                         jsonInputSchema: docData.jsonInputSchema || '',
-                        likeCount: docData.likeCount || 0, // Ensure likeCount is passed
+                        likeCount: docData.likeCount || 0,
                         executions: executions
                     };
                 } catch (err) {

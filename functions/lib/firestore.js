@@ -38,7 +38,8 @@ async function syncTemplateToFirestore(templateId, userId, jsonInputSchema) {
         createdAt: FieldValue.serverTimestamp(),
         ownerId: userId || 'anonymous',
         public: true,
-        jsonInputSchema: jsonInputSchema || ''
+        jsonInputSchema: jsonInputSchema || '',
+        likeCount: 0
     }, { merge: true });
 }
 
