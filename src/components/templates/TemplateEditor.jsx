@@ -181,6 +181,15 @@ const TemplateEditor = ({
                     jsonInputSchema,
                     tags: finalTags
                 });
+
+                // Optimistic update
+                actions.updateLocalTemplate({
+                    ...initialData,
+                    displayName,
+                    templateString: dotPromptString,
+                    jsonInputSchema,
+                    tags: finalTags
+                });
             } else {
                 await createPromptTemplate({
                     displayName,
@@ -188,9 +197,10 @@ const TemplateEditor = ({
                     jsonInputSchema,
                     tags: finalTags
                 });
+                // Only refresh list for new creations since we don't have the ID/Timestamp
+                actions.fetchTemplates();
             }
-            // Refresh global list
-            actions.fetchTemplates();
+
             onClose();
         } catch (error) {
             console.error(error);

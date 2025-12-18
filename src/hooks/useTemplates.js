@@ -293,6 +293,10 @@ export const useTemplates = (user) => {
         fetchTemplates(null, tags);
     };
 
+    const updateLocalTemplate = (template) => {
+        dispatch({ type: 'UPDATE_TEMPLATE', payload: template });
+    };
+
     return {
         state,
         actions: {
@@ -305,7 +309,8 @@ export const useTemplates = (user) => {
             getTemplateId,
             setSortBy,
             setTags,
-            loadMoreTemplates
+            loadMoreTemplates,
+            updateLocalTemplate
         }
     };
 };
