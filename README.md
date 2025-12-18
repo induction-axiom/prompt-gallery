@@ -1,5 +1,6 @@
 # Prompt Gallery
 
+
 > [!NOTE]
 > This project is evolving rapidly with the help of AI. This README documents our current implementation and future goals.
 
