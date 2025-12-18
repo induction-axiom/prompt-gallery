@@ -1,12 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
 import useDarkMode from '../../hooks/useDarkMode';
-import { Sun, Moon } from 'lucide-react';
+import { Sun, Moon, RefreshCw } from 'lucide-react';
+import { getFunctions, httpsCallable } from 'firebase/functions';
+import { app } from '../../firebase';
 
 const Header = ({ user, status, onLogout, onCreate }) => {
     const [theme, setTheme] = useDarkMode();
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [isVisible, setIsVisible] = useState(true);
     const [lastScrollY, setLastScrollY] = useState(0);
+    const [isSyncing, setIsSyncing] = useState(false);
     const dropdownRef = useRef(null);
 
     useEffect(() => {
@@ -35,6 +38,22 @@ const Header = ({ user, status, onLogout, onCreate }) => {
     }, []);
 
     const getInitials = (name) => name ? name.charAt(0).toUpperCase() : 'U';
+
+    const handleSync = async () => {
+        if (isSyncing) return;
+        setIsSyncing(true);
+        try {
+            const functions = getFunctions(app, 'us-central1');
+            const syncSystemPrompts = httpsCallable(functions, 'syncSystemPrompts');
+            await syncSystemPrompts();
+            alert('System prompts synced successfully!');
+        } catch (error) {
+            console.error('Sync failed:', error);
+            alert(`Sync failed: ${error.message}`);
+        } finally {
+            setIsSyncing(false);
+        }
+    };
 
     return (
         <>
@@ -94,6 +113,16 @@ const Header = ({ user, status, onLogout, onCreate }) => {
                                         </p>
                                     </div>
                                     <div className="py-1">
+                                        {user?.email === 'jongluo@google.com' && (
+                                            <button
+                                                onClick={() => { setIsDropdownOpen(false); handleSync(); }}
+                                                disabled={isSyncing}
+                                                className="w-full text-left px-5 py-2.5 text-sm text-indigo-600 hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-900/10 font-medium flex items-center gap-2"
+                                            >
+                                                {isSyncing ? 'Syncing...' : 'Sync System Prompts'}
+                                                <RefreshCw size={16} className={isSyncing ? 'animate-spin' : ''} />
+                                            </button>
+                                        )}
                                         <button
                                             onClick={() => { setIsDropdownOpen(false); onLogout(); }}
                                             className="w-full text-left px-5 py-2.5 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 font-medium"

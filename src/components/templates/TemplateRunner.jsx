@@ -4,6 +4,7 @@ import Button from '../common/Button';
 import { extractImageFromGeminiResult, extractTextFromGeminiResult } from '../../utils/geminiParsers';
 import { cleanJsonString } from '../../utils/jsonUtils';
 import { runPromptTemplate } from '../../services/functions';
+import { SYSTEM_PROMPT_IDS } from '../../config/systemPrompts';
 
 const TemplateRunner = ({
     template,
@@ -34,7 +35,7 @@ const TemplateRunner = ({
         setIsGeneratingRandom(true);
         try {
             const result = await runPromptTemplate({
-                templateId: 'a4f6d8c4-2f01-4281-a833-c7e36aa0dc21',
+                templateId: SYSTEM_PROMPT_IDS.GENERATE_RANDOM_DATA,
                 reqBody: {
                     target_template: template.templateString || template.dotPromptString || '',
                     target_schema: inputJson

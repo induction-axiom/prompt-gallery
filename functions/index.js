@@ -10,6 +10,7 @@ const { getStorage } = require("firebase-admin/storage");
 initializeApp();
 
 const { verifyOwnership, syncTemplateToFirestore, updateTemplateInFirestore, deleteTemplateFromFirestore } = require("./lib/firestore");
+const { systemPrompts } = require("./config/systemPrompts");
 
 
 // Initialize Google Auth
@@ -33,6 +34,83 @@ async function makeApiRequest({ url, method, data, params }) {
         throw new HttpsError('internal', 'Firebase AI Logic API request failed', error.message);
     }
 }
+
+// Helper to ensure the user is an admin
+// Helper to ensure the user is an admin
+function ensureAdmin(auth) {
+    const allowedEmails = ['jongluo@google.com'];
+    if (!auth || (!auth.token.admin && !allowedEmails.includes(auth.token.email))) {
+        throw new HttpsError('permission-denied', 'Admin access required');
+    }
+}
+
+// Helper to perform the actual update against Vertex AI and Firestore
+async function executePromptUpdate(templateId, updates) {
+    if (!updates || Object.keys(updates).length === 0) {
+        throw new HttpsError('invalid-argument', 'No fields to update');
+    }
+
+    let apiResult = null;
+
+    // 1. Update Vertex AI Logic
+    // Vertex only cares about displayName and templateString
+    const vertexUpdates = {};
+    if (updates.displayName) vertexUpdates.displayName = updates.displayName;
+    if (updates.templateString) vertexUpdates.templateString = updates.templateString;
+
+    if (Object.keys(vertexUpdates).length > 0) {
+        const updateMask = Object.keys(vertexUpdates).join(',');
+        const requestUrl = `${BASE_URL}/${templateId}?updateMask=${updateMask}`;
+
+        apiResult = await makeApiRequest({
+            url: requestUrl,
+            method: "PATCH",
+            data: vertexUpdates,
+        });
+    }
+
+    // 2. Sync to Firestore
+    // Firestore cares about displayName and jsonInputSchema
+    const firestoreUpdates = {};
+    if (updates.displayName) firestoreUpdates.displayName = updates.displayName;
+    if (updates.jsonInputSchema !== undefined) firestoreUpdates.jsonInputSchema = updates.jsonInputSchema;
+
+    if (Object.keys(firestoreUpdates).length > 0) {
+        await updateTemplateInFirestore(templateId, firestoreUpdates);
+    }
+
+    return apiResult;
+}
+
+exports.syncSystemPrompts = onCall(
+    { maxInstances: 1, enforceAppCheck: true },
+    async (request) => {
+        ensureAdmin(request.auth);
+
+        logger.info("Starting syncSystemPrompts");
+        const results = [];
+
+        for (const [id, promptData] of Object.entries(systemPrompts)) {
+            try {
+                await executePromptUpdate(
+                    id,
+                    {
+                        displayName: promptData.displayName,
+                        templateString: promptData.templateString,
+                        jsonInputSchema: promptData.jsonInputSchema
+                    }
+                );
+
+                results.push({ id, status: 'success' });
+            } catch (error) {
+                logger.error(`Failed to sync prompt ${id}`, error);
+                results.push({ id, status: 'error', error: error.message });
+            }
+        }
+
+        return { results };
+    }
+);
 
 exports.createPromptTemplate = onCall(
     { maxInstances: 10, enforceAppCheck: true },
@@ -121,7 +199,7 @@ exports.runPromptTemplate = onCall(
 exports.updatePromptTemplate = onCall(
     { maxInstances: 10, enforceAppCheck: true },
     async (request) => {
-        const { templateId, displayName, dotPromptString } = request.data;
+        const { templateId, displayName, dotPromptString, jsonInputSchema } = request.data;
         if (!templateId) throw new HttpsError('invalid-argument', 'Missing templateId');
 
         logger.info("updatePromptTemplate", { templateId });
@@ -129,35 +207,12 @@ exports.updatePromptTemplate = onCall(
         // Check ownership
         await verifyOwnership(templateId, request.auth);
 
-        const updateFields = [];
-        const data = {};
+        const updates = {};
+        if (displayName) updates.displayName = displayName;
+        if (dotPromptString) updates.templateString = dotPromptString;
+        if (jsonInputSchema !== undefined) updates.jsonInputSchema = jsonInputSchema;
 
-        if (displayName) {
-            updateFields.push('displayName');
-            data.displayName = displayName;
-        }
-        if (dotPromptString) {
-            updateFields.push('templateString');
-            data.templateString = dotPromptString;
-        }
-        if (updateFields.length === 0) {
-            throw new HttpsError('invalid-argument', 'No fields to update');
-        }
-
-        const updateMask = updateFields.join(',');
-        const requestUrl = `${BASE_URL}/${templateId}?updateMask=${updateMask}`;
-
-        const result = await makeApiRequest({
-            url: requestUrl,
-            method: "PATCH",
-            data: data,
-        });
-
-        const firestoreUpdate = {};
-        if (request.data.jsonInputSchema !== undefined) {
-            firestoreUpdate.jsonInputSchema = request.data.jsonInputSchema;
-        }
-        await updateTemplateInFirestore(templateId, firestoreUpdate);
+        const result = await executePromptUpdate(templateId, updates);
 
         logger.info("Prompt updated successfully");
         return result;

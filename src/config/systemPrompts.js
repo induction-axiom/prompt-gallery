@@ -1,0 +1,6 @@
+export const SYSTEM_PROMPT_IDS = {
+    AUTO_DETECT_SCHEMA: '375a6ce2-efaa-4d22-bf67-4944ce8dc6ed',
+    AUTO_GENERATE_NAME: '513d9c40-47d9-46cb-9af7-bb6fa5fec286',
+    AUTO_FORMAT_PROMPT: 'c76b911c-cc67-40e6-a1f6-318bb8d13efa',
+    GENERATE_RANDOM_DATA: 'a4f6d8c4-2f01-4281-a833-c7e36aa0dc21'
+};

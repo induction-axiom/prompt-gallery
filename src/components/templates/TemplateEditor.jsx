@@ -4,6 +4,7 @@ import Button from '../common/Button';
 import { runPromptTemplate } from '../../services/functions';
 import { extractTextFromGeminiResult } from '../../utils/geminiParsers';
 import { cleanJsonString } from '../../utils/jsonUtils';
+import { SYSTEM_PROMPT_IDS } from '../../config/systemPrompts';
 
 const TemplateEditor = ({
     isOpen,
@@ -39,7 +40,7 @@ const TemplateEditor = ({
         setIsGeneratingSchema(true);
         try {
             const result = await runPromptTemplate({
-                templateId: '375a6ce2-efaa-4d22-bf67-4944ce8dc6ed',
+                templateId: SYSTEM_PROMPT_IDS.AUTO_DETECT_SCHEMA,
                 reqBody: { target_template: dotPromptString }
             });
 
@@ -62,7 +63,7 @@ const TemplateEditor = ({
         setIsGeneratingName(true);
         try {
             const result = await runPromptTemplate({
-                templateId: '513d9c40-47d9-46cb-9af7-bb6fa5fec286',
+                templateId: SYSTEM_PROMPT_IDS.AUTO_GENERATE_NAME,
                 reqBody: { target_template: dotPromptString }
             });
 
@@ -85,7 +86,7 @@ const TemplateEditor = ({
         setIsFormatting(true);
         try {
             const result = await runPromptTemplate({
-                templateId: 'c76b911c-cc67-40e6-a1f6-318bb8d13efa',
+                templateId: SYSTEM_PROMPT_IDS.AUTO_FORMAT_PROMPT,
                 reqBody: { rawInput: dotPromptString }
             });
 
