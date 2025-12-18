@@ -37,10 +37,10 @@ export const useTemplates = (user) => {
         setIsLoading(true);
         try {
             // 1. Get recent templates from Firestore
-            const firestoreDocs = await getRecentTemplates(10, currentSort);
+            const { templates: firestoreDocs, lastDoc } = await getRecentTemplates(6, currentSort); // Initial load 6
 
             if (firestoreDocs.length === 0) {
-                dispatch({ type: 'SET_TEMPLATES', payload: [] });
+                dispatch({ type: 'SET_TEMPLATES', payload: { templates: [], lastDoc: null, hasMore: false } });
                 setStatus("Ready (No templates found)");
                 return;
             }
@@ -87,10 +87,78 @@ export const useTemplates = (user) => {
             });
 
             const results = await Promise.all(promises);
-            dispatch({ type: 'SET_TEMPLATES', payload: results });
+            dispatch({ type: 'SET_TEMPLATES', payload: { templates: results, lastDoc, hasMore: !!lastDoc } });
             setStatus("Ready");
         } catch (error) {
             console.error(error);
+            setStatus("Fetch Error: " + error.message);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const loadMoreTemplates = async () => {
+        if (!state.hasMore || state.isLoading) return;
+
+        setStatus("Loading more...");
+        setIsLoading(true);
+
+        try {
+            // 1. Get next batch of templates from Firestore
+            const { templates: firestoreDocs, lastDoc } = await getRecentTemplates(6, state.sortBy, state.lastDoc);
+
+            if (firestoreDocs.length === 0) {
+                dispatch({ type: 'SET_PAGINATION', payload: { lastDoc: null, hasMore: false } });
+                setStatus("Ready");
+                return;
+            }
+
+            // 2. Fetch details for new templates
+            const promises = firestoreDocs.map(async (docData) => {
+                try {
+                    const res = await getPromptTemplate({ templateId: docData.id });
+                    let executions = [];
+                    let ownerProfile = null;
+
+                    try {
+                        executions = await getTemplateExecutions(docData.id, 10);
+                        if (docData.ownerId) {
+                            ownerProfile = await getUserProfile(docData.ownerId);
+                        }
+                    } catch (e) {
+                        console.error("Failed to fetch extra data for", docData.id, e);
+                    }
+
+                    return {
+                        ...res.data,
+                        ownerId: docData.ownerId,
+                        ownerProfile: ownerProfile,
+                        createdAt: docData.createdAt,
+                        isImage: docData.isImage,
+                        jsonInputSchema: docData.jsonInputSchema || '',
+                        likeCount: docData.likeCount || 0,
+                        executions: executions
+                    };
+                } catch (err) {
+                    console.error(`Failed to fetch template ${docData.id}`, err);
+                    return {
+                        name: `projects/-/locations/-/templates/${docData.id}`,
+                        displayName: 'Unavailable Prompt',
+                        description: `Could not load details: ${err.message}`,
+                        error: true,
+                        ownerId: docData.ownerId,
+                        executions: []
+                    };
+                }
+            });
+
+            const results = await Promise.all(promises);
+            dispatch({ type: 'APPEND_TEMPLATES', payload: results });
+            dispatch({ type: 'SET_PAGINATION', payload: { lastDoc, hasMore: !!lastDoc } });
+            setStatus("Ready");
+
+        } catch (error) {
+            console.log(error);
             setStatus("Fetch Error: " + error.message);
         } finally {
             setIsLoading(false);
@@ -347,7 +415,8 @@ export const useTemplates = (user) => {
             handleToggleExecutionLike,
             clearRunResult,
             getTemplateId,
-            setSortBy
+            setSortBy,
+            loadMoreTemplates
         }
     };
 };

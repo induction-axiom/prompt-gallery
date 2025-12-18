@@ -6,7 +6,9 @@ export const initialState = {
     isLoading: false,
     runResult: "",
     viewTemplateData: null,
-    sortBy: "likeCount" // Default sort
+    sortBy: "likeCount", // Default sort
+    lastDoc: null,
+    hasMore: true
 };
 
 export const templateReducer = (state, action) => {
@@ -16,7 +18,20 @@ export const templateReducer = (state, action) => {
         case 'SET_LOADING':
             return { ...state, isLoading: action.payload };
         case 'SET_TEMPLATES':
-            return { ...state, templates: action.payload };
+            return {
+                ...state,
+                templates: action.payload.templates,
+                lastDoc: action.payload.lastDoc,
+                hasMore: action.payload.hasMore
+            };
+        case 'SET_PAGINATION':
+            return {
+                ...state,
+                lastDoc: action.payload.lastDoc,
+                hasMore: action.payload.hasMore
+            };
+        case 'setQueryType':
+            return { ...state, queryType: action.payload };
         case 'SET_SORT_BY':
             return { ...state, sortBy: action.payload };
         case 'SET_USER_LIKES':
@@ -142,6 +157,11 @@ export const templateReducer = (state, action) => {
                 })
             };
 
+        case 'APPEND_TEMPLATES':
+            return {
+                ...state,
+                templates: [...state.templates, ...action.payload]
+            };
         default:
             return state;
     }

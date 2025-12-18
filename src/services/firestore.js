@@ -1,18 +1,27 @@
-import { collection, query, orderBy, limit, getDocs, addDoc, serverTimestamp, where, deleteDoc, doc, runTransaction, setDoc, getDoc } from "firebase/firestore";
+import { collection, query, orderBy, limit, getDocs, addDoc, serverTimestamp, where, deleteDoc, doc, runTransaction, setDoc, getDoc, startAfter } from "firebase/firestore";
 import { db } from "../firebase";
 
-export const getRecentTemplates = async (limitCount = 10, orderByField = "createdAt") => {
-    const q = query(
+export const getRecentTemplates = async (limitCount = 10, orderByField = "createdAt", startAfterDoc = null) => {
+    let q = query(
         collection(db, "prompts"),
         where("public", "==", true),
         orderBy(orderByField, "desc"),
         limit(limitCount)
     );
+
+    if (startAfterDoc) {
+        q = query(q, startAfter(startAfterDoc));
+    }
+
     const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-    }));
+
+    return {
+        templates: querySnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        })),
+        lastDoc: querySnapshot.docs[querySnapshot.docs.length - 1] || null
+    };
 };
 
 const executionsCache = new Map();
