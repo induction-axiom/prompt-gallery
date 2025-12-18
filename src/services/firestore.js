@@ -94,7 +94,6 @@ export const saveExecutionMetadata = async ({ templateId, user, storagePath, dow
         creatorId: user.uid,
         inputVariables: reqBody,
         public: true,
-        public: true,
         isImage: isImage,
         type: isImage ? 'image' : 'text',
         likeCount: 0
@@ -114,108 +113,72 @@ export const deleteExecution = async (executionId, templateId = null) => {
     }
 };
 
-export const getUserLikes = async (userId) => {
+const getUserLikesHelper = async (userId, listCollectionName) => {
     if (!userId) return [];
     try {
-        const q = query(collection(db, `users/${userId}/likes`));
+        const q = query(collection(db, `users/${userId}/${listCollectionName}`));
         const querySnapshot = await getDocs(q);
         return querySnapshot.docs.map(doc => doc.id);
     } catch (e) {
-        console.error("Error fetching user likes:", e);
+        console.error(`Error fetching user ${listCollectionName}:`, e);
         return [];
+    }
+};
+
+export const getUserLikes = async (userId) => {
+    return getUserLikesHelper(userId, 'likes');
+};
+
+export const getUserExecutionLikes = async (userId) => {
+    return getUserLikesHelper(userId, 'executionLikes');
+};
+
+const toggleLikeHelper = async (collectionName, userSubCollection, itemId, userId) => {
+    if (!userId || !itemId) throw new Error("Missing userId or itemId");
+
+    const itemRef = doc(db, collectionName, itemId);
+    const userLikeRef = doc(db, `users/${userId}/${userSubCollection}`, itemId);
+
+    try {
+        await runTransaction(db, async (transaction) => {
+            const itemDoc = await transaction.get(itemRef);
+            if (!itemDoc.exists()) {
+                throw new Error("Item does not exist!");
+            }
+
+            const userLikeDoc = await transaction.get(userLikeRef);
+            const doesUserLike = userLikeDoc.exists();
+
+            const currentLikeCount = itemDoc.data().likeCount || 0;
+            let newLikeCount;
+
+            if (doesUserLike) {
+                // User ALREADY likes it -> UNLIKE
+                newLikeCount = Math.max(0, currentLikeCount - 1);
+                transaction.delete(userLikeRef);
+            } else {
+                // User does NOT like it -> LIKE
+                newLikeCount = currentLikeCount + 1;
+                transaction.set(userLikeRef, {
+                    likedAt: serverTimestamp()
+                });
+            }
+
+            transaction.update(itemRef, { likeCount: newLikeCount });
+        });
+        return true;
+    } catch (e) {
+        console.error("Transaction failed: ", e);
+        throw e;
     }
 };
 
 export const togglePromptLike = async (templateId, userId) => {
-    if (!userId || !templateId) throw new Error("Missing userId or templateId");
-
-    const templateRef = doc(db, "prompts", templateId);
-    const userLikeRef = doc(db, `users/${userId}/likes`, templateId);
-
-    try {
-        await runTransaction(db, async (transaction) => {
-            const templateDoc = await transaction.get(templateRef);
-            if (!templateDoc.exists()) {
-                throw new Error("Prompt does not exist!");
-            }
-
-            const userLikeDoc = await transaction.get(userLikeRef);
-            const doesUserLike = userLikeDoc.exists();
-
-            const currentLikeCount = templateDoc.data().likeCount || 0;
-            let newLikeCount;
-
-            if (doesUserLike) {
-                // User ALREADY likes it -> UNLIKE
-                newLikeCount = Math.max(0, currentLikeCount - 1);
-                transaction.delete(userLikeRef);
-            } else {
-                // User does NOT like it -> LIKE
-                newLikeCount = currentLikeCount + 1;
-                transaction.set(userLikeRef, {
-                    likedAt: serverTimestamp()
-                });
-            }
-
-            transaction.update(templateRef, { likeCount: newLikeCount });
-        });
-        return true;
-    } catch (e) {
-        console.error("Transaction failed: ", e);
-        throw e;
-    }
-};
-
-export const getUserExecutionLikes = async (userId) => {
-    if (!userId) return [];
-    try {
-        const q = query(collection(db, `users/${userId}/executionLikes`));
-        const querySnapshot = await getDocs(q);
-        return querySnapshot.docs.map(doc => doc.id);
-    } catch (e) {
-        console.error("Error fetching user execution likes:", e);
-        return [];
-    }
+    return toggleLikeHelper('prompts', 'likes', templateId, userId);
 };
 
 export const toggleExecutionLike = async (executionId, userId) => {
-    if (!userId || !executionId) throw new Error("Missing userId or executionId");
-
-    const executionRef = doc(db, "executions", executionId);
-    const userLikeRef = doc(db, `users/${userId}/executionLikes`, executionId);
-
-    try {
-        await runTransaction(db, async (transaction) => {
-            const executionDoc = await transaction.get(executionRef);
-            if (!executionDoc.exists()) {
-                throw new Error("Artifact does not exist!");
-            }
-
-            const userLikeDoc = await transaction.get(userLikeRef);
-            const doesUserLike = userLikeDoc.exists();
-
-            const currentLikeCount = executionDoc.data().likeCount || 0;
-            let newLikeCount;
-
-            if (doesUserLike) {
-                // User ALREADY likes it -> UNLIKE
-                newLikeCount = Math.max(0, currentLikeCount - 1);
-                transaction.delete(userLikeRef);
-            } else {
-                // User does NOT like it -> LIKE
-                newLikeCount = currentLikeCount + 1;
-                transaction.set(userLikeRef, {
-                    likedAt: serverTimestamp()
-                });
-            }
-
-            transaction.update(executionRef, { likeCount: newLikeCount });
-        });
-        return true;
-    } catch (e) {
-        console.error("Transaction failed: ", e);
-        throw e;
-    }
+    return toggleLikeHelper('executions', 'executionLikes', executionId, userId);
 };
 
 export const syncUserInfo = async (user) => {

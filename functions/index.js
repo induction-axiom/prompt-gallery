@@ -162,21 +162,7 @@ exports.deletePromptTemplate = onCall(
     }
 );
 
-exports.listPromptTemplates = onCall(
-    { maxInstances: 10, enforceAppCheck: true },
-    async (request) => {
-        logger.info("listPromptTemplates");
-        const { pageSize = 50, pageToken = "" } = request.data || {};
 
-        const result = await makeApiRequest({
-            url: BASE_URL,
-            method: "GET",
-            params: { pageSize, pageToken }
-        });
-
-        return result;
-    }
-);
 
 exports.runPromptTemplate = onCall(
     { maxInstances: 10, enforceAppCheck: true },
