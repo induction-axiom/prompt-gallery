@@ -53,7 +53,7 @@ const MixedMediaGallery = ({ items, currentUser, onDelete, likedExecutionIds = [
     if (!items || items.length === 0) {
         return (
             <div className="px-5 pb-5 pt-2 flex items-center justify-center bg-gray-50 dark:bg-gray-800/50 mx-5 rounded-lg h-40 border-dashed border-2 border-gray-200 dark:border-gray-700 text-gray-400 text-sm mb-3">
-                No artifacts generated yet
+                No creations yet
             </div>
         );
     }

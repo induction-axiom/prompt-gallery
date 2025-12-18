@@ -75,7 +75,7 @@ export const getTemplateExecutions = async (templateId, limitCount = 10) => {
 
         return finalExecutions;
     } catch (e) {
-        console.error("Error fetching executions:", e);
+        console.error("Error fetching creations:", e);
         return [];
     }
 };
@@ -108,7 +108,7 @@ export const deleteExecution = async (executionId, templateId = null) => {
         await deleteDoc(doc(db, "executions", executionId));
         return true;
     } catch (e) {
-        console.error("Error deleting execution:", e);
+        console.error("Error deleting creation:", e);
         throw e;
     }
 };

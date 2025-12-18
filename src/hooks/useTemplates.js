@@ -207,8 +207,8 @@ export const useTemplates = (user) => {
     };
 
     const handleDeleteExecution = async (templateId, execution) => {
-        if (!window.confirm("Delete this execution result? This cannot be undone.")) return;
-        setStatus("Deleting execution...");
+        if (!window.confirm("Delete this creation? This cannot be undone.")) return;
+        setStatus("Deleting creation...");
         setIsLoading(true);
         try {
             await deleteExecution(execution.id, templateId);
@@ -222,11 +222,11 @@ export const useTemplates = (user) => {
                 payload: { templateId, executionId: execution.id }
             });
 
-            setStatus("Artifact deleted.");
+            setStatus("Creation deleted.");
         } catch (error) {
             console.error(error);
-            alert("Failed to delete execution: " + error.message);
-            setStatus("Error deleting execution");
+            alert("Failed to delete creation: " + error.message);
+            setStatus("Error deleting creation");
         } finally {
             setIsLoading(false);
         }
@@ -251,7 +251,7 @@ export const useTemplates = (user) => {
     };
 
     const handleToggleExecutionLike = async (templateId, executionId) => {
-        if (!user) return alert("Please sign in to like executions.");
+        if (!user) return alert("Please sign in to like creations.");
 
         const isLiked = !state.likedExecutionIds.includes(executionId);
 
@@ -261,7 +261,7 @@ export const useTemplates = (user) => {
         try {
             await toggleExecutionLike(executionId, user.uid);
         } catch (error) {
-            console.error("Failed to toggle execution like:", error);
+            console.error("Failed to toggle creation like:", error);
             // Revert on error
             dispatch({ type: 'TOGGLE_EXECUTION_LIKE', payload: { executionId, templateId, isLiked: !isLiked } });
             alert("Failed to update like status.");

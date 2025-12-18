@@ -227,7 +227,7 @@ exports.getPromptTemplate = onCall(
 // ----------------------------------------------------------------------------
 
 /**
- * Trigger: When a prompt template is deleted, delete all its executions.
+ * Trigger: When a prompt template is deleted, delete all its creations.
  * Path: prompts/{promptId}
  */
 exports.cleanupExecutions = onDocumentDeleted("prompts/{promptId}", async (event) => {
@@ -239,7 +239,7 @@ exports.cleanupExecutions = onDocumentDeleted("prompts/{promptId}", async (event
         return;
     }
 
-    logger.info(`Cleanup Executions for Prompt: ${promptId}`);
+    logger.info(`Cleanup Creations for Prompt: ${promptId}`);
 
     const db = getFirestore();
     const executionsRef = db.collection("executions");
@@ -248,7 +248,7 @@ exports.cleanupExecutions = onDocumentDeleted("prompts/{promptId}", async (event
     const snapshot = await executionsRef.where("promptId", "==", promptId).get();
 
     if (snapshot.empty) {
-        logger.info("No matching executions found.");
+        logger.info("No matching creations found.");
         return;
     }
 
@@ -277,7 +277,7 @@ exports.cleanupStorage = onDocumentDeleted("executions/{executionId}", async (ev
     const storagePath = data.storagePath;
 
     if (storagePath) {
-        logger.info(`Cleanup Storage for Artifact: ${event.params.executionId}, Path: ${storagePath}`);
+        logger.info(`Cleanup Storage for Creation: ${event.params.executionId}, Path: ${storagePath}`);
         try {
             const bucket = getStorage().bucket(); // access default bucket
             const file = bucket.file(storagePath);
