@@ -25,7 +25,7 @@ function App() {
   const [editingTemplate, setEditingTemplate] = useState(null);
   const [selectedRunTemplate, setSelectedRunTemplate] = useState(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
-  const [viewContent, setViewContent] = useState("");
+  const [viewTemplate, setViewTemplate] = useState(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -77,7 +77,7 @@ function App() {
   };
 
   const handleViewWrapper = (template) => {
-    setViewContent(template.templateString || template.dotPromptString || "No content found");
+    setViewTemplate(template);
     setIsViewModalOpen(true);
   };
 
@@ -151,7 +151,7 @@ function App() {
       <TemplateViewer
         isOpen={isViewModalOpen}
         onClose={() => setIsViewModalOpen(false)}
-        content={viewContent}
+        template={viewTemplate}
       />
     </div>
   );

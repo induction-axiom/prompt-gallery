@@ -91,12 +91,12 @@ const Header = ({ user, status, onLogout, onCreate }) => {
                         <div className="relative" ref={dropdownRef}>
                             <button
                                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                                className="flex items-center justify-center w-10 h-10 rounded-full border-2 border-gray-200 dark:border-gray-700 hover:border-blue-400 dark:hover:border-blue-500 transition-colors bg-white dark:bg-gray-800"
+                                className="flex items-center justify-center w-10 h-10 rounded-full border-2 border-gray-200 dark:border-gray-700 hover:border-blue-400 dark:hover:border-blue-500 transition-colors bg-white dark:bg-gray-800 overflow-hidden"
                             >
                                 {user?.photoURL ? (
-                                    <img src={user.photoURL} alt="User" className="w-full h-full object-cover" />
+                                    <img src={user.photoURL} alt="User" className="w-full h-full object-cover rounded-full" />
                                 ) : (
-                                    <div className="w-full h-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-lg">
+                                    <div className="w-full h-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-lg rounded-full">
                                         {getInitials(user?.displayName || user?.email)}
                                     </div>
                                 )}

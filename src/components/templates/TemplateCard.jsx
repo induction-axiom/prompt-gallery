@@ -27,8 +27,7 @@ const TemplateCard = ({ template, onRun, onView, onEdit, onDelete, onDeleteExecu
                 onMouseLeave={() => setShowTooltip(false)}
             >
                 <div className="flex justify-between items-center bg-white dark:bg-gray-800">
-                    <h3 className="m-0 text-[#333] dark:text-gray-100 font-bold text-lg">{template.displayName}</h3>
-                    <span className="text-xs text-gray-400 font-mono">{getTemplateId(template.name)}</span>
+                    <h3 className="m-0 text-[#333] dark:text-gray-100 font-bold text-lg truncate leading-6 min-h-[1.5rem]" title={template.displayName}>{template.displayName}</h3>
                 </div>
                 {modelName && (
                     <div className="text-xs text-blue-500 dark:text-blue-400 font-mono mt-1 bg-blue-50 dark:bg-blue-900/30 inline-block px-1 rounded">
