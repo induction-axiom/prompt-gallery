@@ -1,6 +1,7 @@
 import React from 'react';
 import Modal from '../common/Modal';
 import Button from '../common/Button';
+import { usePromptExecution } from '../../hooks/usePromptExecution';
 import { extractImageFromGeminiResult, extractTextFromGeminiResult } from '../../utils/geminiParsers';
 import { cleanJsonString } from '../../utils/jsonUtils';
 import { runPromptTemplate } from '../../services/functions';
@@ -9,16 +10,24 @@ import { SYSTEM_PROMPT_IDS } from '../../config/systemPrompts';
 const TemplateRunner = ({
     template,
     onClose,
-    onRun,
-    isGenerating,
-    runResult
+    onSave, // New prop to handle saving back to global list
+    user    // New prop: need user to save execution
 }) => {
+    // Local execution state
+    const { isGenerating, runResult, executePrompt, clearResult } = usePromptExecution(user);
     const [inputJson, setInputJson] = React.useState(''); // Start empty to avoid jump
     // Track if user has touched the input to avoid overwriting with slow defaults
     const userEditedRef = React.useRef(false);
 
     const [isGeneratingRandom, setIsGeneratingRandom] = React.useState(false);
     const resultRef = React.useRef(null);
+
+    React.useEffect(() => {
+        if (template && !runResult) {
+            // Reset result when template changes or closes
+            clearResult();
+        }
+    }, [template]);
 
     React.useEffect(() => {
         if (runResult && !isGenerating) {
@@ -67,7 +76,12 @@ const TemplateRunner = ({
     const handleRun = () => {
         // Default to empty object if input is empty
         const finalInput = inputJson.trim() ? inputJson : '{}';
-        onRun({ inputJson: finalInput });
+
+        executePrompt({
+            template,
+            inputJson: finalInput,
+            onSave: onSave // Pass the save callback to the hook
+        });
     };
 
     if (!template) return null;

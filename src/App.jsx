@@ -81,13 +81,10 @@ function App() {
     setIsViewModalOpen(true);
   };
 
-  const handleRunWrapper = async ({ inputJson }) => {
-    await actions.handleRunTemplate({ selectedRunTemplate, inputJson });
-  };
+
 
   const handleCloseRun = () => {
     setSelectedRunTemplate(null);
-    actions.clearRunResult();
   };
 
   // --- Render ---
@@ -143,9 +140,8 @@ function App() {
       <TemplateRunner
         template={selectedRunTemplate}
         onClose={handleCloseRun}
-        onRun={handleRunWrapper}
-        isGenerating={state.isGenerating}
-        runResult={state.runResult}
+        onSave={actions.handleSaveExecution}
+        user={user}
       />
 
       <TemplateViewer

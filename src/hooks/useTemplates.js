@@ -1,9 +1,7 @@
 import { useReducer, useEffect } from 'react';
-import { getPromptTemplate, createPromptTemplate, updatePromptTemplate, deletePromptTemplate, runPromptTemplate } from '../services/functions';
-import { extractImageFromGeminiResult, extractTextFromGeminiResult } from '../utils/geminiParsers';
-import { getRecentTemplates, saveExecutionMetadata, getTemplateExecutions, deleteExecution, getUserLikes, togglePromptLike, getUserExecutionLikes, toggleExecutionLike, getUserProfile } from '../services/firestore';
-import { uploadImage, deleteImage } from '../services/storage';
-import { app } from "../firebase";
+import { getPromptTemplate, createPromptTemplate, updatePromptTemplate, deletePromptTemplate } from '../services/functions';
+import { getRecentTemplates, getTemplateExecutions, deleteExecution, getUserLikes, togglePromptLike, getUserExecutionLikes, toggleExecutionLike, getUserProfile } from '../services/firestore';
+import { deleteImage } from '../services/storage';
 import { templateReducer, initialState } from '../reducers/templateReducer';
 
 export const useTemplates = (user) => {
@@ -14,7 +12,6 @@ export const useTemplates = (user) => {
     // Helper dispatch wrappers
     const setStatus = (msg) => dispatch({ type: 'SET_STATUS', payload: msg });
     const setIsLoading = (loading) => dispatch({ type: 'SET_LOADING', payload: loading });
-    const setRunResult = (res) => dispatch({ type: 'SET_RUN_RESULT', payload: res });
 
     // Fetch user likes when user logs in
     useEffect(() => {
@@ -300,100 +297,9 @@ export const useTemplates = (user) => {
         }
     };
 
-    const handleRunTemplate = async ({ selectedRunTemplate, inputJson }) => {
-        if (!selectedRunTemplate) return;
-        setStatus("Running...");
-        const setIsGenerating = (generating) => dispatch({ type: 'SET_GENERATING', payload: generating });
-
-        setIsGenerating(true);
-        setRunResult("");
-        try {
-            const reqBody = JSON.parse(inputJson);
-            const templateId = getTemplateId(selectedRunTemplate.name);
-            const result = await runPromptTemplate({ templateId, reqBody });
-
-            setRunResult(result.data);
-
-            const imageParams = extractImageFromGeminiResult(result.data);
-            const commonExecutionData = {
-                promptId: templateId,
-                userId: user.uid,
-                createdAt: { seconds: Date.now() / 1000 },
-                creatorId: user.uid,
-                inputVariables: reqBody,
-                public: true,
-            };
-
-            if (imageParams && imageParams.type === 'base64') {
-                try {
-                    const { storagePath, downloadURL } = await uploadImage(user.uid, templateId, imageParams.data, imageParams.mimeType);
-                    const docRef = await saveExecutionMetadata({
-                        templateId,
-                        user,
-                        storagePath,
-                        downloadURL,
-                        reqBody,
-                        isImage: true
-                    });
-                    console.log("Image saved successfully");
-
-                    const newExecution = {
-                        ...commonExecutionData,
-                        id: docRef.id,
-                        storagePath,
-                        imageUrl: downloadURL,
-                        textContent: null,
-                        isImage: true,
-                        type: 'image'
-                    };
-
-                    dispatch({ type: 'ADD_EXECUTION', payload: { templateId, newExecution } });
-
-                } catch (err) {
-                    console.error("Failed to save image:", err);
-                }
-            } else {
-                const textContent = extractTextFromGeminiResult(result.data);
-                if (textContent) {
-                    try {
-                        const docRef = await saveExecutionMetadata({
-                            templateId,
-                            user,
-                            storagePath: null,
-                            downloadURL: null,
-                            reqBody,
-                            isImage: false,
-                            textContent: textContent
-                        });
-                        console.log("Text execution saved successfully");
-
-                        const newExecution = {
-                            ...commonExecutionData,
-                            id: docRef.id,
-                            storagePath: null,
-                            imageUrl: null,
-                            textContent: textContent,
-                            isImage: false,
-                            type: 'text'
-                        };
-
-                        dispatch({ type: 'ADD_EXECUTION', payload: { templateId, newExecution } });
-
-                    } catch (err) {
-                        console.error("Failed to save text execution:", err);
-                    }
-                }
-            }
-
-            setStatus("Run Complete");
-        } catch (error) {
-            setRunResult("Error: " + error.message);
-        } finally {
-            dispatch({ type: 'SET_GENERATING', payload: false });
-        }
+    const handleSaveExecution = (templateId, newExecution) => {
+        dispatch({ type: 'ADD_EXECUTION', payload: { templateId, newExecution } });
     };
-
-    const clearRunResult = () => setRunResult("");
 
     const setSortBy = (sort) => {
         dispatch({ type: 'SET_SORT_BY', payload: sort });
@@ -408,10 +314,9 @@ export const useTemplates = (user) => {
             handleSaveTemplate,
             handleDeleteTemplate,
             handleDeleteExecution,
-            handleRunTemplate,
             handleToggleLike,
             handleToggleExecutionLike,
-            clearRunResult,
+            handleSaveExecution,
             getTemplateId,
             setSortBy,
             loadMoreTemplates

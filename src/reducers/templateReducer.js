@@ -4,8 +4,6 @@ export const initialState = {
     likedTemplateIds: [], // Store IDs of templates liked by the user
     likedExecutionIds: [], // Store IDs of executions liked by the user
     isLoading: false,
-    isGenerating: false,
-    runResult: "",
     viewTemplateData: null,
     sortBy: "likeCount", // Default sort
     lastDoc: null,
@@ -18,8 +16,6 @@ export const templateReducer = (state, action) => {
             return { ...state, status: action.payload };
         case 'SET_LOADING':
             return { ...state, isLoading: action.payload };
-        case 'SET_GENERATING':
-            return { ...state, isGenerating: action.payload };
         case 'SET_TEMPLATES':
             return {
                 ...state,
@@ -41,8 +37,6 @@ export const templateReducer = (state, action) => {
             return { ...state, likedTemplateIds: action.payload };
         case 'SET_USER_EXECUTION_LIKES':
             return { ...state, likedExecutionIds: action.payload };
-        case 'SET_RUN_RESULT':
-            return { ...state, runResult: action.payload };
         case 'SET_VIEW_DATA':
             return { ...state, viewTemplateData: action.payload };
 
