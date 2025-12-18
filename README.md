@@ -61,7 +61,7 @@ The following features are designed but **not yet implemented**:
 -   [x] **Artifact History**: Show past execution results in the template card (Implemented as Mixed Media Gallery).
 -   [x] **AI Parameter Generation**: Use AI to auto-generate input parameters (e.g., a "Dice" button for random valid inputs).
 -   [x] **Ownership Protection**: Users can only modify/delete their own data.
--   [ ] **Social Interactions**: "Like" functionality for prompts and results.
+-   [x] **Social Interactions**: "Like" functionality for prompts and results.
 -   [ ] **AI Labeling**: Use AI to attach labels/tags to prompts automatically.
 -   [ ] **AI Template Assistance**: Use AI to help users create dot-prompt strings (format suggestions, model ID selection).
 -   [ ] **Pagination**: Implement "Load More" functionality for the template list.

@@ -27,7 +27,6 @@ const IconButton = ({
     if (variant === 'default') {
         if (active) {
             // Active styles (e.g. Liked)
-            // We can map activeColor to classes if needed, for now assuming red implies Like logic or danger
             variantStyles = colorVariants[activeColor] || colorVariants.red;
         } else {
             // Inactive / Default
@@ -36,9 +35,6 @@ const IconButton = ({
     } else if (variant === 'overlay') {
         // Overlay style (used in Gallery for delete)
         // Trying to match the shape but adapted for overlay (glassmorphism/white)
-        // User asked for consistency. Let's make it look like the white button but simpler?
-        // Or keep the dark overlay look but consistent shape?
-        // Let's try a white/glass button for overlay to be consistent with "clean simple style"
         variantStyles = "bg-white/90 dark:bg-gray-800/90 border-transparent text-gray-600 dark:text-gray-300 hover:text-red-500 dark:hover:text-red-400 hover:bg-white dark:hover:bg-gray-800 shadow-sm border-none";
     }
 

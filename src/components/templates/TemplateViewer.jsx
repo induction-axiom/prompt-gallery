@@ -17,8 +17,8 @@ const TemplateViewer = ({ isOpen, onClose, content }) => {
                 </button>
             }
         >
-            <div className="flex-1 overflow-auto bg-[#f5f5f5] p-2.5 rounded border border-[#ddd] h-full max-h-[60vh]">
-                <pre className="m-0 whitespace-pre-wrap font-mono text-sm">
+            <div className="flex-1 overflow-auto bg-gray-50 dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700 h-full max-h-[60vh] text-sm text-gray-600 dark:text-gray-400">
+                <pre className="m-0 whitespace-pre-wrap font-mono">
                     {content || "No content available"}
                 </pre>
             </div>

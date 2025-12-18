@@ -6,7 +6,7 @@ export const initialState = {
     isLoading: false,
     runResult: "",
     viewTemplateData: null,
-    sortBy: "createdAt" // Default sort
+    sortBy: "likeCount" // Default sort
 };
 
 export const templateReducer = (state, action) => {

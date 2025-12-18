@@ -7,7 +7,6 @@ import { useTemplates } from './hooks/useTemplates';
 // Components
 import Header from './components/layout/Header';
 import LoginScreen from './components/auth/LoginScreen';
-import TemplateCard from './components/templates/TemplateCard';
 import TemplateEditor from './components/templates/TemplateEditor';
 import TemplateRunner from './components/templates/TemplateRunner';
 import TemplateViewer from './components/templates/TemplateViewer';
