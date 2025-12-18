@@ -155,6 +155,7 @@ export const templateReducer = (state, action) => {
                 })
             };
 
+        case 'APPEND_TEMPLATES':
             return {
                 ...state,
                 templates: [...state.templates, ...action.payload]
