@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import TextCard from './TextCard';
 import ThumbnailStrip from './ThumbnailStrip';
 import IconButton from '../common/IconButton';
@@ -9,6 +10,7 @@ import UserBadge from '../common/UserBadge';
 const MixedMediaGallery = ({ items, currentUser, onDelete, likedExecutionIds = [], onToggleLike }) => {
     const [selectedIndex, setSelectedIndex] = useState(0);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isExpanded, setIsExpanded] = useState(false);
 
     // Derived state: calculate a safe index based on current items
     // This protects against the race condition where items shrinks (deletion) before state updates
@@ -23,6 +25,30 @@ const MixedMediaGallery = ({ items, currentUser, onDelete, likedExecutionIds = [
             setSelectedIndex(safeIndex);
         }
     }, [items.length, selectedIndex, safeIndex]);
+
+    const handleNext = (e) => {
+        e?.stopPropagation();
+        if (safeIndex < items.length - 1) {
+            setSelectedIndex(safeIndex + 1);
+        }
+    };
+
+    const handlePrev = (e) => {
+        e?.stopPropagation();
+        if (safeIndex > 0) {
+            setSelectedIndex(safeIndex - 1);
+        }
+    };
+
+    useEffect(() => {
+        if (!isModalOpen) return;
+        const handleKeyDown = (e) => {
+            if (e.key === 'ArrowLeft') handlePrev();
+            if (e.key === 'ArrowRight') handleNext();
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [isModalOpen, safeIndex, items.length]);
 
     if (!items || items.length === 0) {
         return (
@@ -39,9 +65,10 @@ const MixedMediaGallery = ({ items, currentUser, onDelete, likedExecutionIds = [
         <div className="px-5 pb-3">
             {/* Main Hero */}
             <div
-                className="w-full h-64 bg-gray-100 dark:bg-gray-900 rounded-lg mb-3 overflow-hidden flex items-center justify-center border border-gray-100 dark:border-gray-800 cursor-pointer relative group"
+                className="w-full h-96 bg-gray-100 dark:bg-gray-900 rounded-lg mb-3 overflow-hidden flex items-center justify-center border border-gray-100 dark:border-gray-800 cursor-pointer relative group"
                 onClick={() => {
                     setIsModalOpen(true);
+                    setIsExpanded(false);
                 }}
             >
                 {/* Delete Button Overlay */}
@@ -118,18 +145,47 @@ const MixedMediaGallery = ({ items, currentUser, onDelete, likedExecutionIds = [
                 <Modal
                     title={isImage ? "Generated Image" : "Generated Text"}
                     onClose={() => setIsModalOpen(false)}
+                    maxWidth={isExpanded ? 'max-w-[95vw] w-fit' : 'max-w-[600px]'}
                     footer={
                         <Button variant="secondary" onClick={() => setIsModalOpen(false)}>
                             Close
                         </Button>
                     }
                 >
+                    {items.length > 1 && (
+                        <>
+                            {safeIndex > 0 && (
+                                <button
+                                    onClick={handlePrev}
+                                    className="absolute left-2 top-1/2 -translate-y-1/2 z-50 p-2 bg-black/50 hover:bg-black/70 text-white rounded-full transition-colors cursor-pointer border-none flex items-center justify-center h-10 w-10"
+                                    title="Previous"
+                                >
+                                    <ChevronLeft size={24} />
+                                </button>
+                            )}
+                            {safeIndex < items.length - 1 && (
+                                <button
+                                    onClick={handleNext}
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 z-50 p-2 bg-black/50 hover:bg-black/70 text-white rounded-full transition-colors cursor-pointer border-none flex items-center justify-center h-10 w-10"
+                                    title="Next"
+                                >
+                                    <ChevronRight size={24} />
+                                </button>
+                            )}
+                        </>
+                    )}
                     {isImage ? (
                         <div className="flex justify-center items-center h-full">
                             <img
                                 src={currentItem.imageUrl}
                                 alt="Generated Result"
-                                className="max-w-full max-h-[70vh] object-contain"
+                                className={`
+                                    max-w-full 
+                                    ${isExpanded ? 'max-h-[90vh]' : 'max-h-[70vh]'} 
+                                    object-contain 
+                                    ${isExpanded ? 'cursor-zoom-out' : 'cursor-zoom-in'}
+                                `}
+                                onClick={() => setIsExpanded(!isExpanded)}
                             />
                         </div>
                     ) : (
