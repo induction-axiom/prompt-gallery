@@ -13,7 +13,14 @@ const Modal = ({ title, onClose, children, footer, maxWidth = 'max-w-[600px]' })
     }, [onClose]);
 
     return (
-        <div className="fixed top-0 left-0 right-0 bottom-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[1000] p-5 box-border transition-all">
+        <div
+            className="fixed top-0 left-0 right-0 bottom-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[1000] p-5 box-border transition-all"
+            onClick={(e) => {
+                if (e.target === e.currentTarget && onClose) {
+                    onClose();
+                }
+            }}
+        >
             <Card className={`w-full ${maxWidth} max-h-[90vh] shadow-2xl border-none flex flex-col`}>
                 <Card.Header className="flex justify-between items-center py-4">
                     <h2 className="m-0 text-xl font-bold text-[#333] dark:text-gray-100">{title}</h2>
