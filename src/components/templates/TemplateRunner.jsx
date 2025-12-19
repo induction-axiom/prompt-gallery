@@ -151,8 +151,8 @@ const TemplateRunner = ({
             {isGenerating ? (
                 <div className="flex flex-col items-center justify-center p-12 bg-gray-50 dark:bg-gray-800 rounded-xl border border-dashed border-gray-300 dark:border-gray-700 min-h-[200px]">
                     <div className="relative mb-4">
-                        <div className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-20"></div>
-                        <div className="relative animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent shadow-lg text-blue-600"></div>
+                        <div className="animate-ping absolute inline-flex h-full w-full rounded-full bg-firebase-orange opacity-20"></div>
+                        <div className="relative animate-spin rounded-full h-12 w-12 border-4 border-firebase-orange border-t-transparent shadow-lg text-firebase-orange"></div>
                     </div>
                     <p className="font-semibold text-gray-600 dark:text-gray-300 animate-pulse text-lg">Generating your masterpiece...</p>
                     <p className="text-xs text-gray-400 mt-2">This may take a few moments</p>

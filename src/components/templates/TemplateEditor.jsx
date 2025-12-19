@@ -239,7 +239,7 @@ const TemplateEditor = ({
             <div className="mb-4">
                 {/* Remix Info Banner */}
                 {(!isEditing && initialData) && (
-                    <div className="mb-4 p-3 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg flex items-center gap-2 text-sm text-purple-700 dark:text-purple-300">
+                    <div className="mb-4 p-3 bg-firebase-orange/10 border border-firebase-orange/20 rounded-lg flex items-center gap-2 text-sm text-firebase-orange">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                         </svg>
@@ -256,7 +256,7 @@ const TemplateEditor = ({
                         disabled={isGeneratingName}
                         className="!px-3 !py-1 text-xs"
                         icon={
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-firebase-red" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
                             </svg>
                         }
@@ -269,7 +269,7 @@ const TemplateEditor = ({
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
                     placeholder="Add a name for this prompt"
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all bg-white dark:bg-gray-800 dark:text-gray-100"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-firebase-orange focus:border-transparent outline-none transition-all bg-white dark:bg-gray-800 dark:text-gray-100"
                 />
             </div>
             <div className="mb-4 flex-1 flex flex-col">
@@ -281,7 +281,7 @@ const TemplateEditor = ({
                         disabled={isFormatting}
                         className="!px-3 !py-1 text-xs"
                         icon={
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-firebase-orange" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
                             </svg>
                         }
@@ -293,7 +293,7 @@ const TemplateEditor = ({
                     value={dotPromptString}
                     onChange={(e) => setDotPromptString(e.target.value)}
                     placeholder="Format your prompt using dotprompt syntax"
-                    className="w-full p-3 border border-gray-300 dark:border-gray-700 rounded-lg resize-none font-mono text-sm h-[400px] mb-4 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all bg-white dark:bg-gray-800 dark:text-gray-100"
+                    className="w-full p-3 border border-gray-300 dark:border-gray-700 rounded-lg resize-none font-mono text-sm h-[400px] mb-4 focus:ring-2 focus:ring-firebase-orange focus:border-transparent outline-none transition-all bg-white dark:bg-gray-800 dark:text-gray-100"
                 />
                 <div className="flex justify-between items-center mb-2">
                     <label className="font-bold text-gray-700 dark:text-gray-300">Input Variables (JSON)</label>
@@ -303,7 +303,7 @@ const TemplateEditor = ({
                         disabled={isGeneratingSchema}
                         className="!px-3 !py-1 text-xs"
                         icon={
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-google-blue" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
                             </svg>
                         }
@@ -315,7 +315,7 @@ const TemplateEditor = ({
                     value={jsonInputSchema}
                     onChange={(e) => setJsonInputSchema(e.target.value)}
                     placeholder={'e.g. { "topic": "" }\nProvide a scaffold JSON so users can easily start with the correct structure.'}
-                    className="w-full p-3 border border-gray-300 dark:border-gray-700 rounded-lg resize-none font-mono text-sm h-[100px] mb-4 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all bg-white dark:bg-gray-800 dark:text-gray-100"
+                    className="w-full p-3 border border-gray-300 dark:border-gray-700 rounded-lg resize-none font-mono text-sm h-[100px] mb-4 focus:ring-2 focus:ring-firebase-orange focus:border-transparent outline-none transition-all bg-white dark:bg-gray-800 dark:text-gray-100"
                 />
 
                 <div className="flex justify-between items-center mb-1.5">
@@ -339,7 +339,7 @@ const TemplateEditor = ({
                     value={tagsInput}
                     onChange={(e) => setTagsInput(e.target.value)}
                     placeholder="e.g. Image, Sci-Fi, Creative (comma separated)"
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all bg-white dark:bg-gray-800 dark:text-gray-100"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-firebase-orange focus:border-transparent outline-none transition-all bg-white dark:bg-gray-800 dark:text-gray-100"
                 />
             </div>
         </Modal >

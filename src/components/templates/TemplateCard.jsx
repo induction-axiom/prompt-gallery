@@ -39,7 +39,7 @@ const TemplateCard = ({ template, onRun, onView, onEdit, onRemix, onDelete, onDe
                     <h3 className="m-0 text-[#333] dark:text-gray-100 font-bold text-lg truncate leading-6 min-h-[1.5rem]" title={template.displayName}>{template.displayName}</h3>
                 </div>
                 {(template.remixMetadata || template.parentId) && (
-                    <div className="flex items-center gap-1 mt-1 text-xs text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20 px-1.5 py-0.5 rounded-md w-fit max-w-full">
+                    <div className="flex items-center gap-1 mt-1 text-xs text-firebase-orange bg-firebase-orange/10 px-1.5 py-0.5 rounded-md w-fit max-w-full">
                         <Shuffle className="h-3 w-3" />
                         <span className="truncate">
                             {template.remixMetadata ? (
@@ -51,7 +51,7 @@ const TemplateCard = ({ template, onRun, onView, onEdit, onRemix, onDelete, onDe
                     </div>
                 )}
                 {modelName && (
-                    <div className="text-xs text-blue-500 dark:text-blue-400 font-mono mt-1 bg-blue-50 dark:bg-blue-900/30 inline-block px-1 rounded">
+                    <div className="text-xs text-firebase-red font-mono mt-1 bg-firebase-red/10 inline-block px-1 rounded">
                         {modelName}
                     </div>
                 )}
@@ -78,7 +78,7 @@ const TemplateCard = ({ template, onRun, onView, onEdit, onRemix, onDelete, onDe
             <div className="relative h-0 z-10 flex justify-center">
                 <button
                     onClick={onRun}
-                    className="absolute -top-5 flex items-center justify-center gap-2 px-6 py-2.5 bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 font-semibold rounded-full shadow-lg border border-gray-100 dark:border-gray-600 hover:bg-blue-50 dark:hover:bg-gray-700 hover:shadow-xl transform transition-all hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
+                    className="absolute -top-5 flex items-center justify-center gap-2 px-6 py-2.5 bg-white dark:bg-gray-800 text-firebase-orange font-semibold rounded-full shadow-lg border border-gray-100 dark:border-gray-600 hover:bg-firebase-orange/5 hover:shadow-xl transform transition-all hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
@@ -118,9 +118,9 @@ const TemplateCard = ({ template, onRun, onView, onEdit, onRemix, onDelete, onDe
                             onClick={(e) => onRemix(e, template)}
                             active={false}
                             title="Remix this prompt (create your own version)"
-                            className="hover:!border-purple-300 hover:!bg-purple-50 dark:hover:!border-purple-700 dark:hover:!bg-purple-900/30 group"
+                            className="hover:!border-firebase-orange hover:!bg-firebase-orange/10 group"
                             icon={
-                                <Shuffle className="h-4 w-4 text-gray-400 group-hover:text-purple-500 transition-colors" />
+                                <Shuffle className="h-4 w-4 text-gray-400 group-hover:text-firebase-orange transition-colors" />
                             }
                         />
                     )}
@@ -132,7 +132,7 @@ const TemplateCard = ({ template, onRun, onView, onEdit, onRemix, onDelete, onDe
                             <IconButton
                                 onClick={(e) => onEdit(e, template)}
                                 active={true}
-                                activeColor="purple"
+                                activeColor="firebase-orange"
                                 icon={
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />

@@ -46,7 +46,7 @@ const TemplateViewer = ({ isOpen, onClose, template }) => {
             footer={
                 <button
                     onClick={onClose}
-                    className="px-4 py-2 bg-[#1890ff] text-white border-none rounded cursor-pointer hover:bg-[#40a9ff]"
+                    className="px-4 py-2 bg-firebase-orange text-white border-none rounded cursor-pointer hover:bg-firebase-red"
                 >
                     Close
                 </button>
@@ -60,7 +60,7 @@ const TemplateViewer = ({ isOpen, onClose, template }) => {
                 )}
 
                 {loading && (
-                    <div className="text-xs text-blue-500 mb-2">Fetching latest details...</div>
+                    <div className="text-xs text-firebase-orange mb-2">Fetching latest details...</div>
                 )}
 
                 {error && (
