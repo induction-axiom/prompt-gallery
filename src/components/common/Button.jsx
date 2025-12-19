@@ -30,6 +30,7 @@ const Button = ({
                 transition-all duration-200 
                 active:scale-[0.98]
                 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100
+                cursor-pointer
                 ${variants[variant] || variants.secondary}
                 ${className}
             `}

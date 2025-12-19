@@ -59,9 +59,9 @@ const LabelFilter = () => {
             {/* Trigger Button */}
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className={`flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-lg border transition-all ${selectedTags.length > 0
-                        ? "bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800"
-                        : "bg-white text-gray-700 border-gray-200 hover:border-gray-300 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700 dark:hover:border-gray-600"
+                className={`flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-lg border transition-all cursor-pointer ${selectedTags.length > 0
+                    ? "bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800"
+                    : "bg-white text-gray-700 border-gray-200 hover:border-gray-300 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700 dark:hover:border-gray-600"
                     }`}
             >
                 <Filter size={16} />
@@ -101,7 +101,7 @@ const LabelFilter = () => {
                                     <button
                                         key={tag}
                                         onClick={() => toggleTag(tag)}
-                                        className="w-full text-left flex items-center justify-between px-2 py-1.5 text-sm font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-md"
+                                        className="w-full text-left flex items-center justify-between px-2 py-1.5 text-sm font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-md cursor-pointer"
                                     >
                                         <span className="truncate">{tag}</span>
                                         <Check size={14} className="opacity-100" />
@@ -128,7 +128,7 @@ const LabelFilter = () => {
                                         <button
                                             key={tag}
                                             onClick={() => toggleTag(tag)}
-                                            className="w-full text-left flex items-center justify-between px-2 py-1.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md group"
+                                            className="w-full text-left flex items-center justify-between px-2 py-1.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md group cursor-pointer"
                                         >
                                             <span className="truncate">{tag}</span>
                                             <Check size={14} className="opacity-0 group-hover:opacity-50" />
