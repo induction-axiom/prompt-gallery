@@ -25,13 +25,6 @@ const TemplateRunner = ({
     const resultRef = React.useRef(null);
 
     React.useEffect(() => {
-        if (template && !runResult) {
-            // Reset result when template changes or closes
-            clearResult();
-        }
-    }, [template]);
-
-    React.useEffect(() => {
         if (runResult && !isGenerating) {
             // Small timeout to ensure DOM is updated
             setTimeout(() => {
@@ -91,7 +84,10 @@ const TemplateRunner = ({
     return (
         <Modal
             title={template.displayName}
-            onClose={onClose}
+            onClose={() => {
+                clearResult();
+                onClose();
+            }}
             footer={
                 <Button
                     variant="primary"
