@@ -159,34 +159,14 @@ const Header = ({ onLogout, onCreate }) => {
                                     </div>
                                     <div className="py-1">
                                         {user?.email === 'jongluo@google.com' && (
-                                            <>
-                                                <button
-                                                    onClick={() => { setIsDropdownOpen(false); handleSync(); }}
-                                                    disabled={isSyncing}
-                                                    className="w-full text-left px-5 py-2.5 text-sm text-firebase-orange hover:bg-firebase-orange/5 dark:text-firebase-orange dark:hover:bg-firebase-orange/10 font-medium flex items-center gap-2 cursor-pointer disabled:cursor-not-allowed"
-                                                >
-                                                    {isSyncing ? 'Syncing...' : 'Sync System Prompts'}
-                                                    <RefreshCw size={16} className={isSyncing ? 'animate-spin' : ''} />
-                                                </button>
-                                                <button
-                                                    onClick={async () => {
-                                                        setIsDropdownOpen(false);
-                                                        if (!window.confirm("Rebuild global tag list?")) return;
-                                                        try {
-                                                            const functions = getFunctions(app, 'us-central1');
-                                                            const rebuildFn = httpsCallable(functions, 'manualRebuildTags');
-                                                            await rebuildFn();
-                                                            alert('Tag list rebuilt successfully!');
-                                                        } catch (error) {
-                                                            console.error(error);
-                                                            alert('Rebuild failed: ' + error.message);
-                                                        }
-                                                    }}
-                                                    className="w-full text-left px-5 py-2.5 text-sm text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/10 font-medium flex items-center gap-2 cursor-pointer"
-                                                >
-                                                    Rebuild Tag List
-                                                </button>
-                                            </>
+                                            <button
+                                                onClick={() => { setIsDropdownOpen(false); handleSync(); }}
+                                                disabled={isSyncing}
+                                                className="w-full text-left px-5 py-2.5 text-sm text-firebase-orange hover:bg-firebase-orange/5 dark:text-firebase-orange dark:hover:bg-firebase-orange/10 font-medium flex items-center gap-2 cursor-pointer disabled:cursor-not-allowed"
+                                            >
+                                                {isSyncing ? 'Syncing...' : 'Sync System Prompts'}
+                                                <RefreshCw size={16} className={isSyncing ? 'animate-spin' : ''} />
+                                            </button>
                                         )}
                                         <button
                                             onClick={() => { setIsDropdownOpen(false); onLogout(); }}
