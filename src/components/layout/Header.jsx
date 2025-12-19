@@ -67,13 +67,16 @@ const Header = ({ onLogout, onCreate }) => {
                     }`}
             >
                 <div className="max-w-[1600px] mx-auto px-5 py-4 flex justify-between items-center">
-                    <div className="flex flex-col">
-                        <h1 className="text-3xl font-bold bg-gradient-to-r from-firebase-yellow via-firebase-orange to-firebase-red bg-clip-text text-transparent">
-                            Prompt Gallery
-                        </h1>
-                        <span className={`text-xs font-medium mt-1 ${status === 'Ready' ? 'text-green-600' : 'text-gray-500'}`}>
-                            {status}
-                        </span>
+                    <div className="flex items-center gap-3">
+                        <img src="/favicon.svg" alt="Logo" className="w-10 h-10" />
+                        <div className="flex flex-col">
+                            <h1 className="text-3xl font-bold bg-gradient-to-r from-firebase-yellow via-firebase-orange to-firebase-red bg-clip-text text-transparent">
+                                Prompt Gallery
+                            </h1>
+                            <span className={`text-xs font-medium mt-1 ${status === 'Ready' ? 'text-green-600' : 'text-gray-500'}`}>
+                                {status}
+                            </span>
+                        </div>
                     </div>
 
                     <div className="flex items-center gap-4">
