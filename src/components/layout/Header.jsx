@@ -79,7 +79,7 @@ const Header = ({ onLogout, onCreate }) => {
                     <div className="flex items-center gap-4">
                         <button
                             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                            className="p-2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors rounded-lg"
+                            className="p-2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors rounded-lg cursor-pointer"
                             aria-label="Toggle Dark Mode"
                         >
                             {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
@@ -87,7 +87,7 @@ const Header = ({ onLogout, onCreate }) => {
 
                         <button
                             onClick={onCreate}
-                            className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm flex items-center gap-2"
+                            className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm flex items-center gap-2 cursor-pointer"
                         >
                             <span className="text-lg leading-none">+</span> Upload Prompt
                         </button>
@@ -95,7 +95,7 @@ const Header = ({ onLogout, onCreate }) => {
                         <div className="relative" ref={dropdownRef}>
                             <button
                                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                                className="flex items-center justify-center w-10 h-10 rounded-full border-2 border-gray-200 dark:border-gray-700 hover:border-blue-400 dark:hover:border-blue-500 transition-colors bg-white dark:bg-gray-800 overflow-hidden"
+                                className="flex items-center justify-center w-10 h-10 rounded-full border-2 border-gray-200 dark:border-gray-700 hover:border-blue-400 dark:hover:border-blue-500 transition-colors bg-white dark:bg-gray-800 overflow-hidden cursor-pointer"
                             >
                                 {user?.photoURL ? (
                                     <img src={user.photoURL} alt="User" className="w-full h-full object-cover rounded-full" />
@@ -121,7 +121,7 @@ const Header = ({ onLogout, onCreate }) => {
                                             <button
                                                 onClick={() => { setIsDropdownOpen(false); handleSync(); }}
                                                 disabled={isSyncing}
-                                                className="w-full text-left px-5 py-2.5 text-sm text-indigo-600 hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-900/10 font-medium flex items-center gap-2"
+                                                className="w-full text-left px-5 py-2.5 text-sm text-indigo-600 hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-900/10 font-medium flex items-center gap-2 cursor-pointer disabled:cursor-not-allowed"
                                             >
                                                 {isSyncing ? 'Syncing...' : 'Sync System Prompts'}
                                                 <RefreshCw size={16} className={isSyncing ? 'animate-spin' : ''} />
@@ -129,7 +129,7 @@ const Header = ({ onLogout, onCreate }) => {
                                         )}
                                         <button
                                             onClick={() => { setIsDropdownOpen(false); onLogout(); }}
-                                            className="w-full text-left px-5 py-2.5 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 font-medium"
+                                            className="w-full text-left px-5 py-2.5 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 font-medium cursor-pointer"
                                         >
                                             Sign Out
                                         </button>
