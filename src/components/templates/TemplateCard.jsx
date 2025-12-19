@@ -7,7 +7,7 @@ import UserBadge from '../common/UserBadge';
 
 import { extractModelFromDotPrompt } from '../../utils/geminiParsers';
 
-const TemplateCard = ({ template, onRun, onView, onEdit, onDelete, onDeleteExecution, onToggleLike, onToggleExecutionLike, isLiked, likedExecutionIds, getTemplateId, currentUser }) => {
+const TemplateCard = ({ template, onRun, onView, onEdit, onDelete, onDeleteExecution, onToggleLike, onToggleExecutionLike, isLiked, likedExecutionIds, getTemplateId, currentUser, onAuthorClick }) => {
     const [showTooltip, setShowTooltip] = React.useState(false);
     const [tooltipPos, setTooltipPos] = React.useState({ x: 0, y: 0 });
     const modelName = extractModelFromDotPrompt(template.templateString || template.dotPromptString);
@@ -58,6 +58,7 @@ const TemplateCard = ({ template, onRun, onView, onEdit, onDelete, onDeleteExecu
                     onDelete={(execution) => onDeleteExecution(getTemplateId(template.name), execution)}
                     likedExecutionIds={likedExecutionIds}
                     onToggleLike={(executionId) => onToggleExecutionLike(getTemplateId(template.name), executionId)}
+                    onAuthorClick={onAuthorClick}
                 />
             </Card.Body>
 
@@ -123,7 +124,20 @@ const TemplateCard = ({ template, onRun, onView, onEdit, onDelete, onDeleteExecu
                             />
                         </>
                     ) : (
-                        <UserBadge user={template.ownerProfile} />
+                        <div
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onAuthorClick({
+                                    id: template.ownerId,
+                                    displayName: template.ownerProfile?.displayName || 'Unknown',
+                                    photoURL: template.ownerProfile?.photoURL
+                                });
+                            }}
+                            className="cursor-pointer hover:opacity-80 transition-opacity"
+                            title="View all prompts by this author"
+                        >
+                            <UserBadge user={template.ownerProfile} />
+                        </div>
                     )}
                 </div>
             </Card.Footer>

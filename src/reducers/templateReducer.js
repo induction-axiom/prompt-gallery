@@ -7,7 +7,8 @@ export const initialState = {
     sortBy: "likeCount", // Default sort
     selectedTags: [],
     lastDoc: null,
-    hasMore: true
+    hasMore: true,
+    authorFilter: null // { id, name } or null
 };
 
 export const templateReducer = (state, action) => {
@@ -35,6 +36,8 @@ export const templateReducer = (state, action) => {
             return { ...state, sortBy: action.payload };
         case 'SET_TAGS':
             return { ...state, selectedTags: action.payload };
+        case 'SET_AUTHOR_FILTER':
+            return { ...state, authorFilter: action.payload };
         case 'SET_USER_LIKES':
             return { ...state, likedTemplateIds: action.payload };
         case 'SET_USER_EXECUTION_LIKES':

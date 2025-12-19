@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { signInWithPopup, signOut } from "firebase/auth";
 import { auth, googleProvider } from "./firebase";
 import { useTemplatesContext } from './context/TemplatesContext';
@@ -12,6 +12,9 @@ import TemplateViewer from './components/templates/TemplateViewer';
 import TemplateGrid from './components/templates/TemplateGrid';
 import SortDropdown from './components/common/SortDropdown';
 import LabelFilter from './components/common/LabelFilter';
+import FilterPill from './components/common/FilterPill';
+
+import { X } from 'lucide-react';
 
 function App() {
   const { state, actions, user, isAuthLoading } = useTemplatesContext();
@@ -22,6 +25,11 @@ function App() {
   const [selectedRunTemplate, setSelectedRunTemplate] = useState(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [viewTemplate, setViewTemplate] = useState(null);
+
+  // Scroll to top when author filter changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [state.authorFilter]);
 
   // --- Auth Handlers ---
   const handleGoogleLogin = async () => {
@@ -81,8 +89,39 @@ function App() {
       />
 
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+        <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
           <LabelFilter />
+
+          {/* "Me" Filter (Visible if no filter OR if "Me" is selected) */}
+          {(!state.authorFilter || state.authorFilter.id === user.uid) && (
+            <FilterPill
+              user={user}
+              label="By me"
+              isActive={state.authorFilter?.id === user.uid}
+              onClick={() => {
+                if (state.authorFilter?.id === user.uid) {
+                  actions.setAuthorFilter(null);
+                } else {
+                  actions.setAuthorFilter({
+                    id: user.uid,
+                    displayName: 'By me',
+                    photoURL: user.photoURL
+                  });
+                }
+              }}
+            />
+          )}
+
+          {/* Other Author Filter (Visible only when active) */}
+          {state.authorFilter && state.authorFilter.id !== user.uid && (
+            <FilterPill
+              user={state.authorFilter}
+              label={`By ${state.authorFilter.displayName || state.authorFilter.name || 'Author'}`}
+              isActive={true}
+              onClick={() => actions.setAuthorFilter(null)}
+              className="animate-in fade-in slide-in-from-left-4 duration-200"
+            />
+          )}
         </h2>
         <SortDropdown />
       </div>
