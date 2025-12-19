@@ -22,6 +22,7 @@ function App() {
   // UI State (Visuals only)
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState(null);
+  const [isEditMode, setIsEditMode] = useState(true); // true = edit, false = create/remix
   const [selectedRunTemplate, setSelectedRunTemplate] = useState(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [viewTemplate, setViewTemplate] = useState(null);
@@ -53,12 +54,21 @@ function App() {
 
   const handleOpenCreate = () => {
     setEditingTemplate(null);
+    setIsEditMode(false);
     setIsEditorOpen(true);
   };
 
   const handleOpenEdit = (e, template) => {
     e.stopPropagation();
     setEditingTemplate(template);
+    setIsEditMode(true);
+    setIsEditorOpen(true);
+  };
+
+  const handleRemix = (e, template) => {
+    e.stopPropagation();
+    setEditingTemplate(template);
+    setIsEditMode(false); // Remix = Create mode with initial data
     setIsEditorOpen(true);
   };
 
@@ -129,12 +139,13 @@ function App() {
       <TemplateGrid
         handleViewWrapper={handleViewWrapper}
         handleOpenEdit={handleOpenEdit}
+        handleRemix={handleRemix}
         setSelectedRunTemplate={setSelectedRunTemplate}
       />
 
       <TemplateEditor
         isOpen={isEditorOpen}
-        isEditing={!!editingTemplate}
+        isEditing={!!editingTemplate && isEditMode}
         onClose={() => setIsEditorOpen(false)}
         initialData={editingTemplate}
       />

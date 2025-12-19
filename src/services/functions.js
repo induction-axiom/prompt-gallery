@@ -30,9 +30,9 @@ export const getPromptTemplate = async ({ templateId }) => {
     return result;
 };
 
-export const createPromptTemplate = async ({ displayName, dotPromptString, jsonInputSchema, tags }) => {
+export const createPromptTemplate = async ({ displayName, dotPromptString, jsonInputSchema, tags, parentId, remixMetadata }) => {
     const createFn = httpsCallable(functions, 'createPromptTemplate');
-    return await createFn({ displayName, dotPromptString, jsonInputSchema, tags });
+    return await createFn({ displayName, dotPromptString, jsonInputSchema, tags, parentId, remixMetadata });
 };
 
 export const updatePromptTemplate = async ({ templateId, displayName, dotPromptString, jsonInputSchema, tags }) => {
