@@ -5,23 +5,23 @@
 
 ## Project Vision
 
-**Nano Banana Pro Prompt Marketplace**
+**Prompt Gallery**
 
-Our end goal is to create a dynamic marketplace where users can:
+Our goal is to create a dynamic marketplace where users can:
 - **Discover** interesting prompts created by others.
 - **Upload** their own high-quality prompt templates.
 - **Generate** pictures using these prompt templates.
-- **Share & Interact**: Generated results are public by default. Users can like prompts/results, and a feed will show top-ranked content.
+- **Share & Interact**: Generated results are public by default. Users can like prompts/results, and a feed shows top-ranked content.
 
 ## Architecture & Tech Stack
 
-We utilize a modern stack to move fast during Hackweek:
+We utilize a modern stack to move fast:
 
 ### Frontend
 - **React** (via Vite)
-- **Tailwind CSS** for styling
+- **Tailwind CSS** for styling (Custom Firebase Theme)
 - **Google Sign-In** for authentication
-- **useReducer** for complex state management (Templates & Creations)
+- **Context API + useReducer** for efficient state management
 
 ### Backend & AI
 - **Firebase Cloud Functions** (v2): Serverless backend handling API logic.
@@ -29,7 +29,7 @@ We utilize a modern stack to move fast during Hackweek:
 
 ### Data & Hosting
 - **Firestore**: Stores user data, ownership information, and creation history (text & image metadata).
-- **Firebase AI Logic**: The *Single Source of Truth* for prompt template content (display name, template string, etc.).
+- **Firebase AI Logic**: The *Single Source of Truth* for prompt template content.
 - **Firebase Storage**: Stores generated images.
 - **Firebase Hosting**: Serves the web application.
 
@@ -37,35 +37,41 @@ We utilize a modern stack to move fast during Hackweek:
 
 ## Current Status: Implemented Features
 
-The application currently supports the core "Admin" and "Runner" flows:
+The application currently supports a rich set of features for Prompt Engineers and Users:
 
-1.  **Authentication**: Users can sign in using Google Auth.
+1.  **Authentication**: Seamless sign-in using Google Auth.
 2.  **Template Management (CRUD)**:
-    -   **List**: View all available prompt templates.
+    -   **List**: View all available prompt templates in a responsive grid.
     -   **Create**: Add new templates with a display name and dot-prompt string.
     -   **Update**: Edit existing templates via a popup editor.
-    -   **Delete**: Remove templates (Ownership protected: users can only delete their own templates).
-3.  **Template Creation**:
-    -   **Run**: Select a template, provide JSON input variables, and execute it.
-    -   **AI Input Generation**: Auto-fill default inputs or use the "Dice" button to generate random, context-aware test data using AI.
-    -   **Mixed Media Results**: Supports both Image generation (saved to Storage) and Text generation (text cards), displayed in a unified gallery.
-    -   **Auto-Save**: All creations are automatically saved to Firestore/Storage.
-    -   **Public by Default**: Creations are marked as public to enable sharing.
+    -   **Delete**: Remove templates (Ownership protected).
+3.  **Advanced AI Tools**:
+    -   **Auto Labeler**: Automatically tags prompts using AI for better discovery.
+    -   **Auto Detect Schema**: Instantly generates a JSON schema for prompt inputs.
+    -   **Auto Generate Name**: AI suggests creative names based on your prompt text.
+    -   **Auto Format**: Cleans up and structures raw prompt text into dot-prompt syntax.
+4.  **Discovery & Navigation**:
+    -   **Infinite Scroll**: Smoothly load more templates as you scroll.
+    -   **Filtering**: Filter templates by tags/labels to find specific categories.
+    -   **Social**: "Like" functionality for both Templates and Executions.
+5.  **Template Execution**:
+    -   **Run**: Select a template, provide inputs (supports auto-fill), and execute.
+    -   **Mixed Media Gallery**: View results as Images or Text Cards in a unified gallery.
+    -   **Original Size View**: Click results to view high-resolution originals.
 
 ## Roadmap (To-Do)
 
-The following features are designed but **not yet implemented**:
-
 -   [x] **Result Storage**: Store generated images in **Firebase Cloud Storage** and metadata in **Firestore**.
--   [x] **Public Access Control**: Basic boolean flag (`public`) implementation in Firestore and Storage.
--   [x] **Creation History**: Show past creations in the template card (Implemented as Mixed Media Gallery).
--   [x] **AI Parameter Generation**: Use AI to auto-generate input parameters (e.g., a "Dice" button for random valid inputs).
--   [x] **Ownership Protection**: Users can only modify/delete their own data.
--   [x] **Social Interactions**: "Like" functionality for prompts and results.
--   [ ] **AI Labeling**: Use AI to attach labels/tags to prompts automatically.
--   [ ] **AI Template Assistance**: Use AI to help users create dot-prompt strings (format suggestions, model ID selection).
--   [ ] **Pagination**: Implement "Load More" functionality for the template list.
--   [ ] **Advanced Filtering**: Rank and filter prompts by specific criteria (likes, date, tags).
+-   [x] **Public Access Control**: Basic boolean flag (`public`) implementation.
+-   [x] **Creation History**: Mixed Media Gallery for past executions.
+-   [x] **AI Parameter Generation**: "Dice" button for random valid inputs.
+-   [x] **Ownership Protection**: Secure CRUD operations.
+-   [x] **Social Interactions**: Likes for prompts and results.
+-   [x] **AI Labeling**: Auto-generating tags for prompts.
+-   [x] **AI Template Assistance**: Helper tools in the editor (Schema, Name, Format).
+-   [x] **Pagination**: Implemented as Infinite Scroll.
+-   [x] **Advanced Filtering**: Tag-based filtering.
+-   [x] **UI Polish**: Firebase Theme integration (Red/Yellow/Dark Mode).
 
 ---
 
@@ -75,8 +81,7 @@ The backend logic is implemented in `functions/index.js` and exposes the followi
 
 | Function Name | Description | Inputs |
 | :--- | :--- | :--- |
-| `listPromptTemplates` | Fetches a paginated list of templates from Firebase AI Logic. | `pageSize`, `pageToken` |
-| `createPromptTemplate` | Creates a new prompt template. | `displayName`, `dotPromptString` |
-| `updatePromptTemplate` | Updates the display name or template string of an existing template. | `templateId`, `displayName`, `dotPromptString` |
+| `createPromptTemplate` | Creates a new prompt template. | `displayName`, `dotPromptString`, `tags`, etc. |
+| `updatePromptTemplate` | Updates an existing template. | `templateId`, `displayName`, `tags`, etc. |
 | `deletePromptTemplate` | Deletes a specific template. | `templateId` |
-| `runPromptTemplate` | Executes a specific template with user-provided variables. | `templateId`, `reqBody` (JSON) |
+| `runPromptTemplate` | Executes a specific template (or system prompt). | `templateId`, `reqBody` |

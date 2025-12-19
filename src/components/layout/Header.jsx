@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import useDarkMode from '../../hooks/useDarkMode';
-import { Sun, Moon, RefreshCw } from 'lucide-react';
+import { Sun, Moon, RefreshCw, Github } from 'lucide-react';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { app } from '../../firebase';
 import { useTemplatesContext } from '../../context/TemplatesContext';
@@ -80,6 +80,16 @@ const Header = ({ onLogout, onCreate }) => {
                     </div>
 
                     <div className="flex items-center gap-4">
+                        <a
+                            href="https://github.com/induction-axiom/prompt-gallery"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="p-2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors rounded-lg cursor-pointer"
+                            aria-label="GitHub Repository"
+                        >
+                            <Github size={20} />
+                        </a>
+
                         <button
                             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
                             className="p-2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors rounded-lg cursor-pointer"
