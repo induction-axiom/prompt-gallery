@@ -16,7 +16,8 @@ const IconButton = ({
     active = false,
     activeColor = "red", // 'red', 'blue', etc.
     variant = "default", // 'default', 'overlay'
-    className = ""
+    className = "",
+    title = ""
 }) => {
 
     // Base styles
@@ -43,6 +44,7 @@ const IconButton = ({
         <button
             onClick={onClick}
             className={`${baseStyles} ${variantStyles} ${className}`}
+            title={title}
         >
             {icon}
             {label !== undefined && label !== null && (
