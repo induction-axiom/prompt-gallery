@@ -64,10 +64,10 @@ const MixedMediaGallery = ({ items, currentUser, onDelete, likedExecutionIds = [
     const isImage = currentItem?.type === 'image' || !!currentItem?.imageUrl;
 
     return (
-        <div className="px-5 pb-3">
+        <div className="px-5 pb-3 h-full flex flex-col">
             {/* Main Hero */}
             <div
-                className="w-full h-96 bg-gray-100 dark:bg-gray-900 rounded-lg mb-3 overflow-hidden flex items-center justify-center border border-gray-100 dark:border-gray-800 cursor-pointer relative group"
+                className="w-full flex-1 mb-3 overflow-hidden flex items-center justify-center cursor-pointer relative group"
                 onClick={() => {
                     setIsModalOpen(true);
                     setIsExpanded(false);
@@ -142,7 +142,7 @@ const MixedMediaGallery = ({ items, currentUser, onDelete, likedExecutionIds = [
                     <img
                         src={currentItem.imageUrl}
                         alt="Generated Result"
-                        className="w-full h-full object-contain"
+                        className="w-full h-auto max-h-full object-contain rounded-md border border-gray-200 dark:border-gray-800"
                     />
                 ) : (
                     <TextCard content={currentItem.textContent} />
