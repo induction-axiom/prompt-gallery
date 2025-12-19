@@ -1,5 +1,16 @@
 @import "tailwindcss";
 
+@theme {
+  --color-firebase-yellow: #FFC400;
+  --color-firebase-orange: #FF9100;
+  --color-firebase-red: #DD2C00;
+  --color-firebase-navy: #030712;
+  --color-android-green: #C6FF00;
+  --color-gemini-pink: #FDADEE;
+  --color-google-blue: #4285F4;
+  --color-google-green: #34A853;
+}
+
 @custom-variant dark (&:where(.dark, .dark *));
 
 @layer base {

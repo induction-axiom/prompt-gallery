@@ -1,7 +1,8 @@
 import React from 'react';
 
 const colorVariants = {
-    red: "bg-red-50 dark:bg-red-900/20 border-red-100 dark:border-red-900/30 text-red-500 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40",
+    red: "bg-red-50 dark:bg-red-900/20 border-red-100 dark:border-red-900/30 text-firebase-red dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40",
+    "firebase-orange": "bg-firebase-orange/10 dark:bg-firebase-orange/20 border-firebase-orange/20 dark:border-firebase-orange/30 text-firebase-orange dark:text-firebase-orange hover:bg-firebase-orange/20 dark:hover:bg-firebase-orange/30",
     blue: "bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-900/30 text-blue-500 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/40",
     green: "bg-green-50 dark:bg-green-900/20 border-green-100 dark:border-green-900/30 text-green-500 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/40",
     purple: "bg-purple-50 dark:bg-purple-900/20 border-purple-100 dark:border-purple-900/30 text-purple-600 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-900/40",

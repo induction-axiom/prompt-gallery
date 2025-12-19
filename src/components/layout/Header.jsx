@@ -66,9 +66,9 @@ const Header = ({ onLogout, onCreate }) => {
                 className={`fixed top-0 left-0 right-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800 transition-all duration-300 ease-in-out ${isVisible ? 'translate-y-0' : '-translate-y-full'
                     }`}
             >
-                <div className="max-w-[1200px] mx-auto px-5 py-4 flex justify-between items-center">
+                <div className="max-w-[1600px] mx-auto px-5 py-4 flex justify-between items-center">
                     <div className="flex flex-col">
-                        <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                        <h1 className="text-3xl font-bold bg-gradient-to-r from-firebase-yellow via-firebase-orange to-firebase-red bg-clip-text text-transparent">
                             Prompt Gallery
                         </h1>
                         <span className={`text-xs font-medium mt-1 ${status === 'Ready' ? 'text-green-600' : 'text-gray-500'}`}>
@@ -87,7 +87,7 @@ const Header = ({ onLogout, onCreate }) => {
 
                         <button
                             onClick={onCreate}
-                            className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm flex items-center gap-2 cursor-pointer"
+                            className="px-5 py-2.5 bg-firebase-orange hover:bg-firebase-red text-white text-sm font-semibold rounded-lg transition-colors shadow-sm flex items-center gap-2 cursor-pointer"
                         >
                             <span className="text-lg leading-none">+</span> Upload Prompt
                         </button>
@@ -100,7 +100,7 @@ const Header = ({ onLogout, onCreate }) => {
                                 {user?.photoURL ? (
                                     <img src={user.photoURL} alt="User" className="w-full h-full object-cover rounded-full" />
                                 ) : (
-                                    <div className="w-full h-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-lg rounded-full">
+                                    <div className="w-full h-full bg-firebase-yellow/20 flex items-center justify-center text-firebase-orange font-bold text-lg rounded-full">
                                         {getInitials(user?.displayName || user?.email)}
                                     </div>
                                 )}
@@ -121,7 +121,7 @@ const Header = ({ onLogout, onCreate }) => {
                                             <button
                                                 onClick={() => { setIsDropdownOpen(false); handleSync(); }}
                                                 disabled={isSyncing}
-                                                className="w-full text-left px-5 py-2.5 text-sm text-indigo-600 hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-900/10 font-medium flex items-center gap-2 cursor-pointer disabled:cursor-not-allowed"
+                                                className="w-full text-left px-5 py-2.5 text-sm text-firebase-orange hover:bg-firebase-orange/5 dark:text-firebase-orange dark:hover:bg-firebase-orange/10 font-medium flex items-center gap-2 cursor-pointer disabled:cursor-not-allowed"
                                             >
                                                 {isSyncing ? 'Syncing...' : 'Sync System Prompts'}
                                                 <RefreshCw size={16} className={isSyncing ? 'animate-spin' : ''} />
