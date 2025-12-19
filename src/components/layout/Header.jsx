@@ -66,25 +66,27 @@ const Header = ({ onLogout, onCreate }) => {
                 className={`fixed top-0 left-0 right-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800 transition-all duration-300 ease-in-out ${isVisible ? 'translate-y-0' : '-translate-y-full'
                     }`}
             >
-                <div className="max-w-[1600px] mx-auto px-5 py-4 flex justify-between items-center">
-                    <div className="flex items-center gap-3">
-                        <img src="/favicon.svg" alt="Logo" className="w-10 h-10" />
-                        <div className="flex flex-col">
-                            <h1 className="text-3xl font-bold bg-gradient-to-r from-firebase-yellow via-firebase-orange to-firebase-red bg-clip-text text-transparent">
-                                Prompt Gallery
-                            </h1>
-                            <span className={`text-xs font-medium mt-1 ${status === 'Ready' ? 'text-green-600' : 'text-gray-500'}`}>
-                                {status}
-                            </span>
-                        </div>
+                <div className="max-w-[1600px] mx-auto px-3 py-3 md:px-5 md:py-4 flex justify-between items-center bg-transparent">
+                    <div className="flex items-center gap-2 md:gap-3">
+                        <a href="/" className="flex items-center gap-2 md:gap-3 hover:opacity-80 transition-opacity">
+                            <img src="/favicon.svg" alt="Logo" className="w-8 h-8 md:w-10 md:h-10" />
+                            <div className="flex flex-col">
+                                <h1 className="text-xl md:text-3xl font-bold bg-gradient-to-r from-firebase-yellow via-firebase-orange to-firebase-red bg-clip-text text-transparent">
+                                    Prompt Gallery
+                                </h1>
+                                <span className={`text-[10px] md:text-xs font-medium mt-0.5 md:mt-1 ${status === 'Ready' ? 'text-green-600' : 'text-gray-500'}`}>
+                                    {status}
+                                </span>
+                            </div>
+                        </a>
                     </div>
 
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2 md:gap-4">
                         <a
                             href="https://github.com/induction-axiom/prompt-gallery"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="p-2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors rounded-lg cursor-pointer"
+                            className="hidden md:block p-2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors rounded-lg cursor-pointer"
                             aria-label="GitHub Repository"
                         >
                             <Github size={20} />
@@ -92,23 +94,23 @@ const Header = ({ onLogout, onCreate }) => {
 
                         <button
                             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                            className="p-2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors rounded-lg cursor-pointer"
+                            className="p-1.5 md:p-2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors rounded-lg cursor-pointer"
                             aria-label="Toggle Dark Mode"
                         >
-                            {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+                            {theme === 'dark' ? <Sun size={20} className="w-5 h-5 md:w-6 md:h-6" /> : <Moon size={20} className="w-5 h-5 md:w-6 md:h-6" />}
                         </button>
 
                         <button
                             onClick={onCreate}
-                            className="px-5 py-2.5 bg-transparent border border-firebase-orange text-gray-900 dark:text-white hover:bg-firebase-orange hover:text-gray-900 dark:hover:text-gray-900 text-sm font-semibold rounded-lg transition-colors shadow-sm flex items-center gap-2 cursor-pointer"
+                            className="px-3 py-2 md:px-5 md:py-2.5 bg-transparent border border-firebase-orange text-gray-900 dark:text-white hover:bg-firebase-orange hover:text-gray-900 dark:hover:text-gray-900 text-sm font-semibold rounded-lg transition-colors shadow-sm flex items-center gap-2 cursor-pointer"
                         >
-                            <span className="text-lg leading-none">+</span> Upload Prompt
+                            <span className="text-lg leading-none">+</span> <span className="hidden md:inline">Upload Prompt</span>
                         </button>
 
                         <div className="relative" ref={dropdownRef}>
                             <button
                                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                                className="flex items-center justify-center w-10 h-10 rounded-full border-2 border-gray-200 dark:border-gray-700 hover:border-blue-400 dark:hover:border-blue-500 transition-colors bg-white dark:bg-gray-800 overflow-hidden cursor-pointer"
+                                className="flex items-center justify-center w-8 h-8 md:w-10 md:h-10 rounded-full border-2 border-gray-200 dark:border-gray-700 hover:border-blue-400 dark:hover:border-blue-500 transition-colors bg-white dark:bg-gray-800 overflow-hidden cursor-pointer"
                             >
                                 {user?.photoURL ? (
                                     <img src={user.photoURL} alt="User" className="w-full h-full object-cover rounded-full" />
