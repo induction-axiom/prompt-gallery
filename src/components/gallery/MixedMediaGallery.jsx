@@ -7,7 +7,7 @@ import Modal from '../common/Modal';
 import Button from '../common/Button';
 import UserBadge from '../common/UserBadge';
 
-const MixedMediaGallery = ({ items, currentUser, onDelete, likedExecutionIds = [], onToggleLike }) => {
+const MixedMediaGallery = ({ items, currentUser, onDelete, likedExecutionIds = [], onToggleLike, onAuthorClick }) => {
     const [selectedIndex, setSelectedIndex] = useState(0);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isExpanded, setIsExpanded] = useState(false);
@@ -93,7 +93,21 @@ const MixedMediaGallery = ({ items, currentUser, onDelete, likedExecutionIds = [
                 ) : (
                     /* User Badge for Non-Owners */
                     <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                        <UserBadge user={currentItem.userProfile} className="!py-1 !px-2 text-xs opacity-90 hover:opacity-100" />
+                        <div
+                            onClick={(e) => {
+                                if (onAuthorClick && (currentItem.creatorId || currentItem.userId)) {
+                                    e.stopPropagation();
+                                    const uid = currentItem.creatorId || currentItem.userId;
+                                    const name = currentItem.userProfile?.displayName || 'Unknown';
+                                    const photoURL = currentItem.userProfile?.photoURL;
+                                    onAuthorClick({ id: uid, displayName: name, photoURL });
+                                }
+                            }}
+                            className={onAuthorClick ? "cursor-pointer" : ""}
+                            title={onAuthorClick ? "Filter by this author" : ""}
+                        >
+                            <UserBadge user={currentItem.userProfile} className="!py-1 !px-2 text-xs opacity-90 hover:opacity-100" />
+                        </div>
                     </div>
                 )}
 

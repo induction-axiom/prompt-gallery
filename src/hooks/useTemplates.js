@@ -1,6 +1,6 @@
 import { useReducer, useEffect, useRef } from 'react';
 import { getPromptTemplate } from '../services/functions';
-import { getRecentTemplates, getTemplateExecutions, deleteExecution, getUserLikes, togglePromptLike, getUserExecutionLikes, toggleExecutionLike, getUserProfile } from '../services/firestore';
+import { getRecentTemplates, getTemplatesByAuthor, getTemplateExecutions, deleteExecution, getUserLikes, togglePromptLike, getUserExecutionLikes, toggleExecutionLike, getUserProfile } from '../services/firestore';
 import { deleteImage } from '../services/storage';
 import { templateReducer, initialState } from '../reducers/templateReducer';
 import { deletePromptTemplate } from '../services/functions';
@@ -32,7 +32,7 @@ export const useTemplates = (user) => {
     // Ref to store the current abort controller
     const abortControllerRef = useRef(null);
 
-    const fetchTemplates = async (sortOverride, tagsOverride) => {
+    const fetchTemplates = async (sortOverride, tagsOverride, authorOverride) => {
         // Cancel previous request if it exists
         if (abortControllerRef.current) {
             abortControllerRef.current.abort();
@@ -42,18 +42,31 @@ export const useTemplates = (user) => {
 
         const currentSort = typeof sortOverride === 'string' ? sortOverride : state.sortBy;
         const currentTags = Array.isArray(tagsOverride) ? tagsOverride : state.selectedTags;
+        const currentAuthor = authorOverride !== undefined ? authorOverride : state.authorFilter;
 
-        // Optimization: When filtering by tags, we might want to inform the user
-        const statusMsg = currentTags.length > 0
-            ? `Filtering by ${currentTags.length} tags...`
-            : "Fetching list from Firestore...";
+        let statusMsg = "Fetching list from Firestore...";
+        if (currentAuthor) {
+            statusMsg = `Fetching templates by ${currentAuthor.name || 'Author'}...`;
+        } else if (currentTags.length > 0) {
+            statusMsg = `Filtering by ${currentTags.length} tags...`;
+        }
 
         setStatus(statusMsg);
         setIsLoading(true);
         try {
-            // 1. Get recent templates from Firestore
-            // Updated to pass selectedTags
-            const { templates: firestoreDocs, lastDoc } = await getRecentTemplates(6, currentSort, null, currentTags);
+            // 1. Get templates from Firestore (Author OR Recent/Tags)
+            let firestoreDocs, lastDoc;
+
+            if (currentAuthor) {
+                // If author is selected, ignore tags for now to avoid complex indexes
+                const res = await getTemplatesByAuthor(currentAuthor.id, 6, currentSort, null);
+                firestoreDocs = res.templates;
+                lastDoc = res.lastDoc;
+            } else {
+                const res = await getRecentTemplates(6, currentSort, null, currentTags);
+                firestoreDocs = res.templates;
+                lastDoc = res.lastDoc;
+            }
 
             if (signal.aborted) return;
 
@@ -137,8 +150,17 @@ export const useTemplates = (user) => {
 
         try {
             // 1. Get next batch of templates from Firestore
-            // Updated to pass selectedTags
-            const { templates: firestoreDocs, lastDoc } = await getRecentTemplates(6, state.sortBy, state.lastDoc, state.selectedTags);
+            let firestoreDocs, lastDoc;
+
+            if (state.authorFilter) {
+                const res = await getTemplatesByAuthor(state.authorFilter.id, 6, state.sortBy, state.lastDoc);
+                firestoreDocs = res.templates;
+                lastDoc = res.lastDoc;
+            } else {
+                const res = await getRecentTemplates(6, state.sortBy, state.lastDoc, state.selectedTags);
+                firestoreDocs = res.templates;
+                lastDoc = res.lastDoc;
+            }
 
             if (firestoreDocs.length === 0) {
                 dispatch({ type: 'SET_PAGINATION', payload: { lastDoc: null, hasMore: false } });
@@ -290,7 +312,35 @@ export const useTemplates = (user) => {
 
     const setTags = (tags) => {
         dispatch({ type: 'SET_TAGS', payload: tags });
-        fetchTemplates(null, tags);
+        // Setting tags clears author filter implicitly in fetchTemplates if we didn't update state.authorFilter to null. 
+        // But logic in fetchTemplates prefers author if set. 
+        // So we should probably clear author filter if we setting tags manually? 
+        // Or if author is set, tags are ignored. 
+        // To be safe, let's clear author filter when setting tags IF users expect tags to work globally.
+        // But actually, simpler is: if I set tags, I assume we go back to recent list.
+        if (state.authorFilter) {
+            dispatch({ type: 'SET_AUTHOR_FILTER', payload: null });
+            fetchTemplates(null, tags, null); // pass null as authorOverride to be explicit? 
+            // Actually currently logic is: if currentAuthor (from override OR state) is set, we use it. 
+            // So if we simply update state to null, referencing state.authorFilter inside fetchTemplates might be stale if we don't pass override.
+            // Updated fetchTemplates to take authorOverride.
+        } else {
+            fetchTemplates(null, tags);
+        }
+    };
+
+    const setAuthorFilter = (author) => {
+        dispatch({ type: 'SET_AUTHOR_FILTER', payload: author });
+        // If author is set, we clear tags? Or just ignore them? 
+        // Logic in fetchTemplates ignores tags if author is set.
+        // We'll also clear tags in state to reflect UI reality?
+        if (author) {
+            dispatch({ type: 'SET_TAGS', payload: [] });
+            fetchTemplates(null, [], author);
+        } else {
+            // Clearing author filter -> go back to all?
+            fetchTemplates(null, [], null);
+        }
     };
 
     const updateLocalTemplate = (template) => {
@@ -309,6 +359,7 @@ export const useTemplates = (user) => {
             getTemplateId,
             setSortBy,
             setTags,
+            setAuthorFilter,
             loadMoreTemplates,
             updateLocalTemplate
         }

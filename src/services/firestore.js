@@ -27,6 +27,7 @@ export const getRecentTemplates = async (limitCount = 10, orderByField = "create
 
     const querySnapshot = await getDocs(finalQuery);
 
+
     return {
         templates: querySnapshot.docs.map(doc => ({
             id: doc.id,
@@ -35,6 +36,32 @@ export const getRecentTemplates = async (limitCount = 10, orderByField = "create
         lastDoc: querySnapshot.docs[querySnapshot.docs.length - 1] || null
     };
 };
+
+export const getTemplatesByAuthor = async (userId, limitCount = 10, orderByField = "createdAt", startAfterDoc = null) => {
+    let q = collection(db, "prompts");
+    const constraints = [
+        where("public", "==", true),
+        where("ownerId", "==", userId),
+        orderBy(orderByField, "desc"),
+        limit(limitCount)
+    ];
+
+    if (startAfterDoc) {
+        constraints.push(startAfter(startAfterDoc));
+    }
+
+    const finalQuery = query(q, ...constraints);
+    const querySnapshot = await getDocs(finalQuery);
+
+    return {
+        templates: querySnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        })),
+        lastDoc: querySnapshot.docs[querySnapshot.docs.length - 1] || null
+    };
+};
+
 
 const executionsCache = new Map();
 

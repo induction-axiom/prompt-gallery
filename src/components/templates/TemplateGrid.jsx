@@ -45,6 +45,7 @@ const TemplateGrid = ({ handleViewWrapper, handleOpenEdit, setSelectedRunTemplat
                         isLiked={state.likedTemplateIds.includes(actions.getTemplateId(t.name))}
                         likedExecutionIds={state.likedExecutionIds}
                         currentUser={user}
+                        onAuthorClick={actions.setAuthorFilter}
                     />
                 ))}
             </div>
