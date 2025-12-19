@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { subscribeToGlobalTags } from '../../services/firestore';
 import { Tag, X, Check, Filter } from 'lucide-react';
 import { useTemplatesContext } from '../../context/TemplatesContext';
 
@@ -21,16 +22,16 @@ const LabelFilter = () => {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    // Extract all unique tags from currently loaded templates for suggestions
-    const availableTags = React.useMemo(() => {
-        const tags = new Set();
-        templates.forEach(t => {
-            if (t.tags && Array.isArray(t.tags)) {
-                t.tags.forEach(tag => tags.add(tag));
-            }
+    // Subscribe to global tag list
+    const [availableTags, setAvailableTags] = useState([]);
+
+    useEffect(() => {
+        const unsubscribe = subscribeToGlobalTags((tags) => {
+            setAvailableTags(tags);
         });
-        return Array.from(tags).sort();
-    }, [templates]);
+
+        return () => unsubscribe();
+    }, []);
 
     const toggleTag = (tag) => {
         const newTags = selectedTags.includes(tag)

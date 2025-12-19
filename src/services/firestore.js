@@ -275,3 +275,18 @@ export const getUserProfile = async (userId) => {
     return null;
 };
 
+
+export const subscribeToGlobalTags = (callback) => {
+    return onSnapshot(doc(db, "metadata", "tags"), (doc) => {
+        if (doc.exists()) {
+            const data = doc.data();
+            if (data.allTags && Array.isArray(data.allTags)) {
+                callback(data.allTags.sort());
+            } else {
+                callback([]);
+            }
+        } else {
+            callback([]);
+        }
+    });
+};
