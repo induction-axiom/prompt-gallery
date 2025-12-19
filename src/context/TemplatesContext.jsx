@@ -13,7 +13,14 @@ export const TemplatesProvider = ({ children }) => {
     const { state, actions } = useTemplates(user);
 
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+        const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+            if (currentUser && !currentUser.email.endsWith('@google.com')) {
+                await auth.signOut();
+                setUser(null);
+                setIsAuthLoading(false);
+                return;
+            }
+
             setUser(currentUser);
             setIsAuthLoading(false);
 

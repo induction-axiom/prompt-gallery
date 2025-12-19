@@ -35,7 +35,13 @@ function App() {
   // --- Auth Handlers ---
   const handleGoogleLogin = async () => {
     try {
-      await signInWithPopup(auth, googleProvider);
+      const result = await signInWithPopup(auth, googleProvider);
+      const email = result.user.email;
+      if (!email.endsWith('@google.com')) {
+        await signOut(auth);
+        alert("Access restricted to @google.com email addresses only.");
+        return;
+      }
     } catch (error) {
       console.error("Login failed", error);
       alert(error.message);
