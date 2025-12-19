@@ -1,0 +1,20 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Bottom Layer (Deep Shadow) -->
+  <path d="M380 40H132C81.1898 40 40 81.1898 40 132V380C40 430.81 81.1898 472 132 472H380C430.81 472 472 430.81 472 380V132C472 81.1898 430.81 40 380 40Z" fill="#F57C00"/>
+  
+  <!-- Middle Layer (Body) -->
+  <path d="M380 40H132C81.1898 40 40 81.1898 40 132V360C40 410.81 81.1898 452 132 452H380C430.81 452 472 410.81 472 360V132C472 81.1898 430.81 40 380 40Z" fill="#FFA000"/>
+
+  <!-- Top Layer (Face) -->
+  <path d="M380 40H132C81.1898 40 40 81.1898 40 132V340C40 390.81 81.1898 432 132 432H380C430.81 432 472 390.81 472 340V132C472 81.1898 430.81 40 380 40Z" fill="#FFCA28"/>
+
+  <!-- The "Prompt" Card Area -->
+  <rect x="100" y="100" width="312" height="232" rx="20" fill="white" fill-opacity="0.9"/>
+
+  <!-- The Prompt Symbol (> _) -->
+  <path d="M150 160L200 216L150 272" stroke="#F57C00" stroke-width="32" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="220" y="240" width="100" height="32" rx="8" fill="#F57C00"/>
+
+  <!-- The Fold Effect (Top Right) -->
+  <path d="M472 132L360 40V152H472V132Z" fill="#F57C00" fill-opacity="0.4"/>
+</svg>
