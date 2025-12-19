@@ -10,6 +10,7 @@ const { getStorage } = require("firebase-admin/storage");
 initializeApp();
 
 const { verifyOwnership, syncTemplateToFirestore, updateTemplateInFirestore, deleteTemplateFromFirestore } = require("./lib/firestore");
+const { performTagRebuild, mergeTagsIntoGlobalList } = require("./lib/tags");
 const { systemPrompts } = require("./config/systemPrompts");
 
 
@@ -133,6 +134,11 @@ exports.createPromptTemplate = onCall(
 
         await syncTemplateToFirestore(templateId, request.auth ? request.auth.uid : null, jsonInputSchema, tags);
 
+        // Update global tags
+        if (tags && tags.length > 0) {
+            await mergeTagsIntoGlobalList(tags);
+        }
+
         logger.info("Prompt created successfully and synced to Firestore");
         return result;
     }
@@ -201,6 +207,11 @@ exports.updatePromptTemplate = onCall(
         if (tags !== undefined) updates.tags = tags;
 
         const result = await executePromptUpdate(templateId, updates);
+
+        // Update global tags if they were changed
+        if (tags && tags.length > 0) {
+            await mergeTagsIntoGlobalList(tags);
+        }
 
         logger.info("Prompt updated successfully");
         return result;
@@ -295,3 +306,18 @@ exports.cleanupStorage = onDocumentDeleted("executions/{executionId}", async (ev
         }
     }
 });
+
+/**
+ * Admin callable: Manually trigger tag rebuild
+ */
+exports.manualRebuildTags = onCall(
+    { maxInstances: 1, enforceAppCheck: true },
+    async (request) => {
+        ensureAdmin(request.auth);
+        const { tagCount } = await performTagRebuild();
+        return {
+            success: true,
+            message: `Rebuilt tag list with ${tagCount} unique tags.`
+        };
+    }
+);

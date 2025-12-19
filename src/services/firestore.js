@@ -1,4 +1,4 @@
-import { collection, query, orderBy, limit, getDocs, addDoc, serverTimestamp, where, deleteDoc, doc, runTransaction, setDoc, getDoc, startAfter } from "firebase/firestore";
+import { collection, query, orderBy, limit, getDocs, addDoc, serverTimestamp, where, deleteDoc, doc, runTransaction, setDoc, getDoc, startAfter, onSnapshot } from "firebase/firestore";
 import { db } from "../firebase";
 
 export const getRecentTemplates = async (limitCount = 10, orderByField = "createdAt", startAfterDoc = null, filterTags = []) => {
@@ -275,3 +275,18 @@ export const getUserProfile = async (userId) => {
     return null;
 };
 
+
+export const subscribeToGlobalTags = (callback) => {
+    return onSnapshot(doc(db, "metadata", "tags"), (doc) => {
+        if (doc.exists()) {
+            const data = doc.data();
+            if (data.allTags && Array.isArray(data.allTags)) {
+                callback(data.allTags.sort());
+            } else {
+                callback([]);
+            }
+        } else {
+            callback([]);
+        }
+    });
+};
