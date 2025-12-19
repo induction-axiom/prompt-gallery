@@ -6,15 +6,25 @@ const ThumbnailStrip = ({ items, selectedIndex, onSelect }) => {
     const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
     const itemsRef = React.useRef([]);
 
+    const containerRef = React.useRef(null);
+
     // Ensure the ref array is the correct length
     itemsRef.current = itemsRef.current.slice(0, items.length);
 
     React.useEffect(() => {
-        if (itemsRef.current[selectedIndex]) {
-            itemsRef.current[selectedIndex].scrollIntoView({
-                behavior: 'smooth',
-                block: 'nearest',
-                inline: 'center'
+        if (itemsRef.current[selectedIndex] && containerRef.current) {
+            const container = containerRef.current;
+            const item = itemsRef.current[selectedIndex];
+
+            const containerRect = container.getBoundingClientRect();
+            const itemRect = item.getBoundingClientRect();
+
+            // Calculate the position to center the item
+            const scrollLeft = item.offsetLeft - (containerRect.width / 2) + (itemRect.width / 2);
+
+            container.scrollTo({
+                left: scrollLeft,
+                behavior: 'smooth'
             });
         }
     }, [selectedIndex]);
@@ -24,7 +34,10 @@ const ThumbnailStrip = ({ items, selectedIndex, onSelect }) => {
     };
 
     return (
-        <div className="flex gap-2 overflow-x-auto pb-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']">
+        <div
+            ref={containerRef}
+            className="flex gap-2 overflow-x-auto pb-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']"
+        >
             {items.map((item, idx) => {
                 const isSelected = selectedIndex === idx;
                 const isImage = item.type === 'image' || !!item.imageUrl;
