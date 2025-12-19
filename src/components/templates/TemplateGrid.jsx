@@ -2,7 +2,7 @@ import React, { useRef, useEffect } from 'react';
 import TemplateCard from './TemplateCard';
 import { useTemplatesContext } from '../../context/TemplatesContext';
 
-const TemplateGrid = ({ handleViewWrapper, handleOpenEdit, setSelectedRunTemplate }) => {
+const TemplateGrid = ({ handleViewWrapper, handleOpenEdit, handleRemix, setSelectedRunTemplate }) => {
     const { state, actions, user } = useTemplatesContext();
     const observerTarget = useRef(null);
 
@@ -38,6 +38,7 @@ const TemplateGrid = ({ handleViewWrapper, handleOpenEdit, setSelectedRunTemplat
                         onRun={() => setSelectedRunTemplate(t)}
                         onView={() => handleViewWrapper(t)}
                         onEdit={handleOpenEdit}
+                        onRemix={handleRemix}
                         onDelete={actions.handleDeleteTemplate}
                         onDeleteExecution={actions.handleDeleteExecution}
                         onToggleLike={actions.handleToggleLike}

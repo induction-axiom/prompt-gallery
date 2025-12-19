@@ -1,4 +1,5 @@
 import React from 'react';
+import { Shuffle } from 'lucide-react';
 import MixedMediaGallery from '../gallery/MixedMediaGallery';
 import Tooltip from '../common/Tooltip';
 import IconButton from '../common/IconButton';
@@ -7,7 +8,7 @@ import UserBadge from '../common/UserBadge';
 
 import { extractModelFromDotPrompt } from '../../utils/geminiParsers';
 
-const TemplateCard = ({ template, onRun, onView, onEdit, onDelete, onDeleteExecution, onToggleLike, onToggleExecutionLike, isLiked, likedExecutionIds, getTemplateId, currentUser, onAuthorClick }) => {
+const TemplateCard = ({ template, onRun, onView, onEdit, onRemix, onDelete, onDeleteExecution, onToggleLike, onToggleExecutionLike, isLiked, likedExecutionIds, getTemplateId, currentUser, onAuthorClick }) => {
     const [showTooltip, setShowTooltip] = React.useState(false);
     const [tooltipPos, setTooltipPos] = React.useState({ x: 0, y: 0 });
     const modelName = extractModelFromDotPrompt(template.templateString || template.dotPromptString);
@@ -37,12 +38,23 @@ const TemplateCard = ({ template, onRun, onView, onEdit, onDelete, onDeleteExecu
                 <div className="flex justify-between items-center bg-white dark:bg-gray-800">
                     <h3 className="m-0 text-[#333] dark:text-gray-100 font-bold text-lg truncate leading-6 min-h-[1.5rem]" title={template.displayName}>{template.displayName}</h3>
                 </div>
+                {(template.remixMetadata || template.parentId) && (
+                    <div className="flex items-center gap-1 mt-1 text-xs text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20 px-1.5 py-0.5 rounded-md w-fit max-w-full">
+                        <Shuffle className="h-3 w-3" />
+                        <span className="truncate">
+                            {template.remixMetadata ? (
+                                <>Remix of <strong>{template.remixMetadata.originName}</strong> by {template.remixMetadata.originAuthor}</>
+                            ) : (
+                                <span>Remix</span>
+                            )}
+                        </span>
+                    </div>
+                )}
                 {modelName && (
                     <div className="text-xs text-blue-500 dark:text-blue-400 font-mono mt-1 bg-blue-50 dark:bg-blue-900/30 inline-block px-1 rounded">
                         {modelName}
                     </div>
                 )}
-
                 <Tooltip
                     content={template.templateString || template.dotPromptString || "No template string available"}
                     visible={showTooltip}
@@ -77,27 +89,42 @@ const TemplateCard = ({ template, onRun, onView, onEdit, onDelete, onDeleteExecu
 
             {/* Actions Footer */}
             <Card.Footer>
-                {/* Like Button Group */}
-                <IconButton
-                    onClick={(e) => { e.stopPropagation(); onToggleLike(getTemplateId(template.name)); }}
-                    active={isLiked}
-                    activeColor="red"
-                    label={template.likeCount || 0}
-                    icon={
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 24 24"
-                            fill={isLiked ? "currentColor" : "none"}
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            className="w-4 h-4"
-                        >
-                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                        </svg>
-                    }
-                />
+                <div className="flex gap-2.5 items-center">
+                    {/* Like Button Group */}
+                    <IconButton
+                        onClick={(e) => { e.stopPropagation(); onToggleLike(getTemplateId(template.name)); }}
+                        active={isLiked}
+                        activeColor="red"
+                        label={template.likeCount || 0}
+                        icon={
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 24 24"
+                                fill={isLiked ? "currentColor" : "none"}
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                className="w-4 h-4"
+                            >
+                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                            </svg>
+                        }
+                    />
+
+                    {/* Remix Button (If not owner) */}
+                    {(!isOwner) && (
+                        <IconButton
+                            onClick={(e) => onRemix(e, template)}
+                            active={false}
+                            title="Remix this prompt (create your own version)"
+                            className="hover:!border-purple-300 hover:!bg-purple-50 dark:hover:!border-purple-700 dark:hover:!bg-purple-900/30 group"
+                            icon={
+                                <Shuffle className="h-4 w-4 text-gray-400 group-hover:text-purple-500 transition-colors" />
+                            }
+                        />
+                    )}
+                </div>
 
                 <div className="flex justify-end gap-2.5 items-center">
                     {isOwner && isHovered ? (

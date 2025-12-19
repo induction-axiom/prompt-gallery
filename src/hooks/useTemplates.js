@@ -105,7 +105,9 @@ export const useTemplates = (user) => {
                         jsonInputSchema: docData.jsonInputSchema || '',
                         tags: docData.tags || [],
                         likeCount: docData.likeCount || 0,
-                        executions: executions
+                        executions: executions,
+                        parentId: docData.parentId || null,
+                        remixMetadata: docData.remixMetadata || null
                     };
                 } catch (err) {
                     console.error(`Failed to fetch template ${docData.id}`, err);
@@ -193,7 +195,9 @@ export const useTemplates = (user) => {
                         jsonInputSchema: docData.jsonInputSchema || '',
                         tags: docData.tags || [],
                         likeCount: docData.likeCount || 0,
-                        executions: executions
+                        executions: executions,
+                        parentId: docData.parentId || null,
+                        remixMetadata: docData.remixMetadata || null
                     };
                 } catch (err) {
                     console.error(`Failed to fetch template ${docData.id}`, err);

@@ -34,9 +34,10 @@ const TemplateEditor = ({
 
     React.useEffect(() => {
         if (isOpen) {
-            if (isEditing && initialData) {
+            console.log("TemplateEditor: isOpen", isOpen, "initialData", initialData);
+            if (initialData) {
                 setDisplayName(initialData.displayName || "");
-                setDotPromptString(initialData.templateString || "");
+                setDotPromptString(initialData.templateString || initialData.dotPromptString || "");
                 setJsonInputSchema(initialData.jsonInputSchema || "");
                 setTags(initialData.tags || []);
                 setTagsInput((initialData.tags || []).join(", "));
@@ -48,7 +49,7 @@ const TemplateEditor = ({
                 setTagsInput("");
             }
         }
-    }, [isOpen, isEditing, initialData]);
+    }, [isOpen, initialData]);
 
     const handleAutoDetectScore = async () => {
         if (!dotPromptString) return alert("Please enter a prompt first");
@@ -191,11 +192,19 @@ const TemplateEditor = ({
                     tags: finalTags
                 });
             } else {
+                const isRemixing = !isEditing && initialData;
                 await createPromptTemplate({
                     displayName,
                     dotPromptString,
                     jsonInputSchema,
-                    tags: finalTags
+                    tags: finalTags,
+                    parentId: isRemixing ? getTemplateId(initialData.name) : null, // Function might ignore this if not updated
+                    remixMetadata: isRemixing ? {
+                        originName: initialData.displayName,
+                        originAuthor: initialData.ownerProfile?.displayName || 'Unknown Author',
+                        originAuthorId: initialData.ownerId,
+                        originId: getTemplateId(initialData.name)
+                    } : null
                 });
                 // Only refresh list for new creations since we don't have the ID/Timestamp
                 actions.fetchTemplates();
@@ -228,6 +237,17 @@ const TemplateEditor = ({
             }
         >
             <div className="mb-4">
+                {/* Remix Info Banner */}
+                {(!isEditing && initialData) && (
+                    <div className="mb-4 p-3 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg flex items-center gap-2 text-sm text-purple-700 dark:text-purple-300">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                        </svg>
+                        <span>
+                            Remixing <strong>{initialData.displayName}</strong> by {initialData.ownerProfile?.displayName || 'Unknown Author'}
+                        </span>
+                    </div>
+                )}
                 <div className="flex justify-between items-center mb-1.5">
                     <label className="block font-bold text-gray-700 dark:text-gray-300">Prompt Name</label>
                     <Button
