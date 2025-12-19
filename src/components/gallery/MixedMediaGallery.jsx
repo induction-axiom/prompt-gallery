@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import TextCard from './TextCard';
 import ThumbnailStrip from './ThumbnailStrip';
 import IconButton from '../common/IconButton';
@@ -159,59 +159,110 @@ const MixedMediaGallery = ({ items, currentUser, onDelete, likedExecutionIds = [
             />
 
             {/* View Modal */}
+            {/* View Modal */}
             {isModalOpen && (
-                <Modal
-                    title={isImage ? "Generated Image" : "Generated Text"}
-                    onClose={() => setIsModalOpen(false)}
-                    maxWidth={isExpanded ? 'max-w-[95vw] w-fit' : 'max-w-[600px]'}
-                    footer={
-                        <Button variant="secondary" onClick={() => setIsModalOpen(false)}>
-                            Close
-                        </Button>
-                    }
-                >
-                    {items.length > 1 && (
-                        <>
-                            {safeIndex > 0 && (
-                                <button
-                                    onClick={handlePrev}
-                                    className="absolute left-2 top-1/2 -translate-y-1/2 z-50 p-2 bg-black/50 hover:bg-black/70 text-white rounded-full transition-colors cursor-pointer border-none flex items-center justify-center h-10 w-10"
-                                    title="Previous"
-                                >
-                                    <ChevronLeft size={24} />
-                                </button>
+                <>
+                    {/* Custom Image Overlay */}
+                    {isImage && (
+                        <div
+                            className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4"
+                            onClick={() => setIsModalOpen(false)}
+                        >
+                            {/* Navigation Buttons */}
+                            {items.length > 1 && (
+                                <>
+                                    {safeIndex > 0 && (
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handlePrev(e);
+                                            }}
+                                            className="fixed left-4 top-1/2 -translate-y-1/2 p-3 text-white/70 hover:text-white hover:bg-white/10 rounded-full transition-all cursor-pointer z-50"
+                                            title="Previous"
+                                        >
+                                            <ChevronLeft size={48} strokeWidth={1.5} />
+                                        </button>
+                                    )}
+                                    {safeIndex < items.length - 1 && (
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleNext(e);
+                                            }}
+                                            className="fixed right-4 top-1/2 -translate-y-1/2 p-3 text-white/70 hover:text-white hover:bg-white/10 rounded-full transition-all cursor-pointer z-50"
+                                            title="Next"
+                                        >
+                                            <ChevronRight size={48} strokeWidth={1.5} />
+                                        </button>
+                                    )}
+                                </>
                             )}
-                            {safeIndex < items.length - 1 && (
+
+                            {/* Image Container with Gradient Border */}
+                            <div
+                                className="relative group max-w-[90vw] max-h-[90vh]"
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                <div className="p-[3px] rounded-xl bg-gradient-to-r from-[#DD2C00] via-[#FF9100] to-[#FFC400] shadow-2xl">
+                                    <img
+                                        src={currentItem.imageUrl}
+                                        alt="Generated Result"
+                                        className="max-h-[85vh] max-w-full object-contain rounded-[9px] bg-black/50"
+                                    />
+                                </div>
+
+                                {/* Close Button */}
                                 <button
-                                    onClick={handleNext}
-                                    className="absolute right-2 top-1/2 -translate-y-1/2 z-50 p-2 bg-black/50 hover:bg-black/70 text-white rounded-full transition-colors cursor-pointer border-none flex items-center justify-center h-10 w-10"
-                                    title="Next"
+                                    onClick={() => setIsModalOpen(false)}
+                                    className="absolute -top-4 -right-4 p-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 rounded-full shadow-lg border border-gray-200 dark:border-gray-700 hover:scale-110 transition-transform cursor-pointer z-50"
+                                    title="Close"
                                 >
-                                    <ChevronRight size={24} />
+                                    <X size={20} />
                                 </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Standard Modal for Text */}
+                    {!isImage && (
+                        <Modal
+                            title="Generated Text"
+                            onClose={() => setIsModalOpen(false)}
+                            maxWidth="max-w-[600px]"
+                            footer={
+                                <Button variant="secondary" onClick={() => setIsModalOpen(false)}>
+                                    Close
+                                </Button>
+                            }
+                        >
+                            {items.length > 1 && (
+                                <>
+                                    {safeIndex > 0 && (
+                                        <button
+                                            onClick={handlePrev}
+                                            className="absolute left-2 top-1/2 -translate-y-1/2 z-50 p-2 bg-black/50 hover:bg-black/70 text-white rounded-full transition-colors cursor-pointer border-none flex items-center justify-center h-10 w-10"
+                                            title="Previous"
+                                        >
+                                            <ChevronLeft size={24} />
+                                        </button>
+                                    )}
+                                    {safeIndex < items.length - 1 && (
+                                        <button
+                                            onClick={handleNext}
+                                            className="absolute right-2 top-1/2 -translate-y-1/2 z-50 p-2 bg-black/50 hover:bg-black/70 text-white rounded-full transition-colors cursor-pointer border-none flex items-center justify-center h-10 w-10"
+                                            title="Next"
+                                        >
+                                            <ChevronRight size={24} />
+                                        </button>
+                                    )}
+                                </>
                             )}
-                        </>
+                            <div className="whitespace-pre-wrap text-left dark:text-gray-200">
+                                {currentItem.textContent}
+                            </div>
+                        </Modal>
                     )}
-                    {isImage ? (
-                        <div className="flex justify-center items-center h-full">
-                            <img
-                                src={currentItem.imageUrl}
-                                alt="Generated Result"
-                                className={`
-                                    max-w-full 
-                                    ${isExpanded ? 'max-h-[90vh]' : 'max-h-[70vh]'} 
-                                    object-contain 
-                                    ${isExpanded ? 'cursor-zoom-out' : 'cursor-zoom-in'}
-                                `}
-                                onClick={() => setIsExpanded(!isExpanded)}
-                            />
-                        </div>
-                    ) : (
-                        <div className="whitespace-pre-wrap text-left dark:text-gray-200">
-                            {currentItem.textContent}
-                        </div>
-                    )}
-                </Modal>
+                </>
             )}
         </div>
     );
