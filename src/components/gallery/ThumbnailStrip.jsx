@@ -18,8 +18,13 @@ const ThumbnailStrip = ({ items, selectedIndex, onSelect }) => {
                 return (
                     <div
                         key={item.id || idx}
-                        className={`flex-shrink-0 w-16 h-16 rounded-md overflow-hidden border-2 cursor-pointer transition-all ${isSelected ? 'border-blue-500 dark:border-blue-400 opacity-100' : 'border-transparent opacity-70 hover:opacity-100'
-                            } bg-gray-100 dark:bg-gray-800`}
+                        className={`
+                            shrink-0 flex items-center justify-center rounded-lg transition-all cursor-pointer 
+                            ${isSelected
+                                ? 'p-[2px] bg-gradient-to-r from-[#DD2C00] via-[#FF9100] to-[#FFC400]'
+                                : 'p-[2px] bg-transparent opacity-70 hover:opacity-100'
+                            }
+                        `}
                         onClick={(e) => {
                             e.stopPropagation();
                             onSelect(idx);
@@ -28,19 +33,21 @@ const ThumbnailStrip = ({ items, selectedIndex, onSelect }) => {
                         onMouseMove={handleMouseMove}
                         onMouseLeave={() => setHoveredIndex(null)}
                     >
-                        {isImage ? (
-                            <img
-                                src={item.imageUrl}
-                                alt={`Thumbnail ${idx}`}
-                                className="w-full h-full object-cover"
-                            />
-                        ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-300 font-bold text-xs p-1 text-center">
-                                <span className="line-clamp-3 overflow-hidden text-[10px] leading-tight">
-                                    {item.textContent || "Aa"}
-                                </span>
-                            </div>
-                        )}
+                        <div className={`w-16 h-16 rounded-md overflow-hidden bg-gray-100 dark:bg-gray-800 ${isSelected ? 'rounded-[calc(0.375rem-2px)]' : ''}`}>
+                            {isImage ? (
+                                <img
+                                    src={item.imageUrl}
+                                    alt={`Thumbnail ${idx}`}
+                                    className="w-full h-full object-cover"
+                                />
+                            ) : (
+                                <div className="w-full h-full flex items-center justify-center bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-300 font-bold text-xs p-1 text-center">
+                                    <span className="line-clamp-3 overflow-hidden text-[10px] leading-tight">
+                                        {item.textContent || "Aa"}
+                                    </span>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 );
             })}
