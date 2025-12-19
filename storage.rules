@@ -1,11 +1,16 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
+    
+    function isGoogler() {
+        return request.auth.token.email.matches('.*@google[.]com');
+    }
+
     match /generated_images/{userId}/{allPaths=**} {
-      // Allow write if user owns the path
-      allow write: if request.auth != null && request.auth.uid == userId;
-      // Allow read if user owns the path OR if the file metadata says it's public
-      allow read: if request.auth != null && (request.auth.uid == userId || resource.metadata.public == "true");
+      // Allow write if user owns the path AND is a Googler
+      allow write: if request.auth != null && isGoogler() && request.auth.uid == userId;
+      // Allow read if user owns the path OR if the file metadata says it's public, AND is a Googler
+      allow read: if request.auth != null && isGoogler() && (request.auth.uid == userId || resource.metadata.public == "true");
     }
   }
 }
