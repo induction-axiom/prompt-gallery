@@ -16,6 +16,28 @@ const Header = ({ onLogout, onCreate }) => {
     const [isSyncing, setIsSyncing] = useState(false);
     const dropdownRef = useRef(null);
 
+    const [headerHeight, setHeaderHeight] = useState(0);
+    const headerRef = useRef(null);
+
+    useEffect(() => {
+        const updateHeight = () => {
+            if (headerRef.current) {
+                setHeaderHeight(headerRef.current.offsetHeight);
+            }
+        };
+
+        // Initial measurement
+        updateHeight();
+
+        // Observe resizes
+        const observer = new ResizeObserver(updateHeight);
+        if (headerRef.current) {
+            observer.observe(headerRef.current);
+        }
+
+        return () => observer.disconnect();
+    }, []);
+
     useEffect(() => {
         const controlNavbar = () => {
             if (typeof window !== 'undefined') {
@@ -61,12 +83,16 @@ const Header = ({ onLogout, onCreate }) => {
 
     return (
         <>
-            <div className="h-[100px]" />
+            <div style={{ height: headerHeight }} />
             <header
+                ref={headerRef}
                 className={`fixed top-0 left-0 right-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800 transition-all duration-300 ease-in-out ${isVisible ? 'translate-y-0' : '-translate-y-full'
                     }`}
             >
-                <div className="max-w-[1600px] mx-auto px-3 py-3 md:px-5 md:py-4 flex justify-between items-center bg-transparent">
+                <div className="bg-blue-50 border-b border-blue-100 dark:bg-blue-900/20 dark:border-blue-800 text-blue-700 dark:text-blue-200 text-center py-2 px-4 text-sm font-medium">
+                    Now only Googlers can have access to this website and this firebase project uses Google's billing account
+                </div>
+                <div className="max-w-[1600px] mx-auto px-4 py-3 md:px-6 md:py-4 flex justify-between items-center bg-transparent">
                     <div className="flex items-center gap-2 md:gap-3">
                         <a href="/" className="flex items-center gap-2 md:gap-3 hover:opacity-80 transition-opacity">
                             <img src="/favicon.svg" alt="Logo" className="w-8 h-8 md:w-10 md:h-10" />
