@@ -36,7 +36,7 @@ const ThumbnailStrip = ({ items, selectedIndex, onSelect }) => {
     return (
         <div
             ref={containerRef}
-            className="flex gap-2 overflow-x-auto pb-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']"
+            className="relative flex gap-2 overflow-x-auto pb-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']"
         >
             {items.map((item, idx) => {
                 const isSelected = selectedIndex === idx;
