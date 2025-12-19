@@ -4,13 +4,27 @@ import Tooltip from '../common/Tooltip';
 const ThumbnailStrip = ({ items, selectedIndex, onSelect }) => {
     const [hoveredIndex, setHoveredIndex] = useState(null);
     const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
+    const itemsRef = React.useRef([]);
+
+    // Ensure the ref array is the correct length
+    itemsRef.current = itemsRef.current.slice(0, items.length);
+
+    React.useEffect(() => {
+        if (itemsRef.current[selectedIndex]) {
+            itemsRef.current[selectedIndex].scrollIntoView({
+                behavior: 'smooth',
+                block: 'nearest',
+                inline: 'center'
+            });
+        }
+    }, [selectedIndex]);
 
     const handleMouseMove = (e) => {
         setTooltipPos({ x: e.clientX, y: e.clientY });
     };
 
     return (
-        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin">
+        <div className="flex gap-2 overflow-x-auto pb-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']">
             {items.map((item, idx) => {
                 const isSelected = selectedIndex === idx;
                 const isImage = item.type === 'image' || !!item.imageUrl;
@@ -18,6 +32,7 @@ const ThumbnailStrip = ({ items, selectedIndex, onSelect }) => {
                 return (
                     <div
                         key={item.id || idx}
+                        ref={el => itemsRef.current[idx] = el}
                         className={`
                             shrink-0 flex items-center justify-center rounded-lg transition-all cursor-pointer 
                             ${isSelected
