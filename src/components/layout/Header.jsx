@@ -87,7 +87,7 @@ const Header = ({ onLogout, onCreate }) => {
 
                         <button
                             onClick={onCreate}
-                            className="px-5 py-2.5 bg-firebase-orange hover:bg-firebase-red text-white text-sm font-semibold rounded-lg transition-colors shadow-sm flex items-center gap-2 cursor-pointer"
+                            className="px-5 py-2.5 bg-transparent border border-firebase-orange text-gray-900 dark:text-white hover:bg-firebase-orange hover:text-gray-900 dark:hover:text-gray-900 text-sm font-semibold rounded-lg transition-colors shadow-sm flex items-center gap-2 cursor-pointer"
                         >
                             <span className="text-lg leading-none">+</span> Upload Prompt
                         </button>
