@@ -73,80 +73,82 @@ const MixedMediaGallery = ({ items, currentUser, onDelete, likedExecutionIds = [
                     setIsExpanded(false);
                 }}
             >
-                {/* Delete Button Overlay */}
-                {currentUser && (currentUser.uid === currentItem.creatorId || currentUser.uid === currentItem.userId) ? (
-                    <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                <div className="relative max-w-full max-h-full flex justify-center items-center">
+                    {/* Delete Button Overlay */}
+                    {currentUser && (currentUser.uid === currentItem.creatorId || currentUser.uid === currentItem.userId) ? (
+                        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                            <IconButton
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onDelete && onDelete(currentItem);
+                                }}
+                                variant="overlay"
+                                icon={
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                }
+                                title="Delete this result"
+                            />
+                        </div>
+                    ) : (
+                        /* User Badge for Non-Owners */
+                        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                            <div
+                                onClick={(e) => {
+                                    if (onAuthorClick && (currentItem.creatorId || currentItem.userId)) {
+                                        e.stopPropagation();
+                                        const uid = currentItem.creatorId || currentItem.userId;
+                                        const name = currentItem.userProfile?.displayName || 'Unknown';
+                                        const photoURL = currentItem.userProfile?.photoURL;
+                                        onAuthorClick({ id: uid, displayName: name, photoURL });
+                                    }
+                                }}
+                                className={onAuthorClick ? "cursor-pointer" : ""}
+                                title={onAuthorClick ? "Filter by this author" : ""}
+                            >
+                                <UserBadge user={currentItem.userProfile} className="!py-1 !px-2 text-xs opacity-90 hover:opacity-100" />
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Like Button Wrapper */}
+                    <div className="absolute top-2 left-2 z-10">
                         <IconButton
                             onClick={(e) => {
                                 e.stopPropagation();
-                                onDelete && onDelete(currentItem);
+                                onToggleLike && onToggleLike(currentItem.id);
                             }}
-                            variant="overlay"
+                            active={likedExecutionIds.includes(currentItem.id)}
+                            activeColor="red"
+                            label={currentItem.likeCount || 0}
                             icon={
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    viewBox="0 0 24 24"
+                                    fill={likedExecutionIds.includes(currentItem.id) ? "currentColor" : "none"}
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    className="w-4 h-4"
+                                >
+                                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
                                 </svg>
                             }
-                            title="Delete this result"
                         />
                     </div>
-                ) : (
-                    /* User Badge for Non-Owners */
-                    <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                        <div
-                            onClick={(e) => {
-                                if (onAuthorClick && (currentItem.creatorId || currentItem.userId)) {
-                                    e.stopPropagation();
-                                    const uid = currentItem.creatorId || currentItem.userId;
-                                    const name = currentItem.userProfile?.displayName || 'Unknown';
-                                    const photoURL = currentItem.userProfile?.photoURL;
-                                    onAuthorClick({ id: uid, displayName: name, photoURL });
-                                }
-                            }}
-                            className={onAuthorClick ? "cursor-pointer" : ""}
-                            title={onAuthorClick ? "Filter by this author" : ""}
-                        >
-                            <UserBadge user={currentItem.userProfile} className="!py-1 !px-2 text-xs opacity-90 hover:opacity-100" />
-                        </div>
-                    </div>
-                )}
 
-                {/* Content */}
-                <div className="absolute top-2 left-2 z-10">
-                    <IconButton
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onToggleLike && onToggleLike(currentItem.id);
-                        }}
-                        active={likedExecutionIds.includes(currentItem.id)}
-                        activeColor="red"
-                        label={currentItem.likeCount || 0}
-                        icon={
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 24 24"
-                                fill={likedExecutionIds.includes(currentItem.id) ? "currentColor" : "none"}
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                className="w-4 h-4"
-                            >
-                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                            </svg>
-                        }
-                    />
+                    {isImage ? (
+                        <img
+                            src={currentItem.imageUrl}
+                            alt="Generated Result"
+                            className="w-auto h-auto max-w-full max-h-full object-contain rounded-md border border-gray-200 dark:border-gray-800"
+                        />
+                    ) : (
+                        <TextCard content={currentItem.textContent} />
+                    )}
                 </div>
-
-                {isImage ? (
-                    <img
-                        src={currentItem.imageUrl}
-                        alt="Generated Result"
-                        className="w-full h-auto max-h-full object-contain rounded-md border border-gray-200 dark:border-gray-800"
-                    />
-                ) : (
-                    <TextCard content={currentItem.textContent} />
-                )}
             </div>
 
             {/* Thumbnails */}
