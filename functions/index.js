@@ -169,26 +169,6 @@ exports.deletePromptTemplate = onCall(
     }
 );
 
-
-
-exports.runPromptTemplate = onCall(
-    { maxInstances: 10, enforceAppCheck: true },
-    async (request) => {
-        const { templateId, reqBody } = request.data;
-        if (!templateId) throw new HttpsError('invalid-argument', 'Missing templateId');
-
-        logger.info("runPromptTemplate", { templateId });
-        const runUrl = `https://firebasevertexai.googleapis.com/v1beta/projects/${PROJECT_ID}/templates/${templateId}:templateGenerateContent`;
-
-        const result = await makeApiRequest({
-            url: runUrl,
-            method: "POST",
-            data: { inputs: reqBody }
-        });
-        return result;
-    }
-);
-
 exports.updatePromptTemplate = onCall(
     { maxInstances: 10, enforceAppCheck: true },
     async (request) => {

@@ -50,8 +50,3 @@ export const deletePromptTemplate = async ({ templateId }) => {
     const deleteFn = httpsCallable(functions, 'deletePromptTemplate');
     return await deleteFn({ templateId });
 };
-
-export const runPromptTemplate = async ({ templateId, reqBody }) => {
-    const runFn = httpsCallable(functions, 'runPromptTemplate');
-    return await runFn({ templateId, reqBody });
-};

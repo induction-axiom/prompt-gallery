@@ -5,7 +5,7 @@ import { usePromptExecution } from '../../hooks/usePromptExecution';
 import { useTemplatesContext } from '../../context/TemplatesContext';
 import { extractImageFromGeminiResult, extractTextFromGeminiResult } from '../../utils/geminiParsers';
 import { cleanJsonString } from '../../utils/jsonUtils';
-import { runPromptTemplate } from '../../services/functions';
+import { runPromptTemplate } from '../../services/ai';
 import { SYSTEM_PROMPT_IDS } from '../../config/systemPrompts';
 
 const TemplateRunner = ({

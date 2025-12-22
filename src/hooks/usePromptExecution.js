@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { runPromptTemplate } from '../services/functions';
+import { runPromptTemplate } from '../services/ai';
 import { extractImageFromGeminiResult, extractTextFromGeminiResult } from '../utils/geminiParsers';
 import { uploadImage } from '../services/storage';
 import { saveExecutionMetadata } from '../services/firestore';

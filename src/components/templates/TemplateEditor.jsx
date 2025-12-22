@@ -1,7 +1,8 @@
 import React from 'react';
 import Modal from '../common/Modal';
 import Button from '../common/Button';
-import { runPromptTemplate, createPromptTemplate, updatePromptTemplate } from '../../services/functions';
+import { createPromptTemplate, updatePromptTemplate } from '../../services/functions';
+import { runPromptTemplate } from '../../services/ai';
 import { extractTextFromGeminiResult } from '../../utils/geminiParsers';
 import { cleanJsonString } from '../../utils/jsonUtils';
 import { SYSTEM_PROMPT_IDS } from '../../config/systemPrompts';

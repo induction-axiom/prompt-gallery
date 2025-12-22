@@ -3,6 +3,7 @@ import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
+import { getAI, GoogleAIBackend } from "firebase/ai";
 
 const firebaseConfig = {
     apiKey: "AIzaSyAInfTO1XXys9mgCWHh9WgR_fE9rTUhUhk",
@@ -19,6 +20,7 @@ export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
 export const googleProvider = new GoogleAuthProvider();
+export const ai = getAI(app, { backend: new GoogleAIBackend() });
 
 if (typeof window !== "undefined") {
     // self.FIREBASE_APPCHECK_DEBUG_TOKEN = true; 
