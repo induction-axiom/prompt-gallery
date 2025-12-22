@@ -4,6 +4,8 @@ import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
 import { getAI, GoogleAIBackend } from "firebase/ai";
+import { getFunctions } from "firebase/functions";
+import { getTemplateGenerativeModel } from "firebase/ai";
 
 const firebaseConfig = {
     apiKey: "AIzaSyAInfTO1XXys9mgCWHh9WgR_fE9rTUhUhk",
@@ -15,17 +17,19 @@ const firebaseConfig = {
     measurementId: "G-HWJ8S6C3VF"
 };
 
-export const app = initializeApp(firebaseConfig);
+const app = initializeApp(firebaseConfig);
+
+if (typeof window !== "undefined") {
+    initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider('6Lf-ii0sAAAAAOIOni8kRWIamtsYBtNEw3TONgjA'),
+        isTokenAutoRefreshEnabled: true,
+    });
+}
+
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
+export const functions = getFunctions(app, 'us-central1');
 export const googleProvider = new GoogleAuthProvider();
-export const ai = getAI(app, { backend: new GoogleAIBackend() });
-
-if (typeof window !== "undefined") {
-    // self.FIREBASE_APPCHECK_DEBUG_TOKEN = true; 
-    initializeAppCheck(app, {
-        provider: new ReCaptchaV3Provider('6Lf-ii0sAAAAAOIOni8kRWIamtsYBtNEw3TONgjA'),
-        isTokenAutoRefreshEnabled: true
-    });
-}
+const ai = getAI(app, { backend: new GoogleAIBackend() });
+export const model = getTemplateGenerativeModel(ai);

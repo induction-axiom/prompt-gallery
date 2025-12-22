@@ -48,7 +48,7 @@ const TemplateRunner = ({
     const handleDiceClick = async () => {
         setIsGeneratingRandom(true);
         try {
-            const result = await runPromptTemplate({
+            const response = await runPromptTemplate({
                 templateId: SYSTEM_PROMPT_IDS.GENERATE_RANDOM_DATA,
                 reqBody: {
                     target_template: template.templateString || template.dotPromptString || '',
@@ -56,8 +56,8 @@ const TemplateRunner = ({
                 }
             });
 
-            let parsed = extractTextFromGeminiResult(result.data);
-            if (!parsed) parsed = result.data;
+            let parsed = extractTextFromGeminiResult(response);
+            if (!parsed) parsed = response;
 
             setInputJson(cleanJsonString(parsed));
         } catch (error) {

@@ -21,13 +21,12 @@ export const usePromptExecution = (user) => {
             const templateId = template.name.split('/').pop();
 
             // 1. Run the prompt
-            const result = await runPromptTemplate({ templateId, reqBody });
-            const rawResult = result.data;
-            setRunResult(rawResult);
+            const response = await runPromptTemplate({ templateId, reqBody });
+            setRunResult(response);
 
             // 2. Process and Save logic (only if we have a user to save to)
             if (user && onSave) {
-                const imageParams = extractImageFromGeminiResult(rawResult);
+                const imageParams = extractImageFromGeminiResult(response);
 
                 const commonExecutionData = {
                     promptId: templateId,

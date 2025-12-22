@@ -1,7 +1,5 @@
-import { getFunctions, httpsCallable } from "firebase/functions";
-import { app } from "../firebase";
-
-const functions = getFunctions(app);
+import { httpsCallable } from "firebase/functions";
+import { functions } from "../firebase";
 
 // Cache for prompt templates: templateId -> { data, timestamp }
 const promptTemplateCache = new Map();

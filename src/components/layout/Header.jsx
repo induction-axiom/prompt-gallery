@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import useDarkMode from '../../hooks/useDarkMode';
 import { Sun, Moon, RefreshCw, Github } from 'lucide-react';
-import { getFunctions, httpsCallable } from 'firebase/functions';
-import { app } from '../../firebase';
+import { httpsCallable } from 'firebase/functions';
+import { functions } from '../../firebase';
 import { useTemplatesContext } from '../../context/TemplatesContext';
 
 const Header = ({ onLogout, onCreate }) => {
@@ -69,7 +69,6 @@ const Header = ({ onLogout, onCreate }) => {
         if (isSyncing) return;
         setIsSyncing(true);
         try {
-            const functions = getFunctions(app, 'us-central1');
             const syncSystemPrompts = httpsCallable(functions, 'syncSystemPrompts');
             await syncSystemPrompts();
             alert('System prompts synced successfully!');
@@ -173,7 +172,6 @@ const Header = ({ onLogout, onCreate }) => {
                                                         setIsDropdownOpen(false);
                                                         if (!window.confirm("Rebuild global tag list?")) return;
                                                         try {
-                                                            const functions = getFunctions(app, 'us-central1');
                                                             const rebuildFn = httpsCallable(functions, 'manualRebuildTags');
                                                             await rebuildFn();
                                                             alert('Tag list rebuilt successfully!');

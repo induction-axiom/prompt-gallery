@@ -1,13 +1,13 @@
-import { getTemplateGenerativeModel } from "firebase/ai";
-import { ai } from "../firebase";
+import { model } from "../firebase";
 
 export async function runPromptTemplate({ templateId, reqBody }) {
-    const model = getTemplateGenerativeModel(ai);
     try {
         return await model.generateContent(
             templateId,
             reqBody
-        );
+        ).then((result) => {
+            return result.response;
+        });
     } catch (error) {
         console.error("Error calling template:", error);
         throw error;

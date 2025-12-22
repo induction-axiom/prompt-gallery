@@ -56,13 +56,13 @@ const TemplateEditor = ({
         if (!dotPromptString) return alert("Please enter a prompt first");
         setIsGeneratingSchema(true);
         try {
-            const result = await runPromptTemplate({
+            const response = await runPromptTemplate({
                 templateId: SYSTEM_PROMPT_IDS.AUTO_DETECT_SCHEMA,
                 reqBody: { target_template: dotPromptString }
             });
 
-            let parsed = extractTextFromGeminiResult(result.data);
-            if (!parsed) parsed = result.data;
+            let parsed = extractTextFromGeminiResult(response);
+            if (!parsed) parsed = response;
             parsed = cleanJsonString(parsed);
 
             const finalJson = (parsed === '{}' || !parsed) ? '{"object": "banana"}' : parsed;
@@ -79,12 +79,12 @@ const TemplateEditor = ({
         if (!dotPromptString) return alert("Please enter a prompt first to generate a name");
         setIsGeneratingName(true);
         try {
-            const result = await runPromptTemplate({
+            const response = await runPromptTemplate({
                 templateId: SYSTEM_PROMPT_IDS.AUTO_GENERATE_NAME,
                 reqBody: { target_template: dotPromptString }
             });
 
-            const title = extractTextFromGeminiResult(result.data);
+            const title = extractTextFromGeminiResult(response);
             if (title) {
                 setDisplayName(title.trim());
             } else {
@@ -102,12 +102,12 @@ const TemplateEditor = ({
         if (!dotPromptString) return alert("Please enter a prompt first to format");
         setIsFormatting(true);
         try {
-            const result = await runPromptTemplate({
+            const response = await runPromptTemplate({
                 templateId: SYSTEM_PROMPT_IDS.AUTO_FORMAT_PROMPT,
                 reqBody: { rawInput: dotPromptString }
             });
 
-            const formatted = extractTextFromGeminiResult(result.data);
+            const formatted = extractTextFromGeminiResult(response);
             if (formatted) {
                 setDotPromptString(formatted);
             } else {
@@ -125,7 +125,7 @@ const TemplateEditor = ({
         if (!dotPromptString || !displayName) return alert("Please enter a name and prompt first");
         setIsLabeling(true);
         try {
-            const result = await runPromptTemplate({
+            const response = await runPromptTemplate({
                 templateId: SYSTEM_PROMPT_IDS.PROMPT_LABELER,
                 reqBody: {
                     target_display_name: displayName,
@@ -133,8 +133,8 @@ const TemplateEditor = ({
                 }
             });
 
-            let parsed = extractTextFromGeminiResult(result.data);
-            if (!parsed) parsed = result.data;
+            let parsed = extractTextFromGeminiResult(response);
+            if (!parsed) parsed = response;
             parsed = cleanJsonString(parsed);
 
             // Expecting ["Label1", "Label2"]
